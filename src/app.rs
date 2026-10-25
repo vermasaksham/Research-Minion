@@ -1,7 +1,7 @@
 use eframe::egui::{self, Color32, RichText, Stroke, Vec2};
 
 use crate::{
-    cvt_view::{self, ExperimentForm, FormAction},
+    cvt_view::{self, ExperimentAction, ExperimentForm, FormAction},
     editor::Editor,
     model::{CvtExperiment, Entry, Project},
     store::Store,
@@ -25,6 +25,8 @@ enum Tab {
 enum Action {
     SelectTab(Tab),
     NewExperiment,
+    OpenExperiment(String),
+    PreviousLogs,
     CreateExperiment,
     SelectProject(String),
     OpenEntry(String),
@@ -49,6 +51,7 @@ pub struct ResearchMinionApp {
     tab: Tab,
     experiments: Vec<CvtExperiment>,
     experiment_form: Option<ExperimentForm>,
+    active_experiment: Option<CvtExperiment>,
     projects: Vec<Project>,
     entries: Vec<Entry>,
     project_id: Option<String>,
@@ -74,6 +77,7 @@ impl ResearchMinionApp {
             tab: Tab::default(),
             experiments: vec![],
             experiment_form: None,
+            active_experiment: None,
             projects: vec![],
             entries: vec![],
             project_id: None,
@@ -86,7 +90,7 @@ impl ResearchMinionApp {
             allow_close: false,
         };
         if let Some(store) = &app.store {
-            match store.projects() {
+            match store.legacy_projects() {
                 Ok(projects) => app.projects = projects,
                 Err(error) => app.startup_error = Some(error.to_string()),
             }
@@ -168,7 +172,7 @@ impl ResearchMinionApp {
             .map_err(|error| error.to_string())
             .and_then(|conditions| {
                 store
-                    .create_cvt_experiment(&form.name, conditions)
+                    .create_cvt_experiment_with_details(&form.name, conditions, &form.details)
                     .map_err(|error| error.to_string())
             });
         match result {
@@ -220,6 +224,8 @@ impl ResearchMinionApp {
             action,
             Action::SelectTab(_)
                 | Action::NewExperiment
+                | Action::OpenExperiment(_)
+                | Action::PreviousLogs
                 | Action::SelectProject(_)
                 | Action::OpenEntry(_)
                 | Action::NewEntry
@@ -243,6 +249,30 @@ impl ResearchMinionApp {
                     self.refresh_experiments();
                 }
             }
+            Action::OpenExperiment(id) => {
+                let result = self.store.as_ref().map(|store| store.cvt_experiment(&id));
+                match result {
+                    Some(Ok(experiment)) => {
+                        let project_id = experiment.log_project_id.clone();
+                        self.active_experiment = Some(experiment);
+                        self.select_project(project_id);
+                        self.tab = Tab::Logbook;
+                    }
+                    Some(Err(error)) => self.error = Some(error.to_string()),
+                    None => {}
+                }
+            }
+            Action::PreviousLogs => {
+                self.active_experiment = None;
+                self.tab = Tab::Logbook;
+                if let Some(project) = self.projects.first() {
+                    self.select_project(project.id.clone());
+                } else {
+                    self.project_id = None;
+                    self.editor = None;
+                    self.entries.clear();
+                }
+            }
             Action::NewExperiment => {
                 self.error = None;
                 self.experiment_form = Some(ExperimentForm::default());
@@ -256,7 +286,10 @@ impl ResearchMinionApp {
             Action::Filter => {
                 self.refresh_entries();
             }
-            Action::SelectProject(id) => self.select_project(id),
+            Action::SelectProject(id) => {
+                self.active_experiment = None;
+                self.select_project(id);
+            }
             Action::NewEntry => {
                 if let Some(id) = &self.project_id {
                     self.editor = Some(Editor::new(id.clone()));
@@ -341,12 +374,9 @@ impl ResearchMinionApp {
                         .color(Color32::from_gray(160)),
                 );
                 ui.add_space(8.0);
-                for (tab, label) in [
-                    (Tab::Experiments, "CVT Experiments"),
-                    (Tab::Tools, "Tools"),
-                    (Tab::Logbook, "Logbook"),
-                ] {
-                    let selected = self.tab == tab;
+                for (tab, label) in [(Tab::Experiments, "CVT Experiments"), (Tab::Tools, "Tools")] {
+                    let selected =
+                        self.tab == tab || (tab == Tab::Experiments && self.tab == Tab::Logbook);
                     if ui
                         .add(
                             egui::Button::new(RichText::new(label).color(Color32::WHITE))
@@ -355,55 +385,13 @@ impl ResearchMinionApp {
                                 .min_size(Vec2::new(ui.available_width(), 40.0)),
                         )
                         .clicked()
-                        && !selected
+                        && self.tab != tab
                     {
                         actions.push(Action::SelectTab(tab));
                     }
                     ui.add_space(4.0);
                 }
                 ui.add_space(24.0);
-                if self.tab == Tab::Logbook {
-                    ui.label(
-                        RichText::new("PROJECTS")
-                            .size(11.0)
-                            .strong()
-                            .color(Color32::from_gray(160)),
-                    );
-                    ui.add_space(10.0);
-                    egui::ScrollArea::vertical()
-                        .id_salt("project-list")
-                        .max_height((ui.available_height() - 140.0).max(70.0))
-                        .show(ui, |ui| {
-                            for project in &self.projects {
-                                let selected = self.project_id.as_ref() == Some(&project.id);
-                                let button = egui::Button::new(
-                                    RichText::new(&project.name).color(Color32::WHITE),
-                                )
-                                .fill(if selected { TEAL } else { SIDEBAR })
-                                .corner_radius(6.0)
-                                .min_size(Vec2::new(ui.available_width(), 40.0));
-                                if ui.add(button).on_hover_text(&project.description).clicked()
-                                    && !selected
-                                {
-                                    actions.push(Action::SelectProject(project.id.clone()));
-                                }
-                                ui.add_space(4.0);
-                            }
-                        });
-                    ui.add_space(12.0);
-                    if ui
-                        .add(
-                            egui::Button::new(
-                                RichText::new("+  New project").color(Color32::WHITE),
-                            )
-                            .fill(Color32::from_rgb(43, 59, 74))
-                            .min_size(Vec2::new(ui.available_width(), 36.0)),
-                        )
-                        .clicked()
-                    {
-                        actions.push(Action::NewProject);
-                    }
-                }
                 ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                     ui.label(
                         RichText::new("OFFLINE BY DESIGN")
@@ -432,15 +420,24 @@ impl ResearchMinionApp {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
                         ui.label(
-                            RichText::new("RESEARCH LOGBOOK")
-                                .size(11.0)
-                                .color(MUTED)
-                                .strong(),
+                            RichText::new(if self.active_experiment.is_some() {
+                                "EXPERIMENT LOG"
+                            } else {
+                                "PREVIOUS PROJECT LOGS"
+                            })
+                            .size(11.0)
+                            .color(MUTED)
+                            .strong(),
                         );
                         ui.add_space(4.0);
                         ui.heading(
                             RichText::new(
-                                project.map_or("Welcome to Research Minion", |p| p.name.as_str()),
+                                self.active_experiment
+                                    .as_ref()
+                                    .map(|e| e.name.as_str())
+                                    .unwrap_or_else(|| {
+                                        project.map_or("Previous project logs", |p| p.name.as_str())
+                                    }),
                             )
                             .size(26.0)
                             .color(INK),
@@ -451,9 +448,38 @@ impl ResearchMinionApp {
                         {
                             actions.push(Action::NewEntry);
                         }
+                        if ui.button("Back to experiments").clicked() {
+                            actions.push(Action::SelectTab(Tab::Experiments));
+                        }
                     });
                 });
-                if let Some(project) = project
+                if let Some(experiment) = &self.active_experiment {
+                    crate::materials_view::experiment_summary(ui, experiment);
+                } else {
+                    ui.horizontal(|ui| {
+                        ui.label("Project:");
+                        egui::ComboBox::from_id_salt("previous-project")
+                            .selected_text(project.map_or("Choose project", |p| p.name.as_str()))
+                            .show_ui(ui, |ui| {
+                                for item in &self.projects {
+                                    if ui
+                                        .selectable_label(
+                                            Some(&item.id) == self.project_id.as_ref(),
+                                            &item.name,
+                                        )
+                                        .clicked()
+                                    {
+                                        actions.push(Action::SelectProject(item.id.clone()));
+                                    }
+                                }
+                            });
+                        if ui.button("New project").clicked() {
+                            actions.push(Action::NewProject);
+                        }
+                    });
+                }
+                if self.active_experiment.is_none()
+                    && let Some(project) = project
                     && !project.description.is_empty()
                 {
                     ui.add_space(5.0);
@@ -699,8 +725,19 @@ impl eframe::App for ResearchMinionApp {
                 }
                 match self.tab {
                     Tab::Experiments => {
-                        if cvt_view::experiments(ui, &self.experiments) {
-                            actions.push(Action::NewExperiment);
+                        match cvt_view::experiments(
+                            ui,
+                            &self.experiments,
+                            !self.projects.is_empty(),
+                        ) {
+                            Some(ExperimentAction::New) => actions.push(Action::NewExperiment),
+                            Some(ExperimentAction::Open(id)) => {
+                                actions.push(Action::OpenExperiment(id))
+                            }
+                            Some(ExperimentAction::PreviousLogs) => {
+                                actions.push(Action::PreviousLogs)
+                            }
+                            None => {}
                         }
                     }
                     Tab::Tools => cvt_view::tools(ui),

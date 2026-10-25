@@ -3,17 +3,33 @@ use eframe::egui::{self, Align2, Color32, FontId, Pos2, Rect, RichText, Stroke, 
 use crate::{
     app::{INK, MUTED, PAPER, TEAL, primary_button},
     cvt::{CvtConditions, TemperatureError, TemperatureScale, temperature_text},
-    model::CvtExperiment,
+    materials_view::{self, ElementTarget},
+    model::{CvtExperiment, ExperimentDetails, HeatEffect},
 };
 
 const SOURCE: Color32 = Color32::from_rgb(191, 103, 58);
 const SINK: Color32 = Color32::from_rgb(40, 119, 149);
 
-#[derive(Default)]
 pub struct ExperimentForm {
     pub name: String,
     pub source: String,
     pub sink: String,
+    pub details: ExperimentDetails,
+    target: ElementTarget,
+    ui_id: uuid::Uuid,
+}
+
+impl Default for ExperimentForm {
+    fn default() -> Self {
+        Self {
+            name: String::new(),
+            source: String::new(),
+            sink: String::new(),
+            details: ExperimentDetails::default(),
+            target: ElementTarget::default(),
+            ui_id: uuid::Uuid::new_v4(),
+        }
+    }
 }
 
 pub enum FormAction {
@@ -24,7 +40,10 @@ pub enum FormAction {
 
 impl ExperimentForm {
     pub fn is_dirty(&self) -> bool {
-        !self.name.is_empty() || !self.source.is_empty() || !self.sink.is_empty()
+        !self.name.is_empty()
+            || !self.source.is_empty()
+            || !self.sink.is_empty()
+            || self.details != ExperimentDetails::default()
     }
 
     pub fn conditions(&self) -> Result<CvtConditions, TemperatureError> {
@@ -34,89 +53,77 @@ impl ExperimentForm {
     pub fn show(&mut self, ctx: &egui::Context, error: Option<&str>) -> Option<FormAction> {
         let mut action = None;
         let mut changed = false;
-        egui::Modal::new(egui::Id::new("new-cvt-experiment")).show(ctx, |ui| {
-            ui.set_width(430.0);
+        // Fresh forms get fresh scroll/collapse state; retained drafts keep theirs.
+        egui::Modal::new(egui::Id::new(("new-cvt-experiment",self.ui_id))).show(ctx, |ui| {
+            ui.set_width(860.0);
             ui.heading("New CVT experiment");
-            ui.label(RichText::new("Enter the two temperature set-points.").color(MUTED));
-            ui.add_space(18.0);
-            ui.label(RichText::new("Source temperature (°C)").strong());
-            changed |= ui
-                .add(
-                    egui::TextEdit::singleline(&mut self.source)
-                        .hint_text("e.g. 650.5")
-                        .desired_width(f32::INFINITY),
-                )
-                .changed();
-            ui.add_space(12.0);
-            ui.label(RichText::new("Sink temperature (°C)").strong());
-            changed |= ui
-                .add(
-                    egui::TextEdit::singleline(&mut self.sink)
-                        .hint_text("e.g. 600")
-                        .desired_width(f32::INFINITY),
-                )
-                .changed();
-            ui.add_space(16.0);
-            let conditions = self.conditions();
-            egui::Frame::new()
-                .fill(PAPER)
-                .inner_margin(14)
-                .corner_radius(6.0)
-                .show(ui, |ui| {
-                    ui.set_width(ui.available_width());
-                    ui.label(RichText::new("ΔT = Source − Sink").color(MUTED));
-                    match &conditions {
-                        Ok(pair) => {
-                            ui.label(
-                                RichText::new(format!("{} °C", temperature_text(pair.delta_c())))
-                                    .size(26.0)
-                                    .strong()
-                                    .color(TEAL),
-                            );
-                        }
-                        Err(error)
-                            if !self.source.trim().is_empty() && !self.sink.trim().is_empty() =>
-                        {
-                            ui.colored_label(Color32::DARK_RED, error.to_string());
-                        }
-                        Err(_) => {
-                            ui.label(
-                                RichText::new("Enter both temperatures to calculate ΔT.")
-                                    .color(MUTED),
-                            );
-                        }
-                    }
+            ui.label(RichText::new("Record temperatures, materials and thermal character.").color(MUTED));
+            ui.add_space(10.0);
+            egui::ScrollArea::vertical().id_salt("experiment-form-body")
+                .max_height((ctx.content_rect().height()-190.0).clamp(240.0,620.0)).show(ui,|ui| {
+                ui.label("Experiment name (optional)");
+                changed |= ui.add(egui::TextEdit::singleline(&mut self.name).hint_text("Leave blank to generate a label").desired_width(f32::INFINITY)).changed();
+                ui.add_space(12.0);
+                ui.columns(2,|columns| {
+                    columns[0].strong("Source temperature (°C)");
+                    changed |= columns[0].add(egui::TextEdit::singleline(&mut self.source).hint_text("e.g. 650.5").desired_width(f32::INFINITY)).changed();
+                    columns[1].strong("Sink temperature (°C)");
+                    changed |= columns[1].add(egui::TextEdit::singleline(&mut self.sink).hint_text("e.g. 600").desired_width(f32::INFINITY)).changed();
                 });
+                ui.add_space(10.0);
+                ui.horizontal_wrapped(|ui| {
+                    match self.conditions() {
+                        Ok(pair)=>{ui.label(RichText::new(format!("ΔT = {} °C",temperature_text(pair.delta_c()))).size(20.0).color(TEAL));}
+                        Err(error) if !self.source.is_empty() && !self.sink.is_empty()=>{ui.colored_label(Color32::DARK_RED,error.to_string());}
+                        Err(_)=>{ui.label(RichText::new("ΔT = Source − Sink").color(MUTED));}
+                    }
+                    ui.label("Thermal character:");
+                    egui::ComboBox::from_id_salt("heat-effect").selected_text(self.details.heat_effect.label()).show_ui(ui,|ui| {
+                        for effect in [HeatEffect::Unspecified,HeatEffect::Endothermic,HeatEffect::Exothermic] {
+                            changed |= ui.selectable_value(&mut self.details.heat_effect,effect,effect.label()).changed();
+                        }
+                    });
+                });
+                ui.label(RichText::new("Endothermic absorbs heat; exothermic releases heat. Your assignment is not inferred from ΔT.").size(11.0).color(MUTED));
+                ui.add_space(14.0);
+                ui.columns(2,|columns| {
+                    changed |= materials_view::material_input(&mut columns[0],"Precursor materials",&mut self.details.precursor);
+                    changed |= materials_view::material_input(&mut columns[1],"Obtained material",&mut self.details.product);
+                });
+                ui.add_space(8.0);
+                ui.label(RichText::new("Suggestions recognise element symbols, formulas and common name parts. Confirm the elements you want; your typed text is always kept.").size(11.0).color(MUTED));
+                ui.collapsing("Choose elements from the periodic table",|ui| {
+                    changed |= materials_view::periodic_table(ui,&mut self.details,&mut self.target);
+                });
+                ui.add_space(12.0);
+                ui.label("Transport agent (optional)");
+                changed |= ui.add(egui::TextEdit::singleline(&mut self.details.transport_agent).hint_text("Formula or name, e.g. I2; leave blank if not used").desired_width(f32::INFINITY)).changed();
+            });
+            if let Some(error)=error {ui.colored_label(Color32::DARK_RED,error);}
             ui.add_space(14.0);
-            ui.label("Experiment name (optional)");
-            changed |= ui
-                .add(
-                    egui::TextEdit::singleline(&mut self.name)
-                        .hint_text("Leave blank to generate a label")
-                        .desired_width(f32::INFINITY),
-                )
-                .changed();
-            if let Some(error) = error {
-                ui.colored_label(Color32::DARK_RED, error);
-            }
-            ui.add_space(18.0);
             ui.horizontal(|ui| {
-                ui.add_enabled_ui(conditions.is_ok(), |ui| {
-                    if primary_button(ui, "Save experiment").clicked() {
-                        action = Some(FormAction::Save);
-                    }
+                ui.add_enabled_ui(self.conditions().is_ok(),|ui| {
+                    if primary_button(ui,"Save experiment").clicked(){action=Some(FormAction::Save);}
                 });
-                if ui.button("Cancel").clicked() {
-                    action = Some(FormAction::Cancel);
-                }
+                if ui.button("Cancel").clicked(){action=Some(FormAction::Cancel);}
             });
         });
         action.or(changed.then_some(FormAction::Changed))
     }
 }
 
-pub fn experiments(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> bool {
-    let mut add = false;
+pub enum ExperimentAction {
+    New,
+    Open(String),
+    PreviousLogs,
+}
+
+pub fn experiments(
+    ui: &mut egui::Ui,
+    experiments: &[CvtExperiment],
+    has_previous_logs: bool,
+) -> Option<ExperimentAction> {
+    let mut action = None;
     egui::ScrollArea::vertical().id_salt("experiments-page").show(ui, |ui| {
         egui::Frame::new().inner_margin(26).show(ui, |ui| {
             ui.horizontal(|ui| {
@@ -126,7 +133,8 @@ pub fn experiments(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> bool {
                     ui.heading(RichText::new("CVT Experiments").size(28.0).color(INK));
                 });
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    if primary_button(ui, "+  New experiment").clicked() { add = true; }
+                    if primary_button(ui, "+  New experiment").clicked() { action = Some(ExperimentAction::New); }
+                    if has_previous_logs && ui.button("Previous project logs").clicked() { action = Some(ExperimentAction::PreviousLogs); }
                 });
             });
             ui.add_space(7.0);
@@ -140,7 +148,9 @@ pub fn experiments(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> bool {
             let mut chart_overflows = false;
             egui::Frame::new().fill(PAPER).stroke(Stroke::new(1.0, Color32::from_gray(224)))
                 .corner_radius(8.0).inner_margin(12).show(ui, |ui| {
-                    chart_overflows = draw_chart(ui, experiments);
+                    let (overflows,open) = draw_chart(ui, experiments);
+                    chart_overflows = overflows;
+                    if let Some(id)=open { action = Some(ExperimentAction::Open(id)); }
                     ui.add_space(4.0);
                     ui.horizontal(|ui| {
                         ui.colored_label(SOURCE, "Source");
@@ -149,6 +159,7 @@ pub fn experiments(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> bool {
                     });
                 });
             ui.add_space(8.0);
+            ui.label(RichText::new("Click an experiment bar or name to open its log.").color(TEAL));
             ui.label(RichText::new("Horizontal position is schematic, not distance or time. Lines connect set-points; they are not measured temperature profiles.").size(11.0).color(MUTED));
             if chart_overflows {
                 ui.label(RichText::new("Scroll the overview horizontally to see more experiments.").size(11.0).color(MUTED));
@@ -161,31 +172,34 @@ pub fn experiments(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> bool {
                 ui.label(RichText::new("Recorded experiments").size(18.0).strong());
                 ui.label(RichText::new("All saved experiments · most recently recorded first").size(11.0).color(MUTED));
                 ui.add_space(12.0);
-                let name_width = (ui.available_width() * 0.38).clamp(160.0, 300.0);
-                egui::Grid::new("cvt-records").striped(true).min_col_width(100.0).spacing([12.0, 12.0]).show(ui, |ui| {
-                    for title in ["Experiment", "Source (°C)", "Sink (°C)", "ΔT (°C)"] { ui.strong(title); }
+                let name_width = (ui.available_width() * 0.35).clamp(140.0, 240.0);
+                egui::Grid::new("cvt-records").striped(true).min_col_width(85.0).spacing([12.0, 12.0]).show(ui, |ui| {
+                    for title in ["Experiment", "Source (°C)", "Sink (°C)", "ΔT (°C)", "Thermal character"] { ui.strong(title); }
                     ui.end_row();
                     for experiment in experiments {
-                        ui.allocate_ui_with_layout(Vec2::new(name_width, 22.0), egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                            ui.add(egui::Label::new(&experiment.name).truncate())
+                        let response = ui.allocate_ui_with_layout(Vec2::new(name_width, 22.0), egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                            ui.add(egui::Label::new(RichText::new(&experiment.name).color(TEAL).underline()).truncate().sense(egui::Sense::click()))
                         }).inner
                             .on_hover_text(format!("{}\nRecorded {} UTC\nID: {}", experiment.name, experiment.created_at.format("%Y-%m-%d %H:%M"), experiment.id));
+                        if response.clicked() {action=Some(ExperimentAction::Open(experiment.id.clone()));}
                         ui.label(temperature_text(experiment.conditions.source_c()));
                         ui.label(temperature_text(experiment.conditions.sink_c()));
                         ui.colored_label(TEAL, temperature_text(experiment.conditions.delta_c()));
+                        ui.label(experiment.details.heat_effect.label());
                         ui.end_row();
                     }
                 });
             }
         });
     });
-    add
+    action
 }
 
-fn draw_chart(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> bool {
+fn draw_chart(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> (bool, Option<String>) {
     let scale = TemperatureScale::for_conditions(experiments.iter().map(|e| e.conditions));
     let height = 330.0;
     let mut overflows = false;
+    let mut open = None;
     // Keep the temperature axis fixed while experiment groups scroll horizontally.
     ui.horizontal_top(|ui| {
         let (axis, _) = ui.allocate_exact_size(Vec2::new(72.0, height), egui::Sense::hover());
@@ -313,22 +327,24 @@ fn draw_chart(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> bool {
                         Pos2::new(center - slot * 0.5, rect.top()),
                         Pos2::new(center + slot * 0.5, rect.bottom()),
                     );
-                    ui.interact(
+                    let response=ui.interact(
                         hover_rect,
                         egui::Id::new(("cvt-profile", &experiment.id)),
-                        egui::Sense::hover(),
+                        egui::Sense::click(),
                     )
+                    .on_hover_cursor(egui::CursorIcon::PointingHand)
                     .on_hover_text(format!(
-                        "{}\nSource: {} °C\nSink: {} °C\nΔT (Source − Sink): {} °C",
+                        "{}\nSource: {} °C\nSink: {} °C\nΔT (Source − Sink): {} °C\n{}\nClick to open experiment log",
                         experiment.name,
                         temperature_text(experiment.conditions.source_c()),
                         temperature_text(experiment.conditions.sink_c()),
-                        temperature_text(experiment.conditions.delta_c())
+                        temperature_text(experiment.conditions.delta_c()), experiment.details.heat_effect.label()
                     ));
+                    if response.clicked() {open=Some(experiment.id.clone());}
                 }
             });
     });
-    overflows
+    (overflows, open)
 }
 
 pub fn tools(ui: &mut egui::Ui) {

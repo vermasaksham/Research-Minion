@@ -23,6 +23,8 @@ try {
     Copy-Item 'README.md' $staging -Force
     New-Item -ItemType Directory -Force -Path "$staging/docs" | Out-Null
     Copy-Item 'docs/*.md' "$staging/docs" -Force
+    New-Item -ItemType Directory -Force -Path "$staging/docs/images" | Out-Null
+    Copy-Item 'docs/images/*.png' "$staging/docs/images" -Force
     Copy-Item 'docs/WINDOWS-PREVIEW.txt' "$staging/START-HERE.txt" -Force
     $archive = "target/packages/Research-Minion-$version-windows-x64.zip"
     Compress-Archive -Path "$staging/*" -DestinationPath $archive -Force

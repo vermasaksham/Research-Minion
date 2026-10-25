@@ -1,6 +1,6 @@
 # Validation record
 
-Version 0.2 CVT increment, 25 October 2026. The development host is Debian Linux x64;
+Version 0.3 material/log increment, 25 October 2026. The development host is Debian Linux x64;
 Windows execution is not claimed.
 
 ## Executed
@@ -10,15 +10,16 @@ Windows execution is not claimed.
 | Pinned Rust 1.95.0 installation and locked dependency restore | Passed |
 | `cargo fmt --all -- --check` | Passed |
 | `cargo clippy --locked --all-targets -- -D warnings` | Passed |
-| `cargo test --locked --offline` | 20 integration tests passed; no ignored/failed tests |
-| `cargo test --locked --offline --no-default-features` | The same 20 integration tests passed without desktop features or network restore |
+| `cargo test --locked --offline` | 30 integration tests passed; no ignored/failed tests |
+| `cargo test --locked --offline --no-default-features` | The same 30 integration tests passed without desktop features or network restore |
 | `cargo build --locked` | Linux desktop build passed |
-| `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.2 |
+| `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.3 |
 | Windows GNU x64 cross-build | Passed; Windows UI subsystem confirmed in the executable |
 
 Library, executable, and documentation test runners also report zero tests;
 the meaningful assertions are 11 tests in `tests/logbook.rs` and 9 in
-`tests/cvt.rs`. The logbook tests cover
+`tests/cvt.rs`, plus 5 each in `tests/chemistry.rs` and
+`tests/experiment_records.rs`. The logbook tests cover
 on-disk close/reopen, exact notes persistence, stable identity, retrospective
 dates, ordering, scoped/literal/Unicode search, invalid records and dates,
 retained drafts, two-instance conflict detection, and refusal to alter newer or
@@ -29,6 +30,38 @@ temperatures, absolute zero, exact temperature round-trips, optional labels,
 project-independent storage, common plot scales (including flat and extreme
 ranges), display-only rounding, preservation of the version-1 logbook during
 migration, and refusal to partially upgrade an incompatible version-1 file.
+
+The additional tests cover all 118 element identities and table locations,
+formula groups/hydrates/subscripts, Co versus CO, element-name prefixes and common
+name parts, rejection of unknown matches, exact metadata round-trips, different
+precursor/product sets, optional agent/manual-only input, independent persistent
+logs, rollback of partially written records, and migration from schema 2 without
+reassigning old project notes or inventing a thermal assignment.
+
+## Interface checks executed on Linux in 0.3
+
+Used the real desktop under Xvfb with disposable data and independent SQLite reads.
+
+- The sidebar contains CVT Experiments and Tools, with no Logbook tab.
+- Added an Endothermic experiment with source/sink temperatures, manual precursor
+  text, a chemical-name product description and optional iodine-agent text.
+- Formula/name input displayed Sb/Se suggestions. Add suggested selected the chips.
+- Expanded the complete periodic table, switched between Precursor and Obtained
+  material, and selected oxygen for the latter only. Saved rows confirmed that
+  precursor/product sets remained separate and raw text was not rewritten.
+- Clicked the experiment bar to open its log; created a dated multiline note and
+  verified the experiment/log/entry relationship in SQLite.
+- Restarted the app and reopened the record; its note and metadata persisted.
+- Added a second Exothermic experiment with a blank transport agent and separate
+  note. Switching between experiment bars kept the two note lists independent.
+- New add forms reset scroll/collapse state; saved or retained drafts preserve
+  their actual text and selections.
+- At minimum window size, the form's Save/Cancel controls remained accessible.
+  A draft containing only material text triggered normal close protection;
+  Keep editing returned to that text without saving an extra experiment.
+- Opened a schema-2 workspace containing an older CVT record and unlinked notes.
+  Previous project logs opened the original note; clicking the old experiment
+  opened its new empty independent log with unspecified metadata.
 
 ## CVT interface checks executed on Linux in 0.2
 
@@ -111,10 +144,10 @@ adding that file.
 
 1. Build/test with the MSVC toolchain and run the Windows packaging script, or
    extract the cross-compiled preview ZIP and launch its executable.
-2. With networking disconnected, create a project and entry, save, restart,
-   reopen, edit, search, and confirm the data folder shown in the interface.
-   Confirm the initial CVT tab, add decimal/equal/reversed temperature pairs,
-   inspect their chart/table values, restart, and confirm experiment persistence.
+2. With networking disconnected, add an experiment and metadata, save, click its
+   bar to create an entry, restart, reopen, edit, search, and confirm the data
+   folder. Test decimal/equal/reversed temperatures, thermal assignments, both
+   periodic-table targets, name/formula suggestions and the optional agent.
 3. Exercise Save and continue, Discard changes, and Keep editing during project
    switches, entry switches, Reload saved, and native window closing. Make an
    invalid edit and verify that a failed save never closes or navigates away.

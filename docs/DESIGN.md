@@ -10,15 +10,19 @@ The implementation language is Rust, following the user's direction. The first
 milestone covers projects and entries, local persistence, editing, and search.
 Other proposed capabilities are a roadmap, not commitments already implemented.
 
-The next confirmed increment adds a left sidebar with CVT Experiments, Tools,
-and Logbook, opens on Experiments, visualises source/sink temperatures, and
-calculates their difference when adding a new experiment.
+Version 0.2 introduced the CVT overview and temperature difference. Version 0.3
+adds researcher-assigned thermal character, precursor/product element selection,
+manual descriptions with offline suggestions, and an optional transport agent.
+The sidebar now contains only CVT Experiments and Tools. Clicking an experiment
+opens its own log; prior unlinked project notes remain available from the overview.
 
 ## Architecture
 
 - `model.rs`: saved project/entry/CVT records and typed entry drafts.
 - `cvt.rs`: validated temperatures, signed difference, and common chart scale.
 - `cvt_view.rs`: experiment overview, temperature form, and Tools page.
+- `chemistry.rs`: 118-element catalog, table positions and offline suggestions.
+- `materials_view.rs`: independent material pickers, periodic table and summaries.
 - `store.rs`: SQLite access, schema initialisation, validation and revision checks.
 - `editor.rs`: unsaved editor state and date validation, independent of the GUI.
 - `app.rs`: the egui desktop interface and navigation/save prompts.
@@ -28,6 +32,9 @@ calculates their difference when adding a new experiment.
   disposable on-disk databases.
 - `tests/cvt.rs`: temperatures, persistence, plotting ranges and schema upgrade
   from the retained version 1 fixture.
+- `tests/chemistry.rs` and `tests/experiment_records.rs`: formula/name matching,
+  table completeness, metadata persistence, transaction rollback, independent logs
+  and migration from the version 2 fixture.
 
 The native interface uses egui/eframe with its OpenGL renderer. This avoids a web
 runtime and allows the same UI to run on Linux for development. Compared with
@@ -45,18 +52,29 @@ needed. Schema changes belong in versioned migrations; unknown newer versions
 are rejected instead of downgraded. Initialisation is transactional. The first
 schemas have no destructive operations.
 
-## Data model, version 2
+## Data model, version 3
 
 | Record | Stored fields |
 | --- | --- |
 | Project | UUID, name, description, UTC creation time |
 | Entry | UUID, project UUID, title, plain-text body, event date, UTC creation/edit times, revision |
-| CVT experiment | UUID, name, source temperature (°C), sink temperature (°C), UTC recording time |
+| CVT experiment | UUID, name, source/sink temperatures (°C), UTC recording time, thermal character, precursor/product text, optional transport-agent text |
+| Experiment elements | Experiment UUID, precursor/product role, confirmed atomic number |
+| Experiment log | Experiment UUID, unique project/log UUID |
 
 Schema version 2 adds the CVT table in a transaction; projects and entries retain
 their existing IDs, contents and timestamps. A regression fixture verifies the
-upgrade from the schema shipped in 0.1.0. CVT experiments do not yet require a
-project or create a logbook entry automatically.
+upgrade from the schema shipped in 0.1.0. Schema 3 adds metadata, role-specific
+element rows and experiment/log links. Each older CVT record receives a new empty
+log with a stable UUID; existing project notes retain their original links.
+Unspecified metadata is left blank, without inferring thermal character or
+composition from temperatures or notes.
+
+New experiment creation writes its metadata, elements, empty log container and
+link in one transaction. A failure rolls back all four. No note entry is fabricated.
+Existing entry editing/search and revision checks are reused within the linked
+log. Internal log containers are excluded from the Previous project logs selector.
+Separate experiments cannot share a log container: the link has a unique key.
 
 ### CVT overview
 
@@ -75,12 +93,32 @@ name gets an ID-based label when blank. Inputs are stored as IEEE 754 doubles,
 with explicit Celsius column names. ΔT is derived, avoiding inconsistent copies.
 Display rounds to six decimals or scientific notation without changing storage.
 
-Experiments can be added and reopened in this increment; editing/deletion,
-performed dates and links to projects/samples/entries await further requirements.
+Experiments can be added and reopened in this increment. Their metadata can be
+read from the log header; editing/deleting that metadata, performed dates, and
+sample links await further requirements. Log entries themselves remain editable.
 The saved timestamp records documentation time, not when an experiment ran.
 Tools contains a planned Peak Explorer tile, without invented calculations or
 reference values. New experiment drafts are protected on normal window closing;
 unsaved logbook edits are protected when switching tabs.
+
+### Material and thermal fields
+
+Thermal character is a typed optional selection: unspecified, endothermic or
+exothermic. It is never derived from the sign of ΔT. Reaction direction, assumptions
+and supporting sources belong in the researcher's log. The transport-agent string
+is optional and not automatically included in either material's element set.
+
+Each material retains its raw text independently from explicitly confirmed atomic
+numbers. Suggestions resolve element identities from case-sensitive formulas,
+standard element names, prefixes, and a small local name-part vocabulary. They do
+not calculate stoichiometry or predict products. The periodic table provides a
+complete fallback for names the helper cannot recognise. No network or AI is used.
+See [chemistry conventions](CHEMISTRY.md) for precise scope and naming reference.
+
+The add form uses a single scrollable modal with fixed save/cancel controls.
+Precursor and obtained-material selectors have separate sets; one inline periodic
+table targets the currently chosen set. Form identity is unique per new draft so
+scroll/collapse state resets, while Keep editing retains the same draft and state.
 
 The event date is a calendar date, without a time zone. Creation/edit times are
 UTC instants. Retrospective documentation changes the event date without changing
