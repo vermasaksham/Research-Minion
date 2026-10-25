@@ -11,6 +11,8 @@ const SOURCE: Color32 = Color32::from_rgb(191, 103, 58);
 const SINK: Color32 = Color32::from_rgb(40, 119, 149);
 
 pub struct ExperimentForm {
+    pub experiment_date: String,
+    initial_date: String,
     pub name: String,
     pub source: String,
     pub sink: String,
@@ -21,7 +23,10 @@ pub struct ExperimentForm {
 
 impl Default for ExperimentForm {
     fn default() -> Self {
+        let initial_date = chrono::Local::now().date_naive().to_string();
         Self {
+            experiment_date: initial_date.clone(),
+            initial_date,
             name: String::new(),
             source: String::new(),
             sink: String::new(),
@@ -40,7 +45,8 @@ pub enum FormAction {
 
 impl ExperimentForm {
     pub fn is_dirty(&self) -> bool {
-        !self.name.is_empty()
+        self.experiment_date != self.initial_date
+            || !self.name.is_empty()
             || !self.source.is_empty()
             || !self.sink.is_empty()
             || self.details != ExperimentDetails::default()
@@ -48,6 +54,21 @@ impl ExperimentForm {
 
     pub fn conditions(&self) -> Result<CvtConditions, TemperatureError> {
         CvtConditions::parse(&self.source, &self.sink)
+    }
+
+    pub fn date(&self) -> Result<Option<chrono::NaiveDate>, String> {
+        let value = self.experiment_date.trim();
+        if value.is_empty() {
+            return Ok(None);
+        }
+        chrono::NaiveDate::parse_from_str(value, "%Y-%m-%d")
+            .ok()
+            .filter(|date| date.to_string() == value)
+            .map(Some)
+            .ok_or_else(|| {
+                "Use a valid experiment date in YYYY-MM-DD format, or leave it blank if unknown."
+                    .into()
+            })
     }
 
     pub fn show(&mut self, ctx: &egui::Context, error: Option<&str>) -> Option<FormAction> {
@@ -63,6 +84,13 @@ impl ExperimentForm {
                 .max_height((ctx.content_rect().height()-190.0).clamp(240.0,620.0)).show(ui,|ui| {
                 ui.label("Experiment name (optional)");
                 changed |= ui.add(egui::TextEdit::singleline(&mut self.name).hint_text("Leave blank to generate a label").desired_width(f32::INFINITY)).changed();
+                ui.add_space(10.0);
+                ui.horizontal(|ui| {
+                    ui.label("Experiment date");
+                    changed |= ui.add(egui::TextEdit::singleline(&mut self.experiment_date).desired_width(112.0).hint_text("YYYY-MM-DD")).changed();
+                    ui.label(RichText::new("When it happened; blank if unknown.").color(MUTED).size(11.0));
+                });
+                if let Err(error) = self.date() { ui.colored_label(Color32::DARK_RED,error); }
                 ui.add_space(12.0);
                 ui.columns(2,|columns| {
                     columns[0].strong("Source temperature (°C)");
@@ -102,7 +130,7 @@ impl ExperimentForm {
             if let Some(error)=error {ui.colored_label(Color32::DARK_RED,error);}
             ui.add_space(14.0);
             ui.horizontal(|ui| {
-                ui.add_enabled_ui(self.conditions().is_ok(),|ui| {
+                ui.add_enabled_ui(self.conditions().is_ok() && self.date().is_ok(),|ui| {
                     if primary_button(ui,"Save experiment").clicked(){action=Some(FormAction::Save);}
                 });
                 if ui.button("Cancel").clicked(){action=Some(FormAction::Cancel);}
@@ -116,6 +144,8 @@ pub enum ExperimentAction {
     New,
     Open(String),
     PreviousLogs,
+    Delete(String),
+    RecentlyDeleted,
 }
 
 pub fn experiments(
@@ -134,6 +164,7 @@ pub fn experiments(
                 });
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if primary_button(ui, "+  New experiment").clicked() { action = Some(ExperimentAction::New); }
+                    if ui.button("Recently deleted").clicked() { action = Some(ExperimentAction::RecentlyDeleted); }
                     if has_previous_logs && ui.button("Previous project logs").clicked() { action = Some(ExperimentAction::PreviousLogs); }
                 });
             });
@@ -172,9 +203,10 @@ pub fn experiments(
                 ui.label(RichText::new("Recorded experiments").size(18.0).strong());
                 ui.label(RichText::new("All saved experiments · most recently recorded first").size(11.0).color(MUTED));
                 ui.add_space(12.0);
-                let name_width = (ui.available_width() * 0.35).clamp(140.0, 240.0);
+                let name_width = (ui.available_width() * 0.25).clamp(120.0, 210.0);
+                egui::ScrollArea::horizontal().id_salt("recorded-experiments-horizontal").show(ui,|ui| {
                 egui::Grid::new("cvt-records").striped(true).min_col_width(85.0).spacing([12.0, 12.0]).show(ui, |ui| {
-                    for title in ["Experiment", "Source (°C)", "Sink (°C)", "ΔT (°C)", "Thermal character"] { ui.strong(title); }
+                    for title in ["Experiment", "Experiment date", "Source (°C)", "Sink (°C)", "ΔT (°C)", "Thermal character", "Actions"] { ui.strong(title); }
                     ui.end_row();
                     for experiment in experiments {
                         let response = ui.allocate_ui_with_layout(Vec2::new(name_width, 22.0), egui::Layout::left_to_right(egui::Align::Center), |ui| {
@@ -182,12 +214,15 @@ pub fn experiments(
                         }).inner
                             .on_hover_text(format!("{}\nRecorded {} UTC\nID: {}", experiment.name, experiment.created_at.format("%Y-%m-%d %H:%M"), experiment.id));
                         if response.clicked() {action=Some(ExperimentAction::Open(experiment.id.clone()));}
+                        ui.label(experiment.details.experiment_date.map(|date| date.to_string()).unwrap_or_else(|| "Not specified".into())).on_hover_text(format!("Recorded {} UTC", experiment.created_at.format("%Y-%m-%d %H:%M")));
                         ui.label(temperature_text(experiment.conditions.source_c()));
                         ui.label(temperature_text(experiment.conditions.sink_c()));
                         ui.colored_label(TEAL, temperature_text(experiment.conditions.delta_c()));
                         ui.label(experiment.details.heat_effect.label());
+                        if ui.button("Delete").clicked() { action=Some(ExperimentAction::Delete(experiment.id.clone())); }
                         ui.end_row();
                     }
+                });
                 });
             }
         });
@@ -345,31 +380,4 @@ fn draw_chart(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> (bool, Option
             });
     });
     (overflows, open)
-}
-
-pub fn tools(ui: &mut egui::Ui) {
-    egui::Frame::new().inner_margin(28).show(ui, |ui| {
-        ui.label(
-            RichText::new("SCIENTIFIC UTILITIES")
-                .size(11.0)
-                .strong()
-                .color(TEAL),
-        );
-        ui.heading(RichText::new("Tools").size(28.0));
-        ui.add_space(8.0);
-        ui.label(RichText::new("Your scientific tools will live here.").color(MUTED));
-        ui.add_space(26.0);
-        egui::Frame::new()
-            .fill(PAPER)
-            .inner_margin(22)
-            .corner_radius(8.0)
-            .show(ui, |ui| {
-                ui.set_width(ui.available_width());
-                ui.heading("Sb₂Se₃ Peak Explorer");
-                ui.add_space(8.0);
-                ui.label(RichText::new("Planned · not available in this build").color(TEAL));
-                ui.label("EDX reference markers and calculated XRD reflection positions.");
-                ui.label(RichText::new("Planned as a local, offline tool.").color(MUTED));
-            });
-    });
 }

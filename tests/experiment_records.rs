@@ -7,6 +7,7 @@ use research_minion::{
 
 fn details() -> ExperimentDetails {
     ExperimentDetails {
+        experiment_date: Some(NaiveDate::from_ymd_opt(2024, 6, 15).unwrap()),
         heat_effect: HeatEffect::Endothermic,
         precursor: Material {
             text: "Sb + Se (weighed separately)".into(),

@@ -4,6 +4,7 @@ use crate::{
     cvt_view::{self, ExperimentAction, ExperimentForm, FormAction},
     editor::Editor,
     model::{CvtExperiment, Entry, Project},
+    peak_view::PeakWorkspace,
     store::Store,
 };
 
@@ -19,6 +20,7 @@ enum Tab {
     Experiments,
     Tools,
     Logbook,
+    RecentlyDeleted,
 }
 
 #[derive(Clone)]
@@ -37,6 +39,23 @@ enum Action {
     Save,
     Filter,
     CreateProject,
+    DeleteExperiment(String),
+    DeleteEntry(Entry),
+    DeleteLog,
+    ConfirmDelete,
+    RestoreExperiment(String),
+    RestoreEntry(Entry),
+}
+
+#[derive(Clone)]
+enum Deletion {
+    Experiment(CvtExperiment),
+    Entry(Entry),
+    Log {
+        project_id: String,
+        name: String,
+        entries: Vec<Entry>,
+    },
 }
 
 #[derive(Default)]
@@ -62,6 +81,10 @@ pub struct ResearchMinionApp {
     error: Option<String>,
     notice: String,
     allow_close: bool,
+    deletion: Option<Deletion>,
+    deleted_experiments: Vec<CvtExperiment>,
+    deleted_entries: Vec<Entry>,
+    peak: PeakWorkspace,
 }
 
 impl ResearchMinionApp {
@@ -88,6 +111,10 @@ impl ResearchMinionApp {
             error: None,
             notice: "Local workspace · no account required".into(),
             allow_close: false,
+            deletion: None,
+            deleted_experiments: vec![],
+            deleted_entries: vec![],
+            peak: PeakWorkspace::default(),
         };
         if let Some(store) = &app.store {
             match store.legacy_projects() {
@@ -171,8 +198,10 @@ impl ResearchMinionApp {
             .conditions()
             .map_err(|error| error.to_string())
             .and_then(|conditions| {
+                let mut details = form.details.clone();
+                details.experiment_date = form.date()?;
                 store
-                    .create_cvt_experiment_with_details(&form.name, conditions, &form.details)
+                    .create_cvt_experiment_with_details(&form.name, conditions, &details)
                     .map_err(|error| error.to_string())
             });
         match result {
@@ -245,8 +274,11 @@ impl ResearchMinionApp {
             Action::SelectTab(tab) => {
                 self.tab = tab;
                 self.error = None;
-                if tab == Tab::Experiments {
+                if tab == Tab::Experiments || tab == Tab::Tools {
                     self.refresh_experiments();
+                }
+                if tab == Tab::RecentlyDeleted {
+                    self.refresh_deleted();
                 }
             }
             Action::OpenExperiment(id) => {
@@ -323,11 +355,177 @@ impl ResearchMinionApp {
                     }
                 }
             }
+            Action::DeleteExperiment(id) => {
+                match self.store.as_ref().map(|store| store.cvt_experiment(&id)) {
+                    Some(Ok(experiment)) => {
+                        self.deletion = Some(Deletion::Experiment(experiment));
+                        self.error = None;
+                    }
+                    Some(Err(error)) => self.error = Some(error.to_string()),
+                    None => {}
+                }
+            }
+            Action::DeleteEntry(entry) => {
+                self.deletion = Some(Deletion::Entry(entry));
+                self.error = None;
+            }
+            Action::DeleteLog => {
+                if let (Some(store), Some(id)) = (&self.store, &self.project_id) {
+                    match store.entries(id, "") {
+                        Ok(entries) => {
+                            let name = self
+                                .active_experiment
+                                .as_ref()
+                                .map(|experiment| experiment.name.clone())
+                                .or_else(|| {
+                                    self.projects
+                                        .iter()
+                                        .find(|project| &project.id == id)
+                                        .map(|project| project.name.clone())
+                                })
+                                .unwrap_or_else(|| "Current log".into());
+                            self.deletion = Some(Deletion::Log {
+                                project_id: id.clone(),
+                                name,
+                                entries,
+                            });
+                            self.error = None;
+                        }
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
+                }
+            }
+            Action::ConfirmDelete => self.confirm_delete(),
+            Action::RestoreExperiment(id) => {
+                if let Some(store) = &self.store {
+                    match store.restore_experiment(&id) {
+                        Ok(()) => {
+                            self.notice = "Experiment and its log restored".into();
+                            self.error = None;
+                            self.refresh_deleted();
+                            self.refresh_experiments();
+                        }
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
+                }
+            }
+            Action::RestoreEntry(entry) => {
+                if let Some(store) = &self.store {
+                    match store.restore_entry(&entry.id, entry.revision) {
+                        Ok(()) => {
+                            self.notice = "Log entry restored".into();
+                            self.error = None;
+                            self.refresh_deleted();
+                        }
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
+                }
+            }
             Action::Close => {
                 self.allow_close = true;
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             }
         }
+    }
+
+    fn refresh_deleted(&mut self) {
+        if let Some(store) = &self.store {
+            match (store.deleted_experiments(), store.deleted_entries()) {
+                (Ok(experiments), Ok(entries)) => {
+                    self.deleted_experiments = experiments;
+                    self.deleted_entries = entries;
+                }
+                (Err(error), _) | (_, Err(error)) => self.error = Some(error.to_string()),
+            }
+        }
+    }
+
+    fn confirm_delete(&mut self) {
+        let (Some(store), Some(target)) = (&self.store, self.deletion.clone()) else {
+            return;
+        };
+        let result = match &target {
+            Deletion::Experiment(experiment) => store.delete_experiment(&experiment.id),
+            Deletion::Entry(entry) => store.delete_entry(&entry.id, entry.revision),
+            Deletion::Log {
+                project_id,
+                entries,
+                ..
+            } => {
+                let expected: Vec<_> = entries
+                    .iter()
+                    .map(|entry| (entry.id.clone(), entry.revision))
+                    .collect();
+                store.delete_log_entries(project_id, &expected).map(|_| ())
+            }
+        };
+        match result {
+            Ok(()) => {
+                self.deletion = None;
+                self.error = None;
+                self.notice = "Moved to Recently deleted · restore from CVT Experiments".into();
+                match target {
+                    Deletion::Experiment(experiment) => {
+                        if self
+                            .active_experiment
+                            .as_ref()
+                            .is_some_and(|active| active.id == experiment.id)
+                        {
+                            self.active_experiment = None;
+                            self.editor = None;
+                            self.project_id = None;
+                            self.entries.clear();
+                        }
+                        self.tab = Tab::Experiments;
+                        self.refresh_experiments();
+                    }
+                    Deletion::Entry(_) | Deletion::Log { .. } => {
+                        if let Some(id) = self.project_id.clone() {
+                            self.select_project(id);
+                        }
+                    }
+                }
+            }
+            Err(error) => self.error = Some(error.to_string()),
+        }
+    }
+
+    fn recently_deleted(&self, ui: &mut egui::Ui, actions: &mut Vec<Action>) {
+        egui::ScrollArea::vertical().show(ui,|ui| {
+            egui::Frame::new().inner_margin(24).show(ui,|ui| {
+                if primary_button(ui,"Back to experiments").clicked() { actions.push(Action::SelectTab(Tab::Experiments)); }
+                ui.add_space(14.0);
+                ui.heading("Recently deleted");
+                ui.label("Saved records are retained locally until restored. There is no automatic expiry.");
+                ui.add_space(18.0);
+                ui.heading("Experiments");
+                if self.deleted_experiments.is_empty() {ui.label("No deleted experiments.");}
+                for experiment in &self.deleted_experiments {
+                    ui.push_id(&experiment.id,|ui| {
+                        ui.horizontal_wrapped(|ui| {
+                            if ui.button("Restore experiment and log").clicked() {actions.push(Action::RestoreExperiment(experiment.id.clone()));}
+                            ui.strong(&experiment.name);
+                            ui.label(format!("Recorded {} UTC",experiment.created_at.format("%Y-%m-%d")));
+                        });
+                    });
+                }
+                ui.add_space(18.0);
+                ui.heading("Log entries");
+                ui.label("Entries from a deleted experiment appear here after that experiment is restored.");
+                if self.deleted_entries.is_empty() {ui.label("No deleted entries in active logs.");}
+                for entry in &self.deleted_entries {
+                    ui.push_id(&entry.id,|ui| {
+                        ui.horizontal_wrapped(|ui| {
+                            if ui.button("Restore entry").clicked() {actions.push(Action::RestoreEntry(entry.clone()));}
+                            ui.strong(&entry.title);
+                            let owner=self.experiments.iter().find(|experiment|experiment.log_project_id==entry.project_id).map(|experiment|experiment.name.as_str())
+                                .or_else(||self.projects.iter().find(|project|project.id==entry.project_id).map(|project|project.name.as_str())).unwrap_or("Previous log");
+                            ui.label(format!("Event {} · {}",entry.event_date,owner));
+                        });
+                    });
+                }
+            });
+        });
     }
 
     fn load_entry(&mut self, id: &str) {
@@ -375,8 +573,9 @@ impl ResearchMinionApp {
                 );
                 ui.add_space(8.0);
                 for (tab, label) in [(Tab::Experiments, "CVT Experiments"), (Tab::Tools, "Tools")] {
-                    let selected =
-                        self.tab == tab || (tab == Tab::Experiments && self.tab == Tab::Logbook);
+                    let selected = self.tab == tab
+                        || (tab == Tab::Experiments
+                            && matches!(self.tab, Tab::Logbook | Tab::RecentlyDeleted));
                     if ui
                         .add(
                             egui::Button::new(RichText::new(label).color(Color32::WHITE))
@@ -417,41 +616,49 @@ impl ResearchMinionApp {
             .fill(PAPER)
             .inner_margin(24)
             .show(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        ui.label(
-                            RichText::new(if self.active_experiment.is_some() {
-                                "EXPERIMENT LOG"
-                            } else {
-                                "PREVIOUS PROJECT LOGS"
-                            })
-                            .size(11.0)
-                            .color(MUTED)
-                            .strong(),
-                        );
-                        ui.add_space(4.0);
-                        ui.heading(
-                            RichText::new(
-                                self.active_experiment
-                                    .as_ref()
-                                    .map(|e| e.name.as_str())
-                                    .unwrap_or_else(|| {
-                                        project.map_or("Previous project logs", |p| p.name.as_str())
-                                    }),
-                            )
-                            .size(26.0)
-                            .color(INK),
-                        );
-                    });
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if self.project_id.is_some() && primary_button(ui, "+  New entry").clicked()
-                        {
-                            actions.push(Action::NewEntry);
-                        }
-                        if ui.button("Back to experiments").clicked() {
-                            actions.push(Action::SelectTab(Tab::Experiments));
-                        }
-                    });
+                ui.set_width(ui.available_width());
+                if primary_button(ui, "Back to experiments").clicked() {
+                    actions.push(Action::SelectTab(Tab::Experiments));
+                }
+                ui.add_space(12.0);
+                ui.horizontal_wrapped(|ui| {
+                    if self.project_id.is_some() && ui.button("+ New log entry").clicked() {
+                        actions.push(Action::NewEntry);
+                    }
+                    if self.project_id.is_some() && ui.button("Delete log…").clicked() {
+                        actions.push(Action::DeleteLog);
+                    }
+                    if let Some(experiment) = &self.active_experiment
+                        && ui.button("Delete experiment…").clicked()
+                    {
+                        actions.push(Action::DeleteExperiment(experiment.id.clone()));
+                    }
+                });
+                ui.add_space(10.0);
+                ui.vertical(|ui| {
+                    ui.label(
+                        RichText::new(if self.active_experiment.is_some() {
+                            "EXPERIMENT LOG"
+                        } else {
+                            "PREVIOUS PROJECT LOGS"
+                        })
+                        .size(11.0)
+                        .color(MUTED)
+                        .strong(),
+                    );
+                    ui.add_space(4.0);
+                    ui.heading(
+                        RichText::new(
+                            self.active_experiment
+                                .as_ref()
+                                .map(|e| e.name.as_str())
+                                .unwrap_or_else(|| {
+                                    project.map_or("Previous project logs", |p| p.name.as_str())
+                                }),
+                        )
+                        .size(26.0)
+                        .color(INK),
+                    );
                 });
                 if let Some(experiment) = &self.active_experiment {
                     crate::materials_view::experiment_summary(ui, experiment);
@@ -552,7 +759,7 @@ impl ResearchMinionApp {
     fn dialogs(&mut self, ctx: &egui::Context, actions: &mut Vec<Action>) {
         // Egui modal layers can retain their foreground order across frames.
         // Render only the confirmation while navigating, retaining form state.
-        if self.pending.is_none() {
+        if self.pending.is_none() && self.deletion.is_none() {
             if let Some(form) = &mut self.experiment_form {
                 match form.show(ctx, self.error.as_deref()) {
                     Some(FormAction::Save) => actions.push(Action::CreateExperiment),
@@ -608,6 +815,41 @@ impl ResearchMinionApp {
                     self.project_form = None;
                     self.error = None;
                 }
+            }
+        }
+        if self.pending.is_none()
+            && let Some(target) = &self.deletion
+        {
+            let mut cancel = false;
+            egui::Modal::new(egui::Id::new("confirm-deletion")).show(ctx,|ui| {
+                ui.set_width(480.0);
+                ui.heading(match target { Deletion::Experiment(_) => "Delete experiment?", Deletion::Entry(_) => "Delete log entry?", Deletion::Log {..} => "Delete all entries in this log?" });
+                match target {
+                    Deletion::Experiment(experiment) => {
+                        ui.strong(&experiment.name);
+                        ui.label("This hides the experiment and its entire log. Restore both from Recently deleted on the Experiments page.");
+                    }
+                    Deletion::Entry(entry) => {
+                        ui.strong(&entry.title);
+                        ui.label("This removes the saved entry from this log. Restore it from Recently deleted on the Experiments page.");
+                    }                    Deletion::Log {name,entries,..} => {
+                        ui.strong(name);
+                        ui.label(format!("Move all {} saved log entries to Recently deleted? The experiment remains. Restore entries individually from Recently deleted.",entries.len()));
+                    }
+
+                }
+                if self.has_unsaved_changes() { ui.colored_label(Color32::DARK_RED,"Unsaved edits in this view will be discarded if you delete. Cancel to keep editing."); }
+                if let Some(error)=&self.error {ui.colored_label(Color32::DARK_RED,error);}
+                ui.add_space(14.0);
+                ui.horizontal(|ui| {
+                    if ui.button("Delete").clicked() {actions.push(Action::ConfirmDelete);}
+                    if primary_button(ui,"Cancel").clicked() {cancel=true;}
+                });
+            });
+            if cancel {
+                self.deletion = None;
+                self.error = None;
+                ctx.request_repaint();
             }
         }
         if self.pending.is_some() {
@@ -677,6 +919,7 @@ impl eframe::App for ResearchMinionApp {
             }
         }
         if self.pending.is_none()
+            && self.deletion.is_none()
             && self.project_form.is_none()
             && self.experiment_form.is_none()
             && self.tab == Tab::Logbook
@@ -737,10 +980,17 @@ impl eframe::App for ResearchMinionApp {
                             Some(ExperimentAction::PreviousLogs) => {
                                 actions.push(Action::PreviousLogs)
                             }
+                            Some(ExperimentAction::Delete(id)) => {
+                                actions.push(Action::DeleteExperiment(id))
+                            }
+                            Some(ExperimentAction::RecentlyDeleted) => {
+                                actions.push(Action::SelectTab(Tab::RecentlyDeleted))
+                            }
                             None => {}
                         }
                     }
-                    Tab::Tools => cvt_view::tools(ui),
+                    Tab::Tools => self.peak.show(ui, self.store.as_ref(), &self.experiments),
+                    Tab::RecentlyDeleted => self.recently_deleted(ui, &mut actions),
                     Tab::Logbook => self.workspace(ui, &mut actions),
                 }
             });
@@ -767,6 +1017,11 @@ fn draw_editor(
             }
         });
     });
+    if let Some(entry) = &editor.saved
+        && ui.button("Delete log entry…").clicked()
+    {
+        actions.push(Action::DeleteEntry(entry.clone()));
+    }
     ui.add_space(10.0);
     ui.label(
         RichText::new(if editor.is_dirty() {

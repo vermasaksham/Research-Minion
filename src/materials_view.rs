@@ -191,6 +191,14 @@ pub fn periodic_table(
 }
 
 pub fn experiment_summary(ui: &mut egui::Ui, experiment: &CvtExperiment) {
+    ui.label(format!(
+        "Experiment date: {}",
+        experiment
+            .details
+            .experiment_date
+            .map(|date| date.to_string())
+            .unwrap_or_else(|| "Not specified".into())
+    ));
     ui.horizontal_wrapped(|ui| {
         ui.label(format!(
             "Source {} °C",

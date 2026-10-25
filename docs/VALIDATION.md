@@ -1,6 +1,6 @@
 # Validation record
 
-Version 0.3 material/log increment, 25 October 2026. The development host is Debian Linux x64;
+Version 0.4 deletion/date/Peak increment, 25 October 2026. The development host is Debian Linux x64;
 Windows execution is not claimed.
 
 ## Executed
@@ -10,16 +10,17 @@ Windows execution is not claimed.
 | Pinned Rust 1.95.0 installation and locked dependency restore | Passed |
 | `cargo fmt --all -- --check` | Passed |
 | `cargo clippy --locked --all-targets -- -D warnings` | Passed |
-| `cargo test --locked --offline` | 30 integration tests passed; no ignored/failed tests |
-| `cargo test --locked --offline --no-default-features` | The same 30 integration tests passed without desktop features or network restore |
+| `cargo test --locked --offline` | 43 integration tests passed; no ignored/failed tests |
+| `cargo test --locked --offline --no-default-features` | The same 43 integration tests passed without desktop features or network restore |
 | `cargo build --locked` | Linux desktop build passed |
-| `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.3 |
+| `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.4 |
 | Windows GNU x64 cross-build | Passed; Windows UI subsystem confirmed in the executable |
 
 Library, executable, and documentation test runners also report zero tests;
 the meaningful assertions are 11 tests in `tests/logbook.rs` and 9 in
 `tests/cvt.rs`, plus 5 each in `tests/chemistry.rs` and
-`tests/experiment_records.rs`. The logbook tests cover
+`tests/experiment_records.rs`, 6 in `tests/deletion.rs`, and 7 in
+`tests/peak.rs`. The logbook tests cover
 on-disk close/reopen, exact notes persistence, stable identity, retrospective
 dates, ordering, scoped/literal/Unicode search, invalid records and dates,
 retained drafts, two-instance conflict detection, and refusal to alter newer or
@@ -37,6 +38,41 @@ name parts, rejection of unknown matches, exact metadata round-trips, different
 precursor/product sets, optional agent/manual-only input, independent persistent
 logs, rollback of partially written records, and migration from schema 2 without
 reassigning old project notes or inventing a thermal assignment.
+
+## Checks added in 0.4
+
+Deletion tests cover schema-3 migration without inferring old dates, preservation
+of metadata/notes/links, experiment deletion and restoration after restart, hidden
+logs rejecting new/edited notes, stale entry deletion conflicts, restore advancing
+revision, individually deleted entries staying deleted after parent restore, and
+whole-log deletion rejecting changed snapshots. An injected SQLite trigger failure
+proves bulk deletion rolls back all rows rather than deleting part of a log.
+
+Peak tests use analytic synthetic cells, not unverified material references:
+λ=d=2 Å gives 2θ=60°; λ=2d gives 180°; λ>2d has no solution. Axial and mixed
+orthorhombic reflections, sign invariance, axis permutation, wavelength dependence,
+malformed/duplicate/bounded hkl inputs, non-finite/nonphysical values, and complete
+saved report persistence are checked independently of the interface.
+
+## Interface checks executed on Linux in 0.4
+
+Used the real application under Xvfb with disposable data and independent Python
+SQLite reads. Added a CVT record dated 2024-02-29 and confirmed its date appeared
+in Recorded experiments and the log header. The log's dedicated Back control was
+visible at 1000×650. Cancelled entry deletion, then confirmed it and restored it
+through Recently deleted. Deleted an entire two-entry log, restored both entries,
+then deleted/restored its parent experiment while preserving the same note IDs.
+
+Opened Tools → Peak Explorer, entered a synthetic 3/4/12 Å cell, λ=1.5406 Å,
+source/axis text and five explicit reflections including one inaccessible at that
+wavelength. The plot and table showed positions; saved a multiline interpretation
+into the selected experiment with a retrospective analysis date. Independent
+SQLite reads confirmed the frozen inputs, hkl list, results, version, provenance,
+interpretation and correct log link. Reopening checks retain these saved snapshots.
+An invalid 2023-02-29 experiment date disabled Save and created no record.
+Deletion of a dirty note displayed an explicit unsaved-edit warning; Cancel kept
+the draft, and Back still prompted before discarding it. The screenshot data is
+labelled synthetic and is never seeded into new workspaces.
 
 ## Interface checks executed on Linux in 0.3
 
@@ -118,7 +154,7 @@ saved outcomes were checked independently using Python's SQLite reader.
 No real research records or seeded examples are included in the application.
 The scientific-looking text used during smoke checks was disposable test input.
 These checks do not replace Windows UI testing or constitute scientific
-validation of the future Peak Explorer.
+verification of material reference data.
 
 ## Cross-building on the prepared cloud machine
 
@@ -155,10 +191,14 @@ adding that file.
    Confirm the stale save reports a conflict and preserves the second draft.
 5. Check 100%, 150%, and 200% display scaling, keyboard-only navigation, input
    methods, Unicode notes, screen-reader behaviour, and graphics-driver support.
-6. On disposable data, close all instances and copy the complete data folder.
+6. Test experiment/whole-log/individual entry deletion, Cancel, and restoration,
+   including individually deleted notes followed by parent experiment restore.
+   Open Peak Explorer offline, enter a verified orthorhombic cell and reflections,
+   save an analysis, and reopen it from the chosen experiment log.
+7. On disposable data, close all instances and copy the complete data folder.
    Open the copied folder using `--data-dir` and confirm the records.
 
-Attachments, autosave/crash recovery, readable export, recoverable deletion,
-edit history, automatic backup/restore, Peak Explorer integration, and scientific
-reference-value verification are unimplemented and untested. Revision numbers
+Attachments, autosave/crash recovery, readable export, permanent purge,
+edit history, automatic backup/restore, original Peak Explorer reference-data
+integration, and scientific reference-value verification remain unimplemented and untested. Revision numbers
 are conflict counters, not retained historical versions.

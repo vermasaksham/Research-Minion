@@ -45,6 +45,8 @@ pub struct Material {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ExperimentDetails {
+    /// Research event date, distinct from the UTC recording timestamp.
+    pub experiment_date: Option<NaiveDate>,
     /// Researcher assignment, never inferred from the temperature difference.
     pub heat_effect: HeatEffect,
     pub precursor: Material,

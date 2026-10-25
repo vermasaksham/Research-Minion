@@ -13,3 +13,8 @@ mod cvt_view;
 
 #[cfg(feature = "desktop")]
 mod materials_view;
+
+pub mod peak;
+
+#[cfg(feature = "desktop")]
+mod peak_view;

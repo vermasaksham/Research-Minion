@@ -49,16 +49,15 @@ There is one local SQLite connection per instance, a five-second busy timeout,
 foreign keys enabled, WAL journalling, and FULL synchronous writes. SQLite is
 bundled through `rusqlite`; no database service or separately installed SQLite is
 needed. Schema changes belong in versioned migrations; unknown newer versions
-are rejected instead of downgraded. Initialisation is transactional. The first
-schemas have no destructive operations.
+are rejected instead of downgraded. Initialisation is transactional. Deletion is recoverable and does not physically remove records.
 
-## Data model, version 3
+## Data model, version 4
 
 | Record | Stored fields |
 | --- | --- |
 | Project | UUID, name, description, UTC creation time |
-| Entry | UUID, project UUID, title, plain-text body, event date, UTC creation/edit times, revision |
-| CVT experiment | UUID, name, source/sink temperatures (°C), UTC recording time, thermal character, precursor/product text, optional transport-agent text |
+| Entry | UUID, project UUID, title, plain-text body, event date, UTC creation/edit times, revision, nullable deletion timestamp |
+| CVT experiment | UUID, name, source/sink temperatures (°C), UTC recording time, thermal character, precursor/product text, optional transport-agent text, optional experiment date, nullable deletion timestamp |
 | Experiment elements | Experiment UUID, precursor/product role, confirmed atomic number |
 | Experiment log | Experiment UUID, unique project/log UUID |
 
@@ -93,12 +92,12 @@ name gets an ID-based label when blank. Inputs are stored as IEEE 754 doubles,
 with explicit Celsius column names. ΔT is derived, avoiding inconsistent copies.
 Display rounds to six decimals or scientific notation without changing storage.
 
-Experiments can be added and reopened in this increment. Their metadata can be
-read from the log header; editing/deleting that metadata, performed dates, and
-sample links await further requirements. Log entries themselves remain editable.
-The saved timestamp records documentation time, not when an experiment ran.
-Tools contains a planned Peak Explorer tile, without invented calculations or
-reference values. New experiment drafts are protected on normal window closing;
+Experiments can be added, reopened, deleted and restored. Their metadata and
+optional experiment date can be read from the log header; metadata editing and
+sample links await further requirements. Log entries remain editable.
+The saved UTC timestamp records documentation time, separate from the experiment
+calendar date. Older dates remain unknown. Tools opens the initial manual-input
+orthorhombic Peak Explorer described in PEAK-EXPLORER.md. New experiment drafts are protected on normal window closing;
 unsaved logbook edits are protected when switching tabs.
 
 ### Material and thermal fields
@@ -154,7 +153,8 @@ prompt open. This is not crash recovery or autosave.
    to the logbook with stable IDs and versioned scientific provenance.
 5. Validate Windows packaging, DPI behaviour, accessibility, and distribution.
 
-No new scientific tools have been invented or scaffolded.
+The initial manual-input Peak Explorer is implemented as a limited first increment;
+the original reference-data integration remains pending.
 
 ## Peak Explorer integration assessment
 
@@ -174,8 +174,9 @@ Two integration paths should be compared against that source:
 | Rust calculations and egui interface | One native UI/runtime; shared typed analysis records | Reimplements UI and calculations; requires parity tests for every retained result and convention |
 
 Do not choose a scientific rewrite just to match the shell. A retained local web
-module may be preferable after inspecting the actual source. Neither path is
-implemented yet. The private hosted URL must not become a runtime dependency.
+module may be preferable after inspecting the actual source. The original module has not been integrated. Version 0.4 instead provides
+a scoped manual-input orthorhombic calculator and reusable Bragg functions, with
+analytic tests. It does not recreate the missing scientific reference catalog. The private hosted URL must not become a runtime dependency.
 
 Any future Save analysis to logbook record should preserve input selections,
 wavelength and its convention, explicit Pbnm/Pnma setting, units, calculation
@@ -186,3 +187,34 @@ Retain the distinctions between EDX energy (keV) and XRD position (2θ degrees),
 the selected-reflections limitation, and the absence of intensity, phase-fraction,
 or automatic phase-identification claims. Reference values require their original
 provenance and uncertainty notation; none are fabricated in this milestone.
+
+## Version 0.4 deletion and analysis increment
+
+Schema 4 adds optional `experiment_date` and `deleted_at` to CVT experiments,
+and `deleted_at` to entries. Existing records retain IDs, exact metadata, notes,
+links and timestamps; older experiment dates are not guessed. The migration is
+transactional and a schema-3 fixture checks preservation and repeated reopening.
+
+Experiment deletion hides its log through the experiment link; it does not mark
+all entries deleted. Restoring an experiment therefore restores its visible log
+while keeping previously deleted individual notes in Recently deleted. Entry
+restore advances revision so stale editors cannot overwrite the restored record.
+Whole-log deletion confirms a list of entry IDs/revisions; one transaction rejects
+changed lists and rolls back all rows on any write failure. No purge or expiry is
+implemented. Unsaved text is explicitly warned about before deletion and is not
+part of restore. Data remains local and unencrypted.
+
+The log's Back to experiments control occupies a row before the title and actions,
+so long names cannot displace it. Recorded experiments uses horizontal scrolling
+when date/action columns exceed the available width. Recently deleted is a page
+inside CVT Experiments, not an extra sidebar tab.
+
+`peak.rs` contains pure validated orthorhombic metric and first-order Bragg
+functions plus a readable report snapshot; `peak_view.rs` implements the local
+calculator, marker plot, result table and experiment-linked save. There are no
+new dependencies. Saved analyses reuse ordinary entries and retain versioned
+formulas, exact numeric inputs/results, user source/setting labels and interpretation.
+They can subsequently be edited as notes; they are not immutable audit records.
+Tool form state lasts for the current process; only saved analysis snapshots are
+durable. There is no original-tool reference database, symmetry check or automatic
+setting conversion in this increment.

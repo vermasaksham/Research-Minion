@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use chrono::Utc;
+use chrono::{NaiveDate, Utc};
 use rusqlite::{Connection, OptionalExtension, Row, params, types::Type};
 use thiserror::Error;
 use uuid::Uuid;
@@ -19,7 +19,7 @@ pub enum StoreError {
     #[error("{0}")]
     Validation(String),
     #[error(
-        "This entry changed in another instance. Your text is still in the editor. Copy it before reloading the saved entry."
+        "The saved record or log changed in another instance. Your unsaved text is still available. Reload and review the latest records before trying again."
     )]
     Conflict,
     #[error("The requested record no longer exists.")]
@@ -58,7 +58,7 @@ impl Store {
         connection.pragma_update(None, "foreign_keys", "ON")?;
         // Check before making schema or journal changes. Never downgrade a file.
         let version: i64 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 3 {
+        if version > 4 {
             return Err(StoreError::UnsupportedVersion(version));
         }
         if version == 0 {
@@ -157,6 +157,19 @@ impl Store {
         connection.prepare(
             "SELECT experiment_id, role, atomic_number FROM experiment_elements LIMIT 0",
         )?;
+        if version < 4 {
+            let transaction = connection.transaction()?;
+            transaction.execute_batch(
+                "ALTER TABLE cvt_experiments ADD COLUMN experiment_date TEXT;
+                ALTER TABLE cvt_experiments ADD COLUMN deleted_at TEXT;
+                ALTER TABLE entries ADD COLUMN deleted_at TEXT;
+                CREATE INDEX entries_deleted ON entries(project_id, deleted_at);
+                PRAGMA user_version = 4;",
+            )?;
+            transaction.commit()?;
+        }
+        connection.prepare("SELECT experiment_date, deleted_at FROM cvt_experiments LIMIT 0")?;
+        connection.prepare("SELECT deleted_at FROM entries LIMIT 0")?;
         connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.pragma_update(None, "synchronous", "FULL")?;
         Ok(Self {
@@ -210,8 +223,8 @@ impl Store {
         let transaction = self.connection.unchecked_transaction()?;
         transaction.execute("INSERT INTO projects (id,name,description,created_at) VALUES (?1,?2,'CVT experiment log',?3)", params![experiment.log_project_id,experiment.name,experiment.created_at.to_rfc3339()])?;
         transaction.execute(
-            "INSERT INTO cvt_experiments (id, name, source_c, sink_c, created_at, heat_effect, precursor_text, product_text, transport_agent) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-            params![experiment.id, experiment.name, conditions.source_c(), conditions.sink_c(), experiment.created_at.to_rfc3339(),details.heat_effect.as_str(),details.precursor.text,details.product.text,details.transport_agent],
+            "INSERT INTO cvt_experiments (id, name, source_c, sink_c, created_at, heat_effect, precursor_text, product_text, transport_agent, experiment_date) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            params![experiment.id, experiment.name, conditions.source_c(), conditions.sink_c(), experiment.created_at.to_rfc3339(),details.heat_effect.as_str(),details.precursor.text,details.product.text,details.transport_agent,details.experiment_date.map(|date| date.to_string())],
         )?;
         transaction.execute(
             "INSERT INTO experiment_logs (experiment_id,project_id) VALUES (?1,?2)",
@@ -231,8 +244,8 @@ impl Store {
 
     pub fn cvt_experiments(&self) -> Result<Vec<CvtExperiment>> {
         let mut statement = self.connection.prepare(
-            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id
-             FROM cvt_experiments c LEFT JOIN experiment_logs l ON c.id=l.experiment_id ORDER BY c.created_at DESC,c.id",
+            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date
+             FROM cvt_experiments c LEFT JOIN experiment_logs l ON c.id=l.experiment_id WHERE c.deleted_at IS NULL ORDER BY c.created_at DESC,c.id",
         )?;
         let rows = statement.query_map([], read_cvt_experiment)?;
         let mut experiments = Vec::new();
@@ -246,11 +259,121 @@ impl Store {
 
     pub fn cvt_experiment(&self, id: &str) -> Result<CvtExperiment> {
         let mut experiment = self.connection.query_row(
-            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id
-             FROM cvt_experiments c LEFT JOIN experiment_logs l ON c.id=l.experiment_id WHERE c.id=?1",[id],read_cvt_experiment,
+            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date
+             FROM cvt_experiments c LEFT JOIN experiment_logs l ON c.id=l.experiment_id WHERE c.id=?1 AND c.deleted_at IS NULL",[id],read_cvt_experiment,
         ).optional()?.ok_or(StoreError::NotFound)?;
         self.load_elements(&mut experiment)?;
         Ok(experiment)
+    }
+
+    /// Hide the experiment as one unit; linked notes and composition remain intact.
+    pub fn delete_experiment(&self, id: &str) -> Result<()> {
+        let changed = self.connection.execute(
+            "UPDATE cvt_experiments SET deleted_at=?1 WHERE id=?2 AND deleted_at IS NULL",
+            params![Utc::now().to_rfc3339(), id],
+        )?;
+        if changed == 0 {
+            return Err(StoreError::NotFound);
+        }
+        Ok(())
+    }
+
+    pub fn restore_experiment(&self, id: &str) -> Result<()> {
+        let changed = self.connection.execute(
+            "UPDATE cvt_experiments SET deleted_at=NULL WHERE id=?1 AND deleted_at IS NOT NULL",
+            [id],
+        )?;
+        if changed == 0 {
+            return Err(StoreError::NotFound);
+        }
+        Ok(())
+    }
+
+    pub fn deleted_experiments(&self) -> Result<Vec<CvtExperiment>> {
+        let mut statement = self.connection.prepare(
+            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date
+             FROM cvt_experiments c LEFT JOIN experiment_logs l ON c.id=l.experiment_id WHERE c.deleted_at IS NOT NULL ORDER BY c.deleted_at DESC,c.id",
+        )?;
+        let rows = statement.query_map([], read_cvt_experiment)?;
+        let mut records = Vec::new();
+        for row in rows {
+            let mut record = row?;
+            self.load_elements(&mut record)?;
+            records.push(record);
+        }
+        Ok(records)
+    }
+
+    /// Revision-checked, recoverable deletion. A stale editor cannot remove a newer note.
+    pub fn delete_entry(&self, id: &str, expected_revision: i64) -> Result<()> {
+        let transaction = self.connection.unchecked_transaction()?;
+        let entry = self.entry(id)?;
+        if entry.revision != expected_revision {
+            return Err(StoreError::Conflict);
+        }
+        let changed = transaction.execute(
+            "UPDATE entries SET deleted_at=?1, revision=revision+1 WHERE id=?2 AND revision=?3 AND deleted_at IS NULL",
+            params![Utc::now().to_rfc3339(), id, expected_revision],
+        )?;
+        if changed == 0 {
+            return Err(StoreError::Conflict);
+        }
+        transaction.commit()?;
+        Ok(())
+    }
+
+    /// Delete a confirmed snapshot of a whole log atomically. New or changed
+    /// entries invalidate the confirmation instead of silently widening its scope.
+    pub fn delete_log_entries(
+        &self,
+        project_id: &str,
+        expected: &[(String, i64)],
+    ) -> Result<usize> {
+        let transaction = self.connection.unchecked_transaction()?;
+        let mut actual: Vec<_> = self
+            .entries(project_id, "")?
+            .into_iter()
+            .map(|entry| (entry.id, entry.revision))
+            .collect();
+        let mut expected = expected.to_vec();
+        actual.sort();
+        expected.sort();
+        if actual != expected {
+            return Err(StoreError::Conflict);
+        }
+        let changed = transaction.execute(
+            "UPDATE entries SET deleted_at=?1, revision=revision+1 WHERE project_id=?2 AND deleted_at IS NULL",
+            params![Utc::now().to_rfc3339(),project_id],
+        )?;
+        if changed != expected.len() {
+            return Err(StoreError::Conflict);
+        }
+        transaction.commit()?;
+        Ok(changed)
+    }
+
+    /// Only explicitly deleted entries in active logs; hidden experiments restore first.
+    pub fn deleted_entries(&self) -> Result<Vec<Entry>> {
+        let mut statement = self.connection.prepare(
+            "SELECT id,project_id,title,body,event_date,created_at,updated_at,revision FROM entries
+             WHERE deleted_at IS NOT NULL AND NOT EXISTS(SELECT 1 FROM experiment_logs l JOIN cvt_experiments c ON l.experiment_id=c.id WHERE l.project_id=entries.project_id AND c.deleted_at IS NOT NULL)
+             ORDER BY deleted_at DESC,id",
+        )?;
+        Ok(statement
+            .query_map([], read_entry)?
+            .collect::<std::result::Result<_, _>>()?)
+    }
+
+    pub fn restore_entry(&self, id: &str, expected_revision: i64) -> Result<()> {
+        let changed = self.connection.execute(
+            "UPDATE entries SET deleted_at=NULL, revision=revision+1 WHERE id=?1 AND revision=?2 AND deleted_at IS NOT NULL
+             AND NOT EXISTS(SELECT 1 FROM experiment_logs l JOIN cvt_experiments c ON l.experiment_id=c.id WHERE l.project_id=entries.project_id AND c.deleted_at IS NOT NULL)",
+            params![id,expected_revision],
+        )?;
+        if changed == 0 {
+            return Err(StoreError::Conflict);
+        }
+        Ok(())
     }
 
     fn load_elements(&self, experiment: &mut CvtExperiment) -> Result<()> {
@@ -336,7 +459,7 @@ impl Store {
 
     pub fn entry(&self, id: &str) -> Result<Entry> {
         self.connection.query_row(
-            "SELECT id, project_id, title, body, event_date, created_at, updated_at, revision FROM entries WHERE id = ?1",
+            "SELECT id, project_id, title, body, event_date, created_at, updated_at, revision FROM entries WHERE id = ?1 AND deleted_at IS NULL AND NOT EXISTS(SELECT 1 FROM experiment_logs l JOIN cvt_experiments c ON l.experiment_id=c.id WHERE l.project_id=entries.project_id AND c.deleted_at IS NOT NULL)",
             [id], read_entry,
         ).optional()?.ok_or(StoreError::NotFound)
     }
@@ -346,7 +469,7 @@ impl Store {
     pub fn entries(&self, project_id: &str, search: &str) -> Result<Vec<Entry>> {
         let mut statement = self.connection.prepare(
             "SELECT id, project_id, title, body, event_date, created_at, updated_at, revision
-             FROM entries WHERE project_id = ?1 ORDER BY event_date DESC, updated_at DESC, id",
+             FROM entries WHERE project_id = ?1 AND deleted_at IS NULL AND NOT EXISTS(SELECT 1 FROM experiment_logs l JOIN cvt_experiments c ON l.experiment_id=c.id WHERE l.project_id=entries.project_id AND c.deleted_at IS NOT NULL) ORDER BY event_date DESC, updated_at DESC, id",
         )?;
         let rows = statement.query_map([project_id], read_entry)?;
         let needle = search.trim().to_lowercase();
@@ -364,6 +487,7 @@ impl Store {
     }
 
     pub fn create_entry(&self, draft: &EntryDraft) -> Result<Entry> {
+        let transaction = self.connection.unchecked_transaction()?;
         self.validate_draft(draft)?;
         let now = Utc::now().to_rfc3339();
         let id = Uuid::new_v4().to_string();
@@ -372,7 +496,9 @@ impl Store {
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?6, 1)",
             params![id, draft.project_id, draft.title.trim(), draft.body, draft.event_date.to_string(), now],
         )?;
-        self.entry(&id)
+        let entry = self.entry(&id)?;
+        transaction.commit()?;
+        Ok(entry)
     }
 
     pub fn update_entry(
@@ -381,10 +507,11 @@ impl Store {
         expected_revision: i64,
         draft: &EntryDraft,
     ) -> Result<Entry> {
+        let transaction = self.connection.unchecked_transaction()?;
         self.validate_draft(draft)?;
         let changed = self.connection.execute(
             "UPDATE entries SET title = ?1, body = ?2, event_date = ?3, updated_at = ?4, revision = revision + 1
-             WHERE id = ?5 AND revision = ?6 AND project_id = ?7",
+             WHERE id = ?5 AND revision = ?6 AND project_id = ?7 AND deleted_at IS NULL",
             params![draft.title.trim(), draft.body, draft.event_date.to_string(),
                 Utc::now().to_rfc3339(), id, expected_revision, draft.project_id],
         )?;
@@ -394,7 +521,9 @@ impl Store {
                 Err(error) => Err(error),
             };
         }
-        self.entry(id)
+        let entry = self.entry(id)?;
+        transaction.commit()?;
+        Ok(entry)
     }
 
     fn validate_draft(&self, draft: &EntryDraft) -> Result<()> {
@@ -404,7 +533,7 @@ impl Store {
             ));
         }
         let exists: bool = self.connection.query_row(
-            "SELECT EXISTS(SELECT 1 FROM projects WHERE id = ?1)",
+            "SELECT EXISTS(SELECT 1 FROM projects WHERE id = ?1 AND NOT EXISTS(SELECT 1 FROM experiment_logs l JOIN cvt_experiments c ON l.experiment_id=c.id WHERE l.project_id=projects.id AND c.deleted_at IS NOT NULL))",
             [&draft.project_id],
             |r| r.get(0),
         )?;
@@ -442,6 +571,13 @@ fn read_cvt_experiment(row: &Row<'_>) -> rusqlite::Result<CvtExperiment> {
         created_at: parse_value(row, 4)?,
         log_project_id: row.get(9)?,
         details: ExperimentDetails {
+            experiment_date: row
+                .get::<_, Option<String>>(10)?
+                .map(|value| value.parse::<NaiveDate>())
+                .transpose()
+                .map_err(|error| {
+                    rusqlite::Error::FromSqlConversionFailure(10, Type::Text, Box::new(error))
+                })?,
             heat_effect,
             precursor: Material {
                 text: row.get(6)?,

@@ -1,42 +1,40 @@
-Research Minion 0.3 - materials and experiment logs preview
+Research Minion 0.4 - recoverable deletion, dates and initial Peak Explorer
 
-Extract the ZIP into a folder, then double-click research-minion.exe.
-This is a native, offline application. No account, browser, .NET, WebView2,
-Python, Rust toolchain, or separate SQLite installation is needed to use it.
-Target: Windows 10/11 x64 with a working OpenGL graphics driver.
+Extract the ZIP, then double-click research-minion.exe, or use the standalone EXE.
+Windows 10/11 x64 with a working OpenGL graphics driver is required. No account,
+Rust, Python, .NET, WebView2 or separate SQLite installation is needed to use it.
 
-1. The app opens in CVT Experiments. Click + New experiment.
-2. Enter source and sink temperatures in degrees C. A name is optional.
-3. Choose Endothermic, Exothermic, or Not specified. This is your assignment,
-   independent of the temperature difference.
-4. Enter precursor and obtained-material formulas/names. Confirm suggested elements
-   or expand the periodic table and select the relevant material before clicking.
-   The two element sets are independent; typed descriptions are kept as entered.
-5. Enter a transport agent if relevant, or leave it blank. Save experiment.
-6. Compare the experiments on the common temperature axis. Horizontal positions
-   and connecting lines are schematic, not measured spatial profiles.
-7. Click an experiment bar or name to open its log. Save notes with Save entry
-   or Ctrl+S. Close/reopen the application to return to your saved work.
-8. The sidebar contains CVT Experiments and Tools. Previous unlinked notes remain
-   under Previous project logs on the overview, rather than in a sidebar tab.
+1. CVT Experiments > + New experiment: enter a name if useful, experiment date
+   (YYYY-MM-DD; blank if unknown), and source/sink temperatures in degrees C.
+2. Choose thermal character, enter precursor/product formulas or names, confirm
+   element suggestions or use the periodic table. Transport agent is optional.
+3. Save and click the experiment bar or name to open its own log. Save entries
+   with Save entry or Ctrl+S. Back to experiments is at the top of the log.
+4. Delete experiment hides that experiment and its log. Delete log clears all
+   saved entries but keeps the experiment. Delete log entry removes one note.
+   All require confirmation. Restore records from Recently deleted on the overview.
+   Unsaved edits discarded during deletion cannot be restored.
+5. Tools > Peak Explorer: enter your own orthorhombic a/b/c cell in Angstrom,
+   wavelength, and selected h k l lines. Enter the source and axis convention.
+   This initial tool provides d-spacings, Bragg angles, position-only markers,
+   and forward/inverse Bragg calculators. Choose an experiment and date to save
+   inputs/results/provenance/interpretation into its log as a new entry.
+6. No original Sb/Se EDX dataset, reference cell catalog, systematic-absence
+   filtering or automatic Pbnm/Pnma conversion is included. Do not use the
+   orthorhombic metric for other crystal systems. See docs/PEAK-EXPLORER.md.
 
-Default data folder: %LOCALAPPDATA%\ResearchMinion
-The database path is also shown at the bottom of the window.
-Keep this folder separate from the extracted application ZIP. Replacing the
-executable does not require deleting the data folder.
+Default data: %LOCALAPPDATA%\ResearchMinion\research-minion.sqlite3
+Replacing the executable does not require deleting the data folder.
+Version 0.4 upgrades old databases to schema 4, preserving records. Older app
+versions cannot open the upgraded database. Old experiment dates remain unknown.
+Previous unlinked project notes stay under Previous project logs on the overview.
 
-Save is explicit. Unsaved edits are not crash recovery. To make a manual
-safety copy, save and close all instances, then copy the whole data folder.
+Save is explicit. Tool inputs last only while the app is open; save analyses to
+retain them. Recently deleted retains saved records without automatic expiry;
+it is not backup or edit history. To make a manual safety copy, save and close
+all instances, then copy the whole data folder, including WAL/SHM files if present.
+Attachments, automatic backups, autosave/crash recovery and edit history are pending.
 
-This preview has no attachments, deletion, history, automatic backups,
-or integrated Peak Explorer. They remain future increments.
-
-Version 0.3 upgrades older databases while preserving experiments and notes.
-Old experiments receive empty independent logs. Prior project notes retain their
-original associations; no link is guessed from names. Use Previous project logs
-to find them. Older application versions cannot open an upgraded database.
-
-The Linux UI and storage were tested in the development environment. An x64
-Windows GNU executable was cross-compiled there. Windows execution, the MSVC
-packaging script, and Windows accessibility/DPI checks are still unverified.
-See docs/VALIDATION.md for the acceptance checklist and current evidence.
+43 automated tests and Linux UI checks pass. This executable was cross-compiled
+for Windows. Windows execution, MSVC packaging and Windows accessibility/DPI
+checks remain unverified. See docs/VALIDATION.md for evidence and acceptance checks.
