@@ -5,6 +5,8 @@ use crate::{
     editor::Editor,
     model::{CvtExperiment, Entry, Project},
     peak_view::PeakWorkspace,
+    profile_view::{self, ProfileForm},
+    profiles::{Profile, Profiles},
     store::Store,
 };
 
@@ -26,6 +28,11 @@ enum Tab {
 #[derive(Clone)]
 enum Action {
     SelectTab(Tab),
+    OpenProfiles,
+    NewProfile,
+    EditProfile,
+    SaveProfile,
+    SwitchProfile(String),
     NewExperiment,
     OpenExperiment(String),
     PreviousLogs,
@@ -79,6 +86,13 @@ struct ProjectForm {
 
 pub struct ResearchMinionApp {
     store: Option<Store>,
+    registry: Option<Profiles>,
+    active_profile: Option<Profile>,
+    profile_list: Vec<Profile>,
+    profile_form: Option<ProfileForm>,
+    profile_menu: bool,
+    profile_texture: Option<egui::TextureHandle>,
+    legacy_pending: bool,
     startup_error: Option<String>,
     tab: Tab,
     experiments: Vec<CvtExperiment>,
@@ -98,17 +112,25 @@ pub struct ResearchMinionApp {
     deleted_experiments: Vec<CvtExperiment>,
     deleted_entries: Vec<Entry>,
     peak: PeakWorkspace,
+    peak_drafts: std::collections::BTreeMap<String, PeakWorkspace>,
 }
 
 impl ResearchMinionApp {
-    pub fn new(cc: &eframe::CreationContext<'_>, store: Result<Store, String>) -> Self {
+    pub fn new(cc: &eframe::CreationContext<'_>, registry: Result<Profiles, String>) -> Self {
         configure_style(&cc.egui_ctx);
-        let (store, startup_error) = match store {
-            Ok(store) => (Some(store), None),
+        let (registry, startup_error) = match registry {
+            Ok(registry) => (Some(registry), None),
             Err(error) => (None, Some(error)),
         };
         let mut app = Self {
-            store,
+            store: None,
+            registry,
+            active_profile: None,
+            profile_list: vec![],
+            profile_form: None,
+            profile_menu: false,
+            profile_texture: None,
+            legacy_pending: false,
             startup_error,
             tab: Tab::default(),
             experiments: vec![],
@@ -122,28 +144,146 @@ impl ResearchMinionApp {
             project_form: None,
             pending: None,
             error: None,
-            notice: "Local workspace · no account required".into(),
+            notice: "Offline research workspace".into(),
             allow_close: false,
             deletion: None,
             deleted_experiments: vec![],
             deleted_entries: vec![],
             peak: PeakWorkspace::default(),
+            peak_drafts: std::collections::BTreeMap::new(),
         };
-        if let Some(store) = &app.store {
-            match store.legacy_projects() {
-                Ok(projects) => app.projects = projects,
-                Err(error) => app.startup_error = Some(error.to_string()),
+        let initial = app.registry.as_ref().map(|registry| {
+            Ok::<_, String>((
+                registry.all().map_err(|error| error.to_string())?,
+                registry.active().map_err(|error| error.to_string())?,
+                registry
+                    .has_unassigned_workspace()
+                    .map_err(|error| error.to_string())?,
+            ))
+        });
+        match initial {
+            Some(Ok((profiles, active, legacy))) => {
+                app.profile_list = profiles;
+                app.legacy_pending = legacy;
+                if let Some(profile) = active {
+                    if !app.activate_profile(&profile.id, &cc.egui_ctx) {
+                        app.profile_form = Some(ProfileForm::default());
+                    }
+                } else {
+                    app.profile_form = Some(ProfileForm::default());
+                }
             }
-            match store.cvt_experiments() {
-                Ok(experiments) => app.experiments = experiments,
-                Err(error) => app.startup_error = Some(error.to_string()),
-            }
-            if let Some(project) = app.projects.first() {
-                let id = project.id.clone();
-                app.select_project(id);
-            }
+            Some(Err(error)) => app.startup_error = Some(error),
+            None => {}
         }
         app
+    }
+
+    fn activate_profile(&mut self, id: &str, ctx: &egui::Context) -> bool {
+        let result = self
+            .registry
+            .as_ref()
+            .ok_or("Profile catalog unavailable".to_string())
+            .and_then(|registry| {
+                let profile = registry.profile(id).map_err(|error| error.to_string())?;
+                let store = registry.workspace(id).map_err(|error| error.to_string())?;
+                let projects = store.legacy_projects().map_err(|error| error.to_string())?;
+                let experiments = store.cvt_experiments().map_err(|error| error.to_string())?;
+                registry.activate(id).map_err(|error| error.to_string())?;
+                Ok((profile, store, projects, experiments))
+            });
+        match result {
+            Ok((profile, store, projects, experiments)) => {
+                self.profile_texture = profile
+                    .picture_png
+                    .as_ref()
+                    .and_then(|bytes| profile_view::avatar_texture(ctx, &profile.id, bytes));
+                self.notice = format!("Active profile: {}", profile.full_name);
+                if let Some(previous) = &self.active_profile {
+                    self.peak_drafts
+                        .insert(previous.id.clone(), std::mem::take(&mut self.peak));
+                }
+                self.peak = self.peak_drafts.remove(&profile.id).unwrap_or_default();
+                self.active_profile = Some(profile);
+                self.store = Some(store);
+                self.projects = projects;
+                self.experiments = experiments;
+                self.entries.clear();
+                self.editor = None;
+                self.project_id = None;
+                self.active_experiment = None;
+                self.search.clear();
+                self.deleted_entries.clear();
+                self.deleted_experiments.clear();
+                self.experiment_form = None;
+                self.project_form = None;
+                self.deletion = None;
+                self.tab = Tab::Experiments;
+                self.error = None;
+                if let Some(project) = self.projects.first() {
+                    self.select_project(project.id.clone());
+                }
+                ctx.request_repaint();
+                true
+            }
+            Err(error) => {
+                self.error = Some(error);
+                false
+            }
+        }
+    }
+
+    fn save_profile(&mut self, ctx: &egui::Context) -> bool {
+        let (Some(registry), Some(form)) = (&mut self.registry, &mut self.profile_form) else {
+            return false;
+        };
+        if let Err(error) = form.resolve_picture() {
+            self.error = Some(error);
+            return false;
+        }
+        let editing = form.id.as_ref().is_some_and(|id| {
+            self.active_profile
+                .as_ref()
+                .is_some_and(|profile| &profile.id == id)
+        });
+        let result = match &form.id {
+            Some(id) => registry.update(id, &form.full_name, form.picture_png.as_deref()),
+            None => registry.create(&form.full_name, form.picture_png.as_deref()),
+        };
+        match result {
+            Ok(profile) => {
+                if let Some(form) = &mut self.profile_form {
+                    form.id = Some(profile.id.clone());
+                }
+                match registry.all() {
+                    Ok(profiles) => self.profile_list = profiles,
+                    Err(error) => {
+                        self.error = Some(error.to_string());
+                        return false;
+                    }
+                }
+                if editing {
+                    self.profile_texture = profile
+                        .picture_png
+                        .as_ref()
+                        .and_then(|bytes| profile_view::avatar_texture(ctx, &profile.id, bytes));
+                    self.notice = format!("Active profile: {}", profile.full_name);
+                    self.active_profile = Some(profile);
+                } else if !self.activate_profile(&profile.id, ctx) {
+                    return false;
+                }
+                self.profile_form = None;
+                self.profile_menu = false;
+                self.legacy_pending = false;
+                self.error = None;
+                ctx.request_repaint();
+                true
+            }
+            Err(error) => {
+                self.error = Some(error.to_string());
+                false
+            }
+        }
     }
 
     fn refresh_entries(&mut self) -> bool {
@@ -233,15 +373,20 @@ impl ResearchMinionApp {
     }
 
     fn has_unsaved_changes(&self) -> bool {
-        self.editor.as_ref().is_some_and(Editor::is_dirty)
+        self.profile_form
+            .as_ref()
+            .is_some_and(ProfileForm::is_dirty)
+            || self.editor.as_ref().is_some_and(Editor::is_dirty)
             || self
                 .experiment_form
                 .as_ref()
                 .is_some_and(ExperimentForm::is_dirty)
     }
 
-    fn save_active_changes(&mut self) -> bool {
-        if self.experiment_form.is_some() {
+    fn save_active_changes(&mut self, ctx: &egui::Context) -> bool {
+        if self.profile_form.is_some() {
+            self.save_profile(ctx)
+        } else if self.experiment_form.is_some() {
             self.create_experiment()
         } else {
             self.save()
@@ -249,6 +394,7 @@ impl ResearchMinionApp {
     }
 
     fn discard_changes(&mut self) {
+        self.profile_form = None;
         self.experiment_form = None;
         if let Some(editor) = &mut self.editor {
             *editor = match &editor.saved {
@@ -265,6 +411,9 @@ impl ResearchMinionApp {
         let needs_guard = matches!(
             action,
             Action::SelectTab(_)
+                | Action::SwitchProfile(_)
+                | Action::NewProfile
+                | Action::EditProfile
                 | Action::NewExperiment
                 | Action::OpenExperiment(_)
                 | Action::PreviousLogs
@@ -284,6 +433,36 @@ impl ResearchMinionApp {
 
     fn apply(&mut self, action: Action, ctx: &egui::Context) {
         match action {
+            Action::OpenProfiles => {
+                if let Some(registry) = &self.registry {
+                    match registry.all() {
+                        Ok(profiles) => {
+                            self.profile_list = profiles;
+                            self.profile_menu = true;
+                        }
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
+                }
+            }
+            Action::NewProfile => {
+                self.profile_menu = false;
+                self.profile_form = Some(ProfileForm::default());
+                self.error = None;
+            }
+            Action::EditProfile => {
+                self.profile_menu = false;
+                self.profile_form = Some(ProfileForm::new(self.active_profile.as_ref()));
+                self.error = None;
+            }
+            Action::SaveProfile => {
+                self.save_profile(ctx);
+            }
+            Action::SwitchProfile(id) => {
+                self.profile_menu = false;
+                if self.activate_profile(&id, ctx) {
+                    self.profile_form = None;
+                }
+            }
             Action::SelectTab(tab) => {
                 self.tab = tab;
                 self.error = None;
@@ -587,7 +766,32 @@ impl ResearchMinionApp {
                         .size(12.0)
                         .color(Color32::LIGHT_GRAY),
                 );
-                ui.add_space(28.0);
+                ui.add_space(24.0);
+                if let Some(profile) = &self.active_profile {
+                    ui.horizontal(|ui| {
+                        profile_view::avatar(
+                            ui,
+                            &profile.full_name,
+                            self.profile_texture.as_ref(),
+                            48.0,
+                        );
+                        ui.vertical(|ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(&profile.full_name)
+                                        .strong()
+                                        .color(Color32::WHITE),
+                                )
+                                .truncate(),
+                            )
+                            .on_hover_text(&profile.full_name);
+                            if ui.button("Profiles…").clicked() {
+                                actions.push(Action::OpenProfiles);
+                            }
+                        });
+                    });
+                }
+                ui.add_space(24.0);
                 ui.label(
                     RichText::new("WORKSPACE")
                         .size(11.0)
@@ -595,7 +799,10 @@ impl ResearchMinionApp {
                         .color(Color32::from_gray(160)),
                 );
                 ui.add_space(8.0);
-                for (tab, label) in [(Tab::Experiments, "CVT Experiments"), (Tab::Tools, "Tools")] {
+                for (tab, label) in [
+                    (Tab::Experiments, "CVT Experiments"),
+                    (Tab::Tools, "Scientific Utilities"),
+                ] {
                     let selected = self.tab == tab
                         || (tab == Tab::Experiments
                             && matches!(self.tab, Tab::Logbook | Tab::RecentlyDeleted));
@@ -631,104 +838,73 @@ impl ResearchMinionApp {
     }
 
     fn workspace(&mut self, ui: &mut egui::Ui, actions: &mut Vec<Action>) {
-        let project = self
-            .projects
-            .iter()
-            .find(|p| Some(&p.id) == self.project_id.as_ref());
         egui::Frame::new()
             .fill(PAPER)
-            .inner_margin(24)
+            .inner_margin(12)
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
-                if primary_button(ui, "Back to experiments").clicked() {
-                    actions.push(Action::SelectTab(Tab::Experiments));
-                }
-                ui.add_space(12.0);
                 ui.horizontal_wrapped(|ui| {
+                    if primary_button(ui, "Back to experiments").clicked() {
+                        actions.push(Action::SelectTab(Tab::Experiments));
+                    }
                     if self.project_id.is_some() && ui.button("+ New log entry").clicked() {
                         actions.push(Action::NewEntry);
                     }
-                    if let Some(experiment) = &self.active_experiment
-                        && ui.button("Delete experiment…").clicked()
-                    {
-                        actions.push(Action::DeleteExperiment(experiment.id.clone()));
-                    }
                 });
-                ui.add_space(10.0);
-                ui.vertical(|ui| {
-                    ui.label(
-                        RichText::new(if self.active_experiment.is_some() {
-                            "EXPERIMENT LOG"
-                        } else {
-                            "PREVIOUS PROJECT LOGS"
-                        })
-                        .size(11.0)
-                        .color(MUTED)
-                        .strong(),
-                    );
-                    ui.add_space(4.0);
-                    ui.heading(
-                        RichText::new(
-                            self.active_experiment
-                                .as_ref()
-                                .map(|e| e.name.as_str())
-                                .unwrap_or_else(|| {
-                                    project.map_or("Previous project logs", |p| p.name.as_str())
-                                }),
-                        )
-                        .size(26.0)
-                        .color(INK),
-                    );
-                });
-                if let Some(experiment) = &self.active_experiment {
-                    crate::materials_view::experiment_summary(ui, experiment);
-                } else {
-                    ui.horizontal(|ui| {
-                        ui.label("Project:");
-                        egui::ComboBox::from_id_salt("previous-project")
-                            .selected_text(project.map_or("Choose project", |p| p.name.as_str()))
-                            .show_ui(ui, |ui| {
-                                for item in &self.projects {
-                                    if ui
-                                        .selectable_label(
-                                            Some(&item.id) == self.project_id.as_ref(),
-                                            &item.name,
-                                        )
-                                        .clicked()
-                                    {
-                                        actions.push(Action::SelectProject(item.id.clone()));
-                                    }
-                                }
-                            });
-                        if ui.button("New project").clicked() {
-                            actions.push(Action::NewProject);
-                        }
-                    });
-                }
-                if self.active_experiment.is_none()
-                    && let Some(project) = project
-                    && !project.description.is_empty()
-                {
-                    ui.add_space(5.0);
-                    ui.label(RichText::new(&project.description).color(MUTED));
-                }
             });
         ui.separator();
-        if self.project_id.is_none() {
-            ui.add_space(75.0);
-            ui.vertical_centered(|ui| {
-                ui.heading("A home for the work behind the results.");
-                ui.add_space(12.0);
-                ui.label("Record what you did, what you observed, and what comes next.");
-                ui.label("Everything stays on this device. Start with one project.");
-                ui.add_space(24.0);
-                if primary_button(ui, "Create your first project").clicked() {
-                    actions.push(Action::NewProject);
-                }
+        egui::SidePanel::right("experiment-details")
+            .default_width(260.0)
+            .width_range(220.0..=340.0)
+            .resizable(true)
+            .frame(egui::Frame::new().fill(PAPER).inner_margin(18))
+            .show_inside(ui, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("experiment-details-scroll")
+                    .show(ui, |ui| {
+                        if let Some(experiment) = &self.active_experiment {
+                            ui.label(RichText::new("EXPERIMENT").size(11.0).strong().color(MUTED));
+                            ui.heading(RichText::new(&experiment.name).size(23.0).color(INK));
+                            ui.add_space(14.0);
+                            crate::materials_view::experiment_summary(ui, experiment);
+                            ui.add_space(20.0);
+                            if ui.button("Delete experiment…").clicked() {
+                                actions.push(Action::DeleteExperiment(experiment.id.clone()));
+                            }
+                        } else {
+                            ui.heading("Previous project logs");
+                            let project = self
+                                .projects
+                                .iter()
+                                .find(|project| Some(&project.id) == self.project_id.as_ref());
+                            egui::ComboBox::from_id_salt("previous-project")
+                                .selected_text(
+                                    project
+                                        .map_or("Choose project", |project| project.name.as_str()),
+                                )
+                                .show_ui(ui, |ui| {
+                                    for project in &self.projects {
+                                        if ui
+                                            .selectable_label(
+                                                Some(&project.id) == self.project_id.as_ref(),
+                                                &project.name,
+                                            )
+                                            .clicked()
+                                        {
+                                            actions.push(Action::SelectProject(project.id.clone()));
+                                        }
+                                    }
+                                });
+                            if ui.button("New project").clicked() {
+                                actions.push(Action::NewProject);
+                            }
+                            if let Some(project) = project {
+                                ui.label(&project.description);
+                            }
+                        }
+                    });
             });
-            return;
-        }
-        egui::SidePanel::left("entry-list").exact_width(284.0).resizable(true)
+        egui::SidePanel::left("entry-list").exact_width(228.0).resizable(false)
             .frame(egui::Frame::new().fill(PAPER).inner_margin(16))
             .show_inside(ui, |ui| {
                 ui.label(RichText::new("Notes").size(18.0).strong().color(INK));
@@ -773,7 +949,7 @@ impl ResearchMinionApp {
                 });
             });
         egui::CentralPanel::default()
-            .frame(egui::Frame::new().fill(Color32::WHITE).inner_margin(26))
+            .frame(egui::Frame::new().fill(Color32::WHITE).inner_margin(18))
             .show_inside(ui, |ui| {
                 if let Some(editor) = &mut self.editor {
                     egui::ScrollArea::vertical()
@@ -789,6 +965,87 @@ impl ResearchMinionApp {
         // Egui modal layers can retain their foreground order across frames.
         // Render only the confirmation while navigating, retaining form state.
         if self.pending.is_none() && self.deletion.is_none() {
+            if self.profile_menu {
+                let mut close = false;
+                egui::Modal::new(egui::Id::new("profiles-menu")).show(ctx, |ui| {
+                    ui.set_width(480.0);
+                    ui.heading("User profiles");
+                    ui.label(
+                        RichText::new("Each profile has its own experiments and notes.")
+                            .color(MUTED),
+                    );
+                    ui.add_space(14.0);
+                    egui::ScrollArea::vertical()
+                        .max_height((ctx.content_rect().height() - 240.0).max(140.0))
+                        .show(ui, |ui| {
+                            for profile in &self.profile_list {
+                                ui.push_id(&profile.id, |ui| {
+                                    ui.horizontal(|ui| {
+                                        profile_view::avatar(ui, &profile.full_name, None, 36.0);
+                                        ui.add_sized(
+                                            [240.0, 36.0],
+                                            egui::Label::new(
+                                                RichText::new(&profile.full_name).strong(),
+                                            )
+                                            .truncate(),
+                                        )
+                                        .on_hover_text(&profile.full_name);
+                                        if self
+                                            .active_profile
+                                            .as_ref()
+                                            .is_some_and(|active| active.id == profile.id)
+                                        {
+                                            ui.label(RichText::new("Active").color(TEAL));
+                                        } else if ui.button("Switch").clicked() {
+                                            actions.push(Action::SwitchProfile(profile.id.clone()));
+                                            close = true;
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    ui.add_space(16.0);
+                    ui.horizontal(|ui| {
+                        if primary_button(ui, "New profile").clicked() {
+                            actions.push(Action::NewProfile);
+                            close = true;
+                        }
+                        if self.active_profile.is_some() && ui.button("Edit my profile").clicked() {
+                            actions.push(Action::EditProfile);
+                            close = true;
+                        }
+                        if ui.button("Close").clicked() {
+                            close = true;
+                        }
+                    });
+                });
+                if close {
+                    self.profile_menu = false;
+                    ctx.request_repaint();
+                }
+            } else if self.active_profile.is_some()
+                && let Some(form) = &mut self.profile_form
+            {
+                let mut outcome = None;
+                egui::Modal::new(egui::Id::new("edit-profile")).show(ctx, |ui| {
+                    ui.set_width(500.0);
+                    ui.heading(if form.id.is_some() {
+                        "Edit profile"
+                    } else {
+                        "Create profile"
+                    });
+                    outcome = form.show(ui, self.error.as_deref(), true);
+                });
+                match outcome {
+                    Some(true) => actions.push(Action::SaveProfile),
+                    Some(false) => {
+                        self.profile_form = None;
+                        self.error = None;
+                        ctx.request_repaint();
+                    }
+                    None => {}
+                }
+            }
             if let Some(form) = &mut self.experiment_form {
                 match form.show(ctx, self.error.as_deref()) {
                     Some(FormAction::Save) => actions.push(Action::CreateExperiment),
@@ -888,7 +1145,9 @@ impl ResearchMinionApp {
             egui::Modal::new(egui::Id::new("unsaved-entry")).show(ctx, |ui| {
                 ui.set_width(450.0);
                 ui.heading("Keep your changes?");
-                ui.label(if self.experiment_form.is_some() {
+                ui.label(if self.profile_form.is_some() {
+                    "This profile has unsaved changes. Save it before continuing, or discard it."
+                } else if self.experiment_form.is_some() {
                     "This new experiment has not been saved. Save it before continuing, or discard it."
                 } else {
                     "This entry has unsaved changes. Save them before continuing, or discard the changes."
@@ -905,7 +1164,7 @@ impl ResearchMinionApp {
                 ctx.request_repaint();
             }
             match decision {
-                Some(0) if self.save_active_changes() => {
+                Some(0) if self.save_active_changes(ctx) => {
                     if let Some(action) = self.pending.take() {
                         self.apply(action, ctx);
                     }
@@ -949,9 +1208,34 @@ impl eframe::App for ResearchMinionApp {
                 actions.push(Action::Close);
             }
         }
+        if self.active_profile.is_none() {
+            egui::CentralPanel::default().frame(egui::Frame::new().fill(PAPER).inner_margin(32)).show(ctx,|ui| {
+                ui.vertical_centered(|ui| {
+                    ui.add_space(25.0);
+                    ui.heading(RichText::new("Welcome to Research Minion").size(28.0).color(INK));
+                    ui.label("Create your offline user profile to start.");
+                    ui.add_space(20.0);
+                    if self.pending.is_none() && !self.profile_menu {
+                        ui.allocate_ui_with_layout(egui::vec2(520.0,460.0),egui::Layout::top_down(egui::Align::LEFT),|ui| {
+                            if self.legacy_pending {ui.label(RichText::new("Your existing experiments and notes will belong to this first profile.").color(TEAL));ui.add_space(12.0);}
+                            if let Some(form)=&mut self.profile_form
+                                && form.show(ui,self.error.as_deref(),false)==Some(true){actions.push(Action::SaveProfile);}
+                            if !self.profile_list.is_empty() && ui.button("Choose an existing profile").clicked(){actions.push(Action::OpenProfiles);}
+                        });
+                    }
+                });
+            });
+            self.dialogs(ctx, &mut actions);
+            for action in actions {
+                self.request(action, ctx);
+            }
+            return;
+        }
         if self.pending.is_none()
             && self.deletion.is_none()
             && self.project_form.is_none()
+            && self.profile_form.is_none()
+            && !self.profile_menu
             && self.experiment_form.is_none()
             && self.tab == Tab::Logbook
             && ctx.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, egui::Key::S))
@@ -1039,37 +1323,25 @@ fn draw_editor(
     viewport_height: f32,
 ) {
     let content_top = ui.cursor().top();
-    ui.horizontal(|ui| {
-        ui.label(RichText::new(if editor.saved.is_some() { "LOGBOOK ENTRY" } else { "NEW ENTRY" }).size(11.0).strong().color(MUTED));
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            if primary_button(ui, "Save entry").on_hover_text("Save locally · Ctrl+S").clicked() { actions.push(Action::Save); }
-            if editor.saved.is_some() && ui.button("Reload saved").on_hover_text("Reload the latest saved version. You will be asked before discarding edits.").clicked() {
-                actions.push(Action::Reload);
-            }
-        });
+    ui.horizontal_wrapped(|ui| {
+        if primary_button(ui, "Save entry")
+            .on_hover_text("Save locally · Ctrl+S")
+            .clicked()
+        {
+            actions.push(Action::Save);
+        }
+        if editor.saved.is_some() && ui.button("Reload saved").clicked() {
+            actions.push(Action::Reload);
+        }
+        if editor.is_dirty() {
+            ui.label(
+                RichText::new("Unsaved changes")
+                    .size(12.0)
+                    .color(Color32::from_rgb(160, 103, 24)),
+            );
+        }
     });
-    if let Some(entry) = &editor.saved
-        && ui.button("Delete this note…").clicked()
-    {
-        actions.push(Action::DeleteEntry(entry.clone()));
-    }
-    ui.add_space(10.0);
-    ui.label(
-        RichText::new(if editor.is_dirty() {
-            "Unsaved changes · Ctrl+S to save"
-        } else if editor.saved.is_some() {
-            "Saved locally"
-        } else {
-            "Not saved yet"
-        })
-        .size(11.0)
-        .color(if editor.is_dirty() {
-            Color32::from_rgb(160, 103, 24)
-        } else {
-            MUTED
-        }),
-    );
-    ui.add_space(18.0);
+    ui.add_space(14.0);
     ui.label(RichText::new("Title").strong().color(INK));
     ui.add(
         egui::TextEdit::singleline(&mut editor.title)

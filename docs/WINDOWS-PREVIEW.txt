@@ -1,41 +1,43 @@
-Research Minion 0.4.1 - clearer forms and individual note deletion
+Research Minion 0.5 - local user profiles and a larger notes workspace
 
-Extract the ZIP, then double-click research-minion.exe, or use the standalone EXE.
-Windows 10/11 x64 with a working OpenGL graphics driver is required. No account,
-Rust, Python, .NET, WebView2 or separate SQLite installation is needed to use it.
+Run the standalone EXE, or extract the ZIP and open research-minion.exe.
+Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
+.NET, WebView2 and a separate SQLite installation are not needed to use it.
 
-1. CVT Experiments > + New experiment > Conditions: enter a name, experiment date
-   (YYYY-MM-DD; blank if unknown), and source/sink temperatures in degrees C.
-2. Choose thermal character. Open Materials & transport agent for optional
-   precursor/product formulas or names. Confirm
-   element suggestions or use the periodic table. Transport agent is optional.
-3. Save and click the experiment bar or name to open its own log. Save entries
-   with Save entry or Ctrl+S. Back to experiments is at the top of the log.
-4. Every saved note card has Delete note; the editor has Delete this note.
-   Delete all notes clears the whole log; Delete experiment hides it and its log.
-   All require confirmation. Restore records from Recently deleted on the overview.
-   Unsaved edits discarded during deletion cannot be restored.
-5. Tools > Peak Explorer: enter your own orthorhombic a/b/c cell in Angstrom,
-   wavelength, and selected h k l lines. Enter the source and axis convention.
-   This initial tool provides d-spacings, Bragg angles, position-only markers,
-   and forward/inverse Bragg calculators. Choose an experiment and date to save
-   inputs/results/provenance/interpretation into its log as a new entry.
-6. No original Sb/Se EDX dataset, reference cell catalog, systematic-absence
-   filtering or automatic Pbnm/Pnma conversion is included. Do not use the
-   orthorhombic metric for other crystal systems. See docs/PEAK-EXPLORER.md.
+1. On first launch, enter Full name and optionally choose a User picture.
+   Windows opens a native file picker. PNG/JPEG files under 10 MiB are supported;
+   dropping a file onto the profile form or entering its path also works.
+   Pictures are copied into the local profile; initials appear when no picture is used.
+2. Existing experiments and notes belong to the first profile created for this
+   data folder. Their database stays in place. Later profiles start empty.
+3. The active name/picture appear above Workspace in the sidebar. Profiles lets
+   you create/switch profiles or edit your identity. Switches protect unsaved notes.
+4. CVT Experiments > + New experiment > Conditions: enter temperatures, date and
+   optional name/thermal character. Materials & transport agent holds the optional
+   descriptions, element selection and transport-agent text. Save experiment.
+5. Click its bar or name to open the log. Notes are on the left, the editor in the
+   centre, and experiment details on the right. Save entry or Ctrl+S saves locally.
+6. Each note card has Delete note. Delete all notes clears only this profile's log.
+   Recently deleted restores saved records. Discarded unsaved edits cannot be restored.
+7. Scientific Utilities > Peak Explorer provides the initial orthorhombic XRD
+   and Bragg calculators. Save analyses into an experiment in the active profile.
+   No original Sb/Se EDX catalog, CIF catalog or setting conversion is included.
 
-Default data: %LOCALAPPDATA%\ResearchMinion\research-minion.sqlite3
-Replacing the executable does not require deleting the data folder.
-Versions 0.4 and 0.4.1 share schema 4 and are compatible with the same database.
-Versions 0.1-0.3 cannot open a database upgraded to schema 4. Old experiment dates remain unknown.
-Previous unlinked project notes stay under Previous project logs on the overview.
+Default complete data folder: %LOCALAPPDATA%\ResearchMinion
+It contains profiles.sqlite3, profile subfolders and any earlier root database.
+Keep the WHOLE folder when replacing the executable or making a backup. Save and
+close ALL app instances before copying it, including all WAL/SHM files if present.
+Copying only one research database does not preserve all users or their pictures.
 
-Save is explicit. Tool inputs last only while the app is open; save analyses to
-retain them. Recently deleted retains saved records without automatic expiry;
-it is not backup or edit history. To make a manual safety copy, save and close
-all instances, then copy the whole data folder, including WAL/SHM files if present.
+Profile catalog schema: 1. Research database schema: 4.
+Use version 0.5 or later to select profiles. Earlier versions do not understand
+profile identities or automatically find new profile databases. These are offline
+local profiles without passwords, encryption, or an online account service.
+
+Save is explicit. Unsaved notes/tool inputs do not survive forced shutdown.
+Tool drafts stay in memory under their profile while the app remains open.
 Attachments, automatic backups, autosave/crash recovery and edit history are pending.
 
-43 automated tests and Linux UI checks pass. This executable was cross-compiled
-for Windows. Windows execution, MSVC packaging and Windows accessibility/DPI
-checks remain unverified. See docs/VALIDATION.md for evidence and acceptance checks.
+52 automated tests and Linux desktop checks pass. This executable was cross-built
+for Windows. Native Windows execution, the native picture picker, MSVC packaging
+and Windows accessibility/DPI checks remain unverified here. See docs/VALIDATION.md.

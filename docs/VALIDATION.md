@@ -1,6 +1,6 @@
 # Validation record
 
-Version 0.4.1 interface refinement, 25 October 2026. The development host is Debian Linux x64;
+Version 0.5 profiles and notes layout, 25 October 2026. The development host is Debian Linux x64;
 Windows execution is not claimed.
 
 ## Executed
@@ -10,8 +10,8 @@ Windows execution is not claimed.
 | Pinned Rust 1.95.0 installation and locked dependency restore | Passed |
 | `cargo fmt --all -- --check` | Passed |
 | `cargo clippy --locked --all-targets -- -D warnings` | Passed |
-| `cargo test --locked --offline` | 43 integration tests passed; no ignored/failed tests |
-| `cargo test --locked --offline --no-default-features` | 43 passed in 0.4; this interface patch changes no headless logic |
+| `cargo test --locked --offline` | 52 integration tests passed; no ignored/failed tests |
+| `cargo test --locked --offline --no-default-features` | 52 integration tests passed without desktop features |
 | `cargo build --locked` | Linux desktop build passed |
 | `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.4 |
 | Windows GNU x64 cross-build | Passed; Windows UI subsystem confirmed in the executable |
@@ -20,7 +20,7 @@ Library, executable, and documentation test runners also report zero tests;
 the meaningful assertions are 11 tests in `tests/logbook.rs` and 9 in
 `tests/cvt.rs`, plus 5 each in `tests/chemistry.rs` and
 `tests/experiment_records.rs`, 6 in `tests/deletion.rs`, and 7 in
-`tests/peak.rs`. The logbook tests cover
+`tests/peak.rs`, plus 9 in `tests/profiles.rs`. The logbook tests cover
 on-disk close/reopen, exact notes persistence, stable identity, retrospective
 dates, ordering, scoped/literal/Unicode search, invalid records and dates,
 retained drafts, two-instance conflict detection, and refusal to alter newer or
@@ -38,6 +38,37 @@ name parts, rejection of unknown matches, exact metadata round-trips, different
 precursor/product sets, optional agent/manual-only input, independent persistent
 logs, rollback of partially written records, and migration from schema 2 without
 reassigning old project notes or inventing a thermal assignment.
+
+## Profile and picture checks added in 0.5
+
+Nine integration tests cover identity/picture persistence after deleting the
+original picture, separate experiments/notes/search/deleted records per profile,
+rejection of cross-profile record IDs, persistence of the active preference,
+legacy workspace ownership in place while another Store remains open, independent
+second-profile startup, first ownership across two catalog instances,
+identity editing without changing research IDs, invalid names/pictures, bounded
+JPEG/PNG decoding and JPEG orientation, and refusal to overwrite unsupported
+catalogs or unrecognised old research databases. A corrupt stored ID cannot become
+an arbitrary workspace path. The EXIF fixture is a synthetic red/blue image.
+
+## Interface checks executed on Linux in 0.5
+
+Created a full-name profile and loaded a synthetic PNG through the form's file-path
+option. The sidebar displayed the name and copied picture above Workspace. The
+first profile retained an earlier CVT record and three notes; a second profile
+started empty and saved an independent experiment and note. Independent SQLite
+reads confirmed the separate files and log links. Switching with a dirty note
+prompted; Keep editing retained it, and Save and continue saved it to the original
+profile before switching. Reopening remembered the active profile and displayed
+its picture after the original picture file had been removed. Editing the name
+retained the same profile ID and its three research notes.
+
+Checked the three-column notes page at 1240×820 and 1000×650. Experiment metadata
+is on the right, note-card deletion remains visible, and the duplicate editor
+button is absent. Scientific Utilities replaces Tools in the sidebar and heading.
+Tool drafts stayed separate while switching profiles and restored on returning
+to their owner during the same process. The Windows native picker compiled but
+has not been executed on Windows.
 
 ## Interface checks executed on Linux in 0.4.1
 
@@ -199,7 +230,10 @@ adding that file.
 
 1. Build/test with the MSVC toolchain and run the Windows packaging script, or
    extract the cross-compiled preview ZIP and launch its executable.
-2. With networking disconnected, add an experiment and metadata, save, click its
+2. With networking disconnected, create a named profile, select PNG and JPEG
+   pictures through the Windows picker, and verify persistence. Create a second
+   profile and confirm independent records, picture/name editing and switch guards.
+   Add an experiment and metadata, save, click its
    bar to create an entry, restart, reopen, edit, search, and confirm the data
    folder. Test decimal/equal/reversed temperatures, thermal assignments, both
    periodic-table targets, name/formula suggestions and the optional agent.

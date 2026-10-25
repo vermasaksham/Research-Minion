@@ -1,22 +1,32 @@
 # Research Minion
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.4.1** simplifies the interface, improves form legibility, and makes
-individual note deletion visible on every saved note.
+Version **0.5** adds offline user profiles with pictures and separate research
+workspaces, plus a taller notes editor with experiment details on the right.
 
 ## Download and try it
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.4.1-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.4.1-windows-x64-preview.zip)
+- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.0-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.0-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
-Download the executable and double-click it. If you choose the ZIP, extract it
+Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
 first and open `research-minion.exe`. Using the app does not require installing
 Rust, .NET, Python, SQLite, or a web runtime.
 
-1. The app opens in **CVT Experiments**. Click **+ New experiment**.
+On first launch, enter your **Full name** and choose a **User picture** (optional).
+Windows offers a native **Choose picture…** dialog; you can also drop a PNG/JPEG
+onto the profile form or use its file-path option. Pictures are copied into the
+profile, so the original file is no longer required. If you skip the picture,
+your initials are shown.
+
+The first profile takes ownership of earlier experiments and notes in this data
+folder. Later profiles start empty. Use **Profiles…** under your sidebar name to
+create or switch users, or edit your name/picture. Switching protects unsaved notes.
+
+1. After profile setup, the app opens in **CVT Experiments**. Click **+ New experiment**.
 2. In **Conditions**, enter the experiment date (`YYYY-MM-DD`; blank if unknown), a name if useful,
    and source and sink temperatures, for example **650 °C** and **600 °C**.
    The form previews **ΔT = Source − Sink = 50 °C**.
@@ -34,40 +44,45 @@ Rust, .NET, Python, SQLite, or a web runtime.
    date (`YYYY-MM-DD`), and notes; click **Save entry** or press **Ctrl+S**.
 8. Use **Back to experiments** at the top of the log to return to the main view.
 9. Each saved note has its own **Delete note…** button in the **Notes** list;
-   the editor also offers **Delete this note…**. Confirmation names the chosen
-   note, and other notes remain. **Delete all notes…** clears the whole log.
+   confirmation names the chosen note, and other notes remain. **Delete all notes…** clears the whole log.
    **Delete experiment…** hides an experiment together with its log.
    **Recently deleted** on the overview lets you restore saved records.
-10. Open **Tools → Peak Explorer** to calculate XRD positions from an explicitly
+10. Open **Scientific Utilities → Peak Explorer** to calculate XRD positions from an explicitly
     entered orthorhombic cell, wavelength, and list of `h k l` reflections. Enter
     the source and axis convention for your parameters. Add an interpretation,
     choose an experiment and event date, then click **Save analysis to log**.
 11. Close and reopen the app to return to your saved experiments and logs.
 
-The sidebar contains **CVT Experiments** and **Tools**. There is no separate
+The sidebar contains **CVT Experiments** and **Scientific Utilities**. There is no separate
 Logbook tab. Earlier, unlinked project notes remain accessible through
 **Previous project logs** on the Experiments page when such notes exist.
 
-This is an early preview. Forty-three automated tests and Linux interface checks pass.
+This is an early preview. Fifty-two automated tests and Linux interface checks pass.
 The executable was cross-compiled for Windows; Windows execution remains
 unverified. Preview binaries are hosted directly in this repository, rather than
 as GitHub Release assets, because release-API access is unavailable here.
 
-![CVT experiment overview](docs/images/cvt-overview.png)
+![Offline profile setup](docs/images/profile-setup.png)
 
-![Clearer conditions form](docs/images/conditions-form.png)
-
-![Optional material entry](docs/images/materials-form.png)
-
-![Periodic table selection](docs/images/periodic-table.png)
+![CVT experiment overview and active user](docs/images/cvt-overview.png)
 
 ![Experiment-linked log](docs/images/experiment-log.png)
 
-![Tools with a single page heading](docs/images/tools.png)
+![Scientific Utilities](docs/images/tools.png)
 
-Screenshots use disposable example records; new workspaces start empty.
+Screenshots use synthetic profiles, a synthetic picture, and disposable records.
+New profiles start empty unless the first profile adopts an earlier workspace.
 
 ## What works
+
+- Offline profiles ask for a full name and optional PNG/JPEG picture. The active
+  user appears above Workspace in the sidebar. Profile pictures are normalised
+  locally, including JPEG orientation, and remain available after the source file
+  is removed.
+- Each profile opens a separate research database: experiments, project notes,
+  searches, saved analyses, and Recently deleted belong to that profile.
+- The note list and editor use the window height; experiment metadata lives in
+  a resizable right-hand panel. Individual deletion remains on each note card.
 
 - All saved CVT experiments appear on a shared temperature axis in °C. Horizontal
   position and joining lines are schematic, not measured distances or profiles.
@@ -89,7 +104,8 @@ Screenshots use disposable example records; new workspaces start empty.
 - Normal navigation/close requests protect unsaved forms and notes. Deleting a
   different saved note preserves the current editor draft, including a new unsaved note.
 
-There are no accounts, telemetry, AI calls, hosted services, or runtime downloads.
+Profiles are local identities, without passwords or a hosted account service.
+There is no telemetry, and the app makes no AI calls or runtime downloads.
 SQLite and interface fonts are bundled. Initial builds require Internet access to
 fetch the pinned Rust toolchain and dependencies; using the executable does not.
 
@@ -107,23 +123,35 @@ selection until you choose them. See [chemistry conventions](docs/CHEMISTRY.md).
 
 ## Where your work lives
 
-The default Windows folder is `%LOCALAPPDATA%\ResearchMinion`, containing
-`research-minion.sqlite3`. The full path appears in the status bar. On Linux it
-uses `$XDG_DATA_HOME/ResearchMinion`, normally `~/.local/share/ResearchMinion`.
-You can choose a different local folder:
+The default Windows folder is `%LOCALAPPDATA%\ResearchMinion`. On Linux it uses
+`$XDG_DATA_HOME/ResearchMinion`, normally `~/.local/share/ResearchMinion`.
+
+- `profiles.sqlite3` contains profile identities, copied pictures and the last
+  active profile.
+- New profiles use `profiles/<profile UUID>/research-minion.sqlite3` for their
+  research records.
+- If an older `research-minion.sqlite3` already exists in the data-folder root,
+  the first profile owns it in its original location. It is not moved or copied;
+  existing notes, IDs, timestamps and deletion states are preserved. Later users
+  receive independent databases.
+
+The active database path appears in the status bar. To choose another complete
+local data folder:
 
 ```powershell
 .\research-minion.exe --data-dir "C:\Research\My logbook"
 ```
 
-Replacing the executable does not require deleting this data folder. Versions 0.4
-and 0.4.1 use the same schema 4. Older databases upgrade while preserving
-experiments, projects, and notes.
-Records from 0.1/0.2 receive empty independent CVT logs and unspecified material/thermal
-fields. Experiments recorded before 0.4 keep an unknown experiment date; no date
-is inferred. Previous project notes are not assigned to experiments by guessing
-from names; access them through **Previous project logs**. Versions 0.1–0.3 cannot open
-a database upgraded to schema 4.
+Replacing the executable does not require deleting the data folder. Version 0.5
+keeps research schema 4 and adds a separate profile catalog (schema 1). Older
+research databases still upgrade through the retained migrations. Use version
+0.5 or later to select profiles; earlier application versions do not understand
+the profile catalog or find new profile databases automatically.
+
+Older experiment dates remain unknown. Previous project notes are not assigned
+to experiments by guessing names; find them through **Previous project logs**
+inside their owner's profile. Profiles group data into separate workspaces; they
+are not password protection or encryption.
 
 Save is explicit; unsaved text does not survive a crash or forced shutdown.
 Revision numbers detect conflicting entry edits and are not edit history. The
@@ -136,8 +164,9 @@ were individually deleted beforehand. Unsaved edits discarded during deletion
 are not recoverable. This is separate from backup and edit history.
 
 Automatic backup/restore is not implemented. Save and close **all** app instances,
-then copy the entire data folder to a separate location. Keep any `-wal` and
-`-shm` files with it if present. Restore with the app closed, preferably into a
+then copy the **entire data folder**, including `profiles.sqlite3`, all profile
+subfolders, any earlier root database, and any `-wal`/`-shm` files. A copy of only
+one research database does not include all profiles or profile pictures. Restore with the app closed, preferably into a
 separate folder opened using `--data-dir`.
 
 ## Build and develop

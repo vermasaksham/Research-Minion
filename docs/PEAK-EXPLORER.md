@@ -1,6 +1,6 @@
 # Peak Explorer 0.4: initial offline XRD tool
 
-Open **Tools → Peak Explorer**. This increment calculates positions from a
+Open **Scientific Utilities → Peak Explorer**. This increment calculates positions from a
 **user-entered orthorhombic cell** and explicit reflection indices. It works fully
 offline and has no dependencies on Python, external websites or reference services.
 It is a new, limited implementation; the original private Sb₂Se₃ Peak Explorer

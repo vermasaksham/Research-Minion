@@ -236,3 +236,42 @@ when the target contains the current editor is that editor replaced after deleti
 other current drafts and search text are retained. Unsaved warnings apply only to
 the draft the chosen deletion would discard. Schema, scientific calculations, and
 reference datasets are unchanged from 0.4.
+
+## Version 0.5 local profiles and notes layout
+
+`profiles.rs` manages a separate SQLite profile catalog at the data-folder root.
+Its schema 1 stores UUID, full name, copied PNG picture, creation time and the
+legacy-workspace ownership flag, plus a persisted active-profile preference. The
+research schema stays at 4. Each new profile owns a distinct database below
+`profiles/<UUID>/`. Stable, validated identifiers form paths; profile names do not.
+
+A first-profile creation transaction takes an immediate catalog lock before
+checking legacy ownership, preventing two instances from claiming the same old
+workspace. If an earlier root research database exists, it remains in place and
+belongs to the first profile. The workspace must open/validate before the catalog
+row commits. No research files or live WAL files are moved, copied, or deleted.
+Subsequent profiles start in independent folders. Failed creation can leave an
+unused empty folder; it does not delete existing research data.
+
+Before switching, the next workspace is opened and its experiments/projects are
+loaded. The active preference changes only after that succeeds. Switching clears
+editor, search, experiment and deletion state, protecting dirty notes through
+Save/Discard/Keep editing. Peak drafts are cached in memory by profile UUID, so
+switching back restores only that profile's unfinished tool form; those drafts
+are not durable after closing the application. Each live app instance retains its own
+active Store; changing the startup preference in another instance does not swap
+that live Store. A damaged active workspace can return to profile selection rather
+than preventing use of other available profiles.
+
+`profile_view.rs` supplies setup, identity editing, picture preview and profile
+selection. The sidebar shows the active identity above Workspace. Pictures accept
+PNG/JPEG under 10 MiB with dimension/allocation limits, apply image orientation,
+then crop/resize to a copied 256×256 PNG. A Windows-only `rfd` dependency supplies
+the native file picker. Dropped files and a file-path alternative also work. No
+password, encryption or online authentication is introduced.
+
+The notes page now has a compact navigation toolbar, a note list on the left,
+the taller editor in the middle, and a resizable experiment-details rail on the
+right. Metadata can scroll independently. The redundant editor deletion button
+and entry-type heading are removed; per-note actions remain on their own cards.
+Tools is labelled Scientific Utilities throughout the current interface.

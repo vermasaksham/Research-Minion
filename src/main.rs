@@ -2,10 +2,7 @@
 
 use std::path::PathBuf;
 
-use research_minion::{
-    app::ResearchMinionApp,
-    store::{Store, default_data_dir},
-};
+use research_minion::{app::ResearchMinionApp, profiles::Profiles, store::default_data_dir};
 
 fn main() -> eframe::Result {
     let data_dir = parse_data_dir().and_then(|path| {
@@ -14,7 +11,7 @@ fn main() -> eframe::Result {
     });
     // Open errors are shown in the desktop window, not hidden in a Windows console.
     let store = data_dir.and_then(|path| {
-        Store::open(&path).map_err(|e| format!("{}\n\nLocation: {}", e, path.display()))
+        Profiles::open(&path).map_err(|e| format!("{}\n\nLocation: {}", e, path.display()))
     });
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()

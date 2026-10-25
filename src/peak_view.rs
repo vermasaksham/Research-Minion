@@ -84,7 +84,7 @@ impl PeakWorkspace {
         egui::ScrollArea::vertical().id_salt("tools-page").show(ui,|ui| {
             egui::Frame::new().inner_margin(24).show(ui,|ui| {
                 if !self.open {
-                    ui.heading(RichText::new("Tools").size(28.0));
+                    ui.heading(RichText::new("Scientific Utilities").size(28.0));
                     ui.add_space(22.0);
                     egui::Frame::new().fill(PAPER).inner_margin(20).corner_radius(8.0).show(ui,|ui| {
                         ui.heading("Peak Explorer");
@@ -94,7 +94,7 @@ impl PeakWorkspace {
                     });
                     return;
                 }
-                if primary_button(ui,"Back to tools").clicked(){self.open=false;ui.ctx().request_repaint();}
+                if primary_button(ui,"Back to Scientific Utilities").clicked(){self.open=false;ui.ctx().request_repaint();}
                 ui.add_space(14.0);
                 ui.heading("Peak Explorer · XRD");
                 ui.label(RichText::new("First-order Bragg positions · user-entered orthorhombic cell").color(TEAL));

@@ -18,3 +18,8 @@ pub mod peak;
 
 #[cfg(feature = "desktop")]
 mod peak_view;
+
+pub mod profiles;
+
+#[cfg(feature = "desktop")]
+mod profile_view;
