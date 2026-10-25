@@ -1,0 +1,2 @@
+8585444e22fe5cdc97afcc902849adebf13c26e3819c6a00c19904d7d2c15bea  Research-Minion-0.2.0-windows-x64.exe
+7efd717634a01bc5df609792c0b8a5eef26b7dcb74b084c59bebb3b0b724fbbb  Research-Minion-0.2.0-windows-x64-preview.zip

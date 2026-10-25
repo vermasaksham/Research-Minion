@@ -1,0 +1,836 @@
+use eframe::egui::{self, Color32, RichText, Stroke, Vec2};
+
+use crate::{
+    cvt_view::{self, ExperimentForm, FormAction},
+    editor::Editor,
+    model::{CvtExperiment, Entry, Project},
+    store::Store,
+};
+
+pub(crate) const INK: Color32 = Color32::from_rgb(29, 43, 59);
+pub(crate) const MUTED: Color32 = Color32::from_rgb(100, 116, 132);
+pub(crate) const TEAL: Color32 = Color32::from_rgb(20, 112, 109);
+const SIDEBAR: Color32 = Color32::from_rgb(26, 40, 55);
+pub(crate) const PAPER: Color32 = Color32::from_rgb(249, 250, 248);
+
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+enum Tab {
+    #[default]
+    Experiments,
+    Tools,
+    Logbook,
+}
+
+#[derive(Clone)]
+enum Action {
+    SelectTab(Tab),
+    NewExperiment,
+    CreateExperiment,
+    SelectProject(String),
+    OpenEntry(String),
+    NewEntry,
+    NewProject,
+    Reload,
+    Close,
+    Save,
+    Filter,
+    CreateProject,
+}
+
+#[derive(Default)]
+struct ProjectForm {
+    name: String,
+    description: String,
+}
+
+pub struct ResearchMinionApp {
+    store: Option<Store>,
+    startup_error: Option<String>,
+    tab: Tab,
+    experiments: Vec<CvtExperiment>,
+    experiment_form: Option<ExperimentForm>,
+    projects: Vec<Project>,
+    entries: Vec<Entry>,
+    project_id: Option<String>,
+    editor: Option<Editor>,
+    search: String,
+    project_form: Option<ProjectForm>,
+    pending: Option<Action>,
+    error: Option<String>,
+    notice: String,
+    allow_close: bool,
+}
+
+impl ResearchMinionApp {
+    pub fn new(cc: &eframe::CreationContext<'_>, store: Result<Store, String>) -> Self {
+        configure_style(&cc.egui_ctx);
+        let (store, startup_error) = match store {
+            Ok(store) => (Some(store), None),
+            Err(error) => (None, Some(error)),
+        };
+        let mut app = Self {
+            store,
+            startup_error,
+            tab: Tab::default(),
+            experiments: vec![],
+            experiment_form: None,
+            projects: vec![],
+            entries: vec![],
+            project_id: None,
+            editor: None,
+            search: String::new(),
+            project_form: None,
+            pending: None,
+            error: None,
+            notice: "Local workspace · no account required".into(),
+            allow_close: false,
+        };
+        if let Some(store) = &app.store {
+            match store.projects() {
+                Ok(projects) => app.projects = projects,
+                Err(error) => app.startup_error = Some(error.to_string()),
+            }
+            match store.cvt_experiments() {
+                Ok(experiments) => app.experiments = experiments,
+                Err(error) => app.startup_error = Some(error.to_string()),
+            }
+            if let Some(project) = app.projects.first() {
+                let id = project.id.clone();
+                app.select_project(id);
+            }
+        }
+        app
+    }
+
+    fn refresh_entries(&mut self) -> bool {
+        if let (Some(store), Some(id)) = (&self.store, &self.project_id) {
+            match store.entries(id, &self.search) {
+                Ok(entries) => {
+                    self.entries = entries;
+                    return true;
+                }
+                Err(error) => {
+                    self.entries.clear();
+                    self.error = Some(error.to_string());
+                }
+            }
+        }
+        false
+    }
+
+    fn select_project(&mut self, id: String) {
+        self.search.clear();
+        self.project_id = Some(id.clone());
+        self.error = None;
+        if !self.refresh_entries() {
+            self.editor = None;
+            return;
+        }
+        self.editor = Some(match self.entries.first() {
+            Some(entry) => Editor::from_entry(entry.clone()),
+            None => Editor::new(id),
+        });
+    }
+
+    fn save(&mut self) -> bool {
+        let (Some(editor), Some(store)) = (&mut self.editor, &self.store) else {
+            return false;
+        };
+        match editor.save(store) {
+            Ok(()) => {
+                self.notice = "Saved to this device".into();
+                self.error = None;
+                self.refresh_entries();
+                true
+            }
+            Err(error) => {
+                self.error = Some(error.to_string());
+                false
+            }
+        }
+    }
+
+    fn refresh_experiments(&mut self) {
+        if let Some(store) = &self.store {
+            match store.cvt_experiments() {
+                Ok(experiments) => self.experiments = experiments,
+                Err(error) => self.error = Some(error.to_string()),
+            }
+        }
+    }
+
+    fn create_experiment(&mut self) -> bool {
+        let (Some(store), Some(form)) = (&self.store, &self.experiment_form) else {
+            return false;
+        };
+        let result = form
+            .conditions()
+            .map_err(|error| error.to_string())
+            .and_then(|conditions| {
+                store
+                    .create_cvt_experiment(&form.name, conditions)
+                    .map_err(|error| error.to_string())
+            });
+        match result {
+            Ok(_) => {
+                self.experiment_form = None;
+                self.error = None;
+                self.notice = "Experiment saved to this device".into();
+                self.refresh_experiments();
+                true
+            }
+            Err(error) => {
+                self.error = Some(error);
+                false
+            }
+        }
+    }
+
+    fn has_unsaved_changes(&self) -> bool {
+        self.editor.as_ref().is_some_and(Editor::is_dirty)
+            || self
+                .experiment_form
+                .as_ref()
+                .is_some_and(ExperimentForm::is_dirty)
+    }
+
+    fn save_active_changes(&mut self) -> bool {
+        if self.experiment_form.is_some() {
+            self.create_experiment()
+        } else {
+            self.save()
+        }
+    }
+
+    fn discard_changes(&mut self) {
+        self.experiment_form = None;
+        if let Some(editor) = &mut self.editor {
+            *editor = match &editor.saved {
+                Some(entry) => Editor::from_entry(entry.clone()),
+                None => Editor::new(editor.project_id.clone()),
+            };
+        }
+        self.error = None;
+    }
+
+    fn request(&mut self, action: Action, ctx: &egui::Context) {
+        // Actions are applied after drawing; schedule their new view immediately.
+        ctx.request_repaint();
+        let needs_guard = matches!(
+            action,
+            Action::SelectTab(_)
+                | Action::NewExperiment
+                | Action::SelectProject(_)
+                | Action::OpenEntry(_)
+                | Action::NewEntry
+                | Action::NewProject
+                | Action::Reload
+                | Action::Close
+        );
+        if needs_guard && self.has_unsaved_changes() {
+            self.pending = Some(action);
+        } else {
+            self.apply(action, ctx);
+        }
+    }
+
+    fn apply(&mut self, action: Action, ctx: &egui::Context) {
+        match action {
+            Action::SelectTab(tab) => {
+                self.tab = tab;
+                self.error = None;
+                if tab == Tab::Experiments {
+                    self.refresh_experiments();
+                }
+            }
+            Action::NewExperiment => {
+                self.error = None;
+                self.experiment_form = Some(ExperimentForm::default());
+            }
+            Action::CreateExperiment => {
+                self.create_experiment();
+            }
+            Action::Save => {
+                self.save();
+            }
+            Action::Filter => {
+                self.refresh_entries();
+            }
+            Action::SelectProject(id) => self.select_project(id),
+            Action::NewEntry => {
+                if let Some(id) = &self.project_id {
+                    self.editor = Some(Editor::new(id.clone()));
+                    self.error = None;
+                }
+            }
+            Action::OpenEntry(id) => self.load_entry(&id),
+            Action::Reload => {
+                if let Some(id) = self
+                    .editor
+                    .as_ref()
+                    .and_then(|e| e.saved.as_ref())
+                    .map(|e| e.id.clone())
+                {
+                    self.load_entry(&id);
+                    self.refresh_entries();
+                }
+            }
+            Action::NewProject => self.project_form = Some(ProjectForm::default()),
+            Action::CreateProject => {
+                if let (Some(store), Some(form)) = (&self.store, &self.project_form) {
+                    match store.create_project(&form.name, &form.description) {
+                        Ok(project) => {
+                            let id = project.id.clone();
+                            self.projects.push(project);
+                            self.project_form = None;
+                            self.select_project(id);
+                            self.notice = "Project created · write your first entry".into();
+                        }
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
+                }
+            }
+            Action::Close => {
+                self.allow_close = true;
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+        }
+    }
+
+    fn load_entry(&mut self, id: &str) {
+        if let Some(store) = &self.store {
+            match store.entry(id) {
+                Ok(entry) => {
+                    self.editor = Some(Editor::from_entry(entry));
+                    self.error = None;
+                }
+                Err(error) => self.error = Some(error.to_string()),
+            }
+        }
+    }
+
+    fn sidebar(&self, ctx: &egui::Context, actions: &mut Vec<Action>) {
+        egui::SidePanel::left("projects")
+            .exact_width(224.0)
+            .resizable(false)
+            .frame(egui::Frame::new().fill(SIDEBAR).inner_margin(20))
+            .show(ctx, |ui| {
+                ui.add_space(10.0);
+                ui.label(
+                    RichText::new("RESEARCH")
+                        .size(13.0)
+                        .color(Color32::from_rgb(125, 185, 180)),
+                );
+                ui.label(
+                    RichText::new("Minion")
+                        .size(32.0)
+                        .strong()
+                        .color(Color32::WHITE),
+                );
+                ui.add_space(7.0);
+                ui.label(
+                    RichText::new("Your work, remembered.")
+                        .size(12.0)
+                        .color(Color32::LIGHT_GRAY),
+                );
+                ui.add_space(28.0);
+                ui.label(
+                    RichText::new("WORKSPACE")
+                        .size(11.0)
+                        .strong()
+                        .color(Color32::from_gray(160)),
+                );
+                ui.add_space(8.0);
+                for (tab, label) in [
+                    (Tab::Experiments, "CVT Experiments"),
+                    (Tab::Tools, "Tools"),
+                    (Tab::Logbook, "Logbook"),
+                ] {
+                    let selected = self.tab == tab;
+                    if ui
+                        .add(
+                            egui::Button::new(RichText::new(label).color(Color32::WHITE))
+                                .fill(if selected { TEAL } else { SIDEBAR })
+                                .corner_radius(6.0)
+                                .min_size(Vec2::new(ui.available_width(), 40.0)),
+                        )
+                        .clicked()
+                        && !selected
+                    {
+                        actions.push(Action::SelectTab(tab));
+                    }
+                    ui.add_space(4.0);
+                }
+                ui.add_space(24.0);
+                if self.tab == Tab::Logbook {
+                    ui.label(
+                        RichText::new("PROJECTS")
+                            .size(11.0)
+                            .strong()
+                            .color(Color32::from_gray(160)),
+                    );
+                    ui.add_space(10.0);
+                    egui::ScrollArea::vertical()
+                        .id_salt("project-list")
+                        .max_height((ui.available_height() - 140.0).max(70.0))
+                        .show(ui, |ui| {
+                            for project in &self.projects {
+                                let selected = self.project_id.as_ref() == Some(&project.id);
+                                let button = egui::Button::new(
+                                    RichText::new(&project.name).color(Color32::WHITE),
+                                )
+                                .fill(if selected { TEAL } else { SIDEBAR })
+                                .corner_radius(6.0)
+                                .min_size(Vec2::new(ui.available_width(), 40.0));
+                                if ui.add(button).on_hover_text(&project.description).clicked()
+                                    && !selected
+                                {
+                                    actions.push(Action::SelectProject(project.id.clone()));
+                                }
+                                ui.add_space(4.0);
+                            }
+                        });
+                    ui.add_space(12.0);
+                    if ui
+                        .add(
+                            egui::Button::new(
+                                RichText::new("+  New project").color(Color32::WHITE),
+                            )
+                            .fill(Color32::from_rgb(43, 59, 74))
+                            .min_size(Vec2::new(ui.available_width(), 36.0)),
+                        )
+                        .clicked()
+                    {
+                        actions.push(Action::NewProject);
+                    }
+                }
+                ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+                    ui.label(
+                        RichText::new("OFFLINE BY DESIGN")
+                            .size(10.0)
+                            .strong()
+                            .color(Color32::from_rgb(125, 185, 180)),
+                    );
+                    ui.label(
+                        RichText::new(concat!("Research Minion ", env!("CARGO_PKG_VERSION")))
+                            .size(11.0)
+                            .color(Color32::from_gray(150)),
+                    );
+                });
+            });
+    }
+
+    fn workspace(&mut self, ui: &mut egui::Ui, actions: &mut Vec<Action>) {
+        let project = self
+            .projects
+            .iter()
+            .find(|p| Some(&p.id) == self.project_id.as_ref());
+        egui::Frame::new()
+            .fill(PAPER)
+            .inner_margin(24)
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.vertical(|ui| {
+                        ui.label(
+                            RichText::new("RESEARCH LOGBOOK")
+                                .size(11.0)
+                                .color(MUTED)
+                                .strong(),
+                        );
+                        ui.add_space(4.0);
+                        ui.heading(
+                            RichText::new(
+                                project.map_or("Welcome to Research Minion", |p| p.name.as_str()),
+                            )
+                            .size(26.0)
+                            .color(INK),
+                        );
+                    });
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if self.project_id.is_some() && primary_button(ui, "+  New entry").clicked()
+                        {
+                            actions.push(Action::NewEntry);
+                        }
+                    });
+                });
+                if let Some(project) = project
+                    && !project.description.is_empty()
+                {
+                    ui.add_space(5.0);
+                    ui.label(RichText::new(&project.description).color(MUTED));
+                }
+            });
+        ui.separator();
+        if self.project_id.is_none() {
+            ui.add_space(75.0);
+            ui.vertical_centered(|ui| {
+                ui.heading("A home for the work behind the results.");
+                ui.add_space(12.0);
+                ui.label("Record what you did, what you observed, and what comes next.");
+                ui.label("Everything stays on this device. Start with one project.");
+                ui.add_space(24.0);
+                if primary_button(ui, "Create your first project").clicked() {
+                    actions.push(Action::NewProject);
+                }
+            });
+            return;
+        }
+        egui::SidePanel::left("entry-list").exact_width(284.0).resizable(true)
+            .frame(egui::Frame::new().fill(PAPER).inner_margin(16))
+            .show_inside(ui, |ui| {
+                ui.label(RichText::new("Entries").size(18.0).strong().color(INK));
+                ui.add_space(12.0);
+                if ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search title or notes…").desired_width(f32::INFINITY)).changed() {
+                    actions.push(Action::Filter);
+                }
+                ui.add_space(5.0);
+                ui.label(RichText::new(format!("{} entries · newest event first", self.entries.len())).size(11.0).color(MUTED));
+                ui.add_space(12.0);
+                egui::ScrollArea::vertical().id_salt("entry-list-scroll").show(ui, |ui| {
+                    if self.entries.is_empty() {
+                        ui.label(RichText::new(if self.search.is_empty() { "No saved entries yet. Your first entry starts on the right." } else { "No matches in this project. Try another term or clear the search." }).color(MUTED));
+                    }
+                    for entry in &self.entries {
+                        let selected = self.editor.as_ref().and_then(|e| e.saved.as_ref()).is_some_and(|e| e.id == entry.id);
+                        let response = egui::Frame::new()
+                            .fill(if selected { Color32::from_rgb(224, 239, 234) } else { PAPER })
+                            .stroke(Stroke::new(1.0, if selected { Color32::from_rgb(155, 198, 188) } else { Color32::from_gray(224) }))
+                            .corner_radius(6.0).inner_margin(12)
+                            .show(ui, |ui| {
+                                ui.set_width(ui.available_width());
+                                ui.label(RichText::new(entry.event_date.to_string()).size(11.0).color(TEAL));
+                                ui.label(RichText::new(&entry.title).strong().color(INK));
+                                let preview: String = entry.body.lines().find(|s| !s.trim().is_empty()).unwrap_or("No notes").chars().take(70).collect();
+                                ui.label(RichText::new(preview).size(12.0).color(MUTED));
+                            }).response;
+                        if ui.interact(response.rect, response.id, egui::Sense::click()).clicked() && !selected {
+                            actions.push(Action::OpenEntry(entry.id.clone()));
+                        }
+                        ui.add_space(8.0);
+                    }
+                });
+            });
+        egui::CentralPanel::default()
+            .frame(egui::Frame::new().fill(Color32::WHITE).inner_margin(26))
+            .show_inside(ui, |ui| {
+                if let Some(editor) = &mut self.editor {
+                    egui::ScrollArea::vertical()
+                        .id_salt("entry-editor-scroll")
+                        .show_viewport(ui, |ui, viewport| {
+                            draw_editor(ui, editor, actions, viewport.height());
+                        });
+                }
+            });
+    }
+
+    fn dialogs(&mut self, ctx: &egui::Context, actions: &mut Vec<Action>) {
+        // Egui modal layers can retain their foreground order across frames.
+        // Render only the confirmation while navigating, retaining form state.
+        if self.pending.is_none() {
+            if let Some(form) = &mut self.experiment_form {
+                match form.show(ctx, self.error.as_deref()) {
+                    Some(FormAction::Save) => actions.push(Action::CreateExperiment),
+                    Some(FormAction::Changed) => {
+                        self.error = None;
+                        ctx.request_repaint();
+                    }
+                    Some(FormAction::Cancel) => {
+                        self.experiment_form = None;
+                        self.error = None;
+                        ctx.request_repaint();
+                    }
+                    None => {}
+                }
+            }
+            if let Some(form) = &mut self.project_form {
+                let mut cancel = false;
+                egui::Modal::new(egui::Id::new("new-project")).show(ctx, |ui| {
+                    ui.set_width(420.0);
+                    ui.heading("Create a project");
+                    ui.label(
+                        RichText::new("A project brings related research entries together.")
+                            .color(MUTED),
+                    );
+                    ui.add_space(16.0);
+                    ui.label("Project name");
+                    ui.add(
+                        egui::TextEdit::singleline(&mut form.name)
+                            .hint_text("e.g. Sb₂Se₃ crystal growth")
+                            .desired_width(f32::INFINITY),
+                    );
+                    ui.add_space(10.0);
+                    ui.label("Description (optional)");
+                    ui.add(
+                        egui::TextEdit::multiline(&mut form.description)
+                            .desired_rows(3)
+                            .desired_width(f32::INFINITY),
+                    );
+                    if let Some(error) = &self.error {
+                        ui.colored_label(Color32::DARK_RED, error);
+                    }
+                    ui.add_space(16.0);
+                    ui.horizontal(|ui| {
+                        if primary_button(ui, "Create project").clicked() {
+                            actions.push(Action::CreateProject);
+                        }
+                        if ui.button("Cancel").clicked() {
+                            cancel = true;
+                        }
+                    });
+                });
+                if cancel {
+                    self.project_form = None;
+                    self.error = None;
+                }
+            }
+        }
+        if self.pending.is_some() {
+            let mut decision = None;
+            egui::Modal::new(egui::Id::new("unsaved-entry")).show(ctx, |ui| {
+                ui.set_width(450.0);
+                ui.heading("Keep your changes?");
+                ui.label(if self.experiment_form.is_some() {
+                    "This new experiment has not been saved. Save it before continuing, or discard it."
+                } else {
+                    "This entry has unsaved changes. Save them before continuing, or discard the changes."
+                });
+                if let Some(error) = &self.error { ui.colored_label(Color32::DARK_RED, error); }
+                ui.add_space(18.0);
+                ui.horizontal(|ui| {
+                    if primary_button(ui, "Save and continue").clicked() { decision = Some(0); }
+                    if ui.button("Discard changes").clicked() { decision = Some(1); }
+                    if ui.button("Keep editing").clicked() { decision = Some(2); }
+                });
+            });
+            if decision.is_some() {
+                ctx.request_repaint();
+            }
+            match decision {
+                Some(0) if self.save_active_changes() => {
+                    if let Some(action) = self.pending.take() {
+                        self.apply(action, ctx);
+                    }
+                }
+                Some(1) => {
+                    self.discard_changes();
+                    if let Some(action) = self.pending.take() {
+                        self.apply(action, ctx);
+                    }
+                }
+                Some(2) => {
+                    self.pending = None;
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+impl eframe::App for ResearchMinionApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if let Some(error) = &self.startup_error {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                ui.add_space(40.0);
+                ui.heading("Research Minion could not open its local workspace");
+                ui.add_space(12.0);
+                ui.label(error);
+                ui.add_space(18.0);
+                ui.label("Your existing data has not been replaced. Check folder permissions, then restart.");
+                ui.label("You can choose a different local folder with --data-dir <folder>.");
+            });
+            return;
+        }
+        let mut actions = Vec::new();
+        if ctx.input(|i| i.viewport().close_requested())
+            && !self.allow_close
+            && self.has_unsaved_changes()
+        {
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            if self.pending.is_none() {
+                actions.push(Action::Close);
+            }
+        }
+        if self.pending.is_none()
+            && self.project_form.is_none()
+            && self.experiment_form.is_none()
+            && self.tab == Tab::Logbook
+            && ctx.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, egui::Key::S))
+        {
+            actions.push(Action::Save);
+        }
+        egui::TopBottomPanel::bottom("status")
+            .frame(egui::Frame::new().fill(PAPER).inner_margin(8))
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new(&self.notice).size(11.0).color(TEAL));
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if let Some(store) = &self.store {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(store.path().display().to_string())
+                                        .size(10.0)
+                                        .color(MUTED),
+                                )
+                                .truncate(),
+                            )
+                            .on_hover_text(store.path().display().to_string());
+                        }
+                    });
+                });
+            });
+        self.sidebar(ctx, &mut actions);
+        egui::CentralPanel::default()
+            .frame(egui::Frame::new().fill(Color32::WHITE))
+            .show(ctx, |ui| {
+                if let Some(error) = &self.error {
+                    let mut dismiss = false;
+                    egui::Frame::new()
+                        .fill(Color32::from_rgb(255, 237, 233))
+                        .inner_margin(12)
+                        .show(ui, |ui| {
+                            ui.horizontal_wrapped(|ui| {
+                                ui.colored_label(Color32::DARK_RED, error);
+                                dismiss = ui.small_button("Dismiss").clicked();
+                            });
+                        });
+                    if dismiss {
+                        self.error = None;
+                    }
+                }
+                match self.tab {
+                    Tab::Experiments => {
+                        if cvt_view::experiments(ui, &self.experiments) {
+                            actions.push(Action::NewExperiment);
+                        }
+                    }
+                    Tab::Tools => cvt_view::tools(ui),
+                    Tab::Logbook => self.workspace(ui, &mut actions),
+                }
+            });
+        self.dialogs(ctx, &mut actions);
+        for action in actions {
+            self.request(action, ctx);
+        }
+    }
+}
+
+fn draw_editor(
+    ui: &mut egui::Ui,
+    editor: &mut Editor,
+    actions: &mut Vec<Action>,
+    viewport_height: f32,
+) {
+    let content_top = ui.cursor().top();
+    ui.horizontal(|ui| {
+        ui.label(RichText::new(if editor.saved.is_some() { "LOGBOOK ENTRY" } else { "NEW ENTRY" }).size(11.0).strong().color(MUTED));
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            if primary_button(ui, "Save entry").on_hover_text("Save locally · Ctrl+S").clicked() { actions.push(Action::Save); }
+            if editor.saved.is_some() && ui.button("Reload saved").on_hover_text("Reload the latest saved version. You will be asked before discarding edits.").clicked() {
+                actions.push(Action::Reload);
+            }
+        });
+    });
+    ui.add_space(10.0);
+    ui.label(
+        RichText::new(if editor.is_dirty() {
+            "Unsaved changes · Ctrl+S to save"
+        } else if editor.saved.is_some() {
+            "Saved locally"
+        } else {
+            "Not saved yet"
+        })
+        .size(11.0)
+        .color(if editor.is_dirty() {
+            Color32::from_rgb(160, 103, 24)
+        } else {
+            MUTED
+        }),
+    );
+    ui.add_space(18.0);
+    ui.label(RichText::new("Title").strong().color(INK));
+    ui.add(
+        egui::TextEdit::singleline(&mut editor.title)
+            .font(egui::TextStyle::Heading)
+            .hint_text("What did you work on?")
+            .desired_width(f32::INFINITY),
+    );
+    ui.add_space(14.0);
+    ui.horizontal(|ui| {
+        ui.label(RichText::new("Event date").strong().color(INK));
+        ui.add(
+            egui::TextEdit::singleline(&mut editor.event_date)
+                .desired_width(112.0)
+                .hint_text("YYYY-MM-DD"),
+        );
+    });
+    ui.label(
+        RichText::new("When the work happened; you can document past work.")
+            .size(11.0)
+            .color(MUTED),
+    );
+    ui.add_space(18.0);
+    ui.label(RichText::new("Research notes").strong().color(INK));
+    ui.label(
+        RichText::new("Conditions, observations, interpretation, decisions, and next steps.")
+            .size(11.0)
+            .color(MUTED),
+    );
+    ui.add_space(8.0);
+    let notes_height = (viewport_height - (ui.cursor().top() - content_top) - 100.0).max(140.0);
+    egui::ScrollArea::vertical().id_salt("notes").max_height(notes_height).show(ui, |ui| {
+        ui.add_sized([ui.available_width(), notes_height], egui::TextEdit::multiline(&mut editor.body)
+            .hint_text("Write your notes here. Values and units are preserved exactly as you enter them.")
+            .desired_width(f32::INFINITY));
+    });
+    ui.add_space(14.0);
+    if let Some(saved) = &editor.saved {
+        ui.label(
+            RichText::new(format!(
+                "Created {} UTC  ·  Edited {} UTC  ·  Revision {}",
+                saved.created_at.format("%Y-%m-%d %H:%M"),
+                saved.updated_at.format("%Y-%m-%d %H:%M"),
+                saved.revision
+            ))
+            .size(10.0)
+            .color(MUTED),
+        );
+        ui.add(
+            egui::Label::new(
+                RichText::new(format!("Entry ID: {}", saved.id))
+                    .size(10.0)
+                    .color(MUTED),
+            )
+            .truncate(),
+        );
+    } else {
+        ui.label(
+            RichText::new("A stable ID and creation time will be assigned on first save.")
+                .size(10.0)
+                .color(MUTED),
+        );
+    }
+}
+
+pub(crate) fn primary_button(ui: &mut egui::Ui, text: &str) -> egui::Response {
+    ui.add(
+        egui::Button::new(RichText::new(text).color(Color32::WHITE))
+            .fill(TEAL)
+            .min_size(Vec2::new(100.0, 34.0))
+            .corner_radius(5.0),
+    )
+}
+
+fn configure_style(ctx: &egui::Context) {
+    let mut style = (*ctx.style()).clone();
+    style.visuals = egui::Visuals::light();
+    style.visuals.override_text_color = Some(INK);
+    style.visuals.selection.bg_fill = Color32::from_rgb(190, 223, 214);
+    style.visuals.selection.stroke = Stroke::new(1.0, TEAL);
+    style.visuals.widgets.inactive.bg_fill = Color32::from_rgb(244, 247, 245);
+    style.visuals.widgets.inactive.bg_stroke = Stroke::new(1.0, Color32::from_gray(214));
+    style.visuals.widgets.hovered.bg_fill = Color32::from_rgb(227, 239, 234);
+    style.visuals.extreme_bg_color = Color32::from_rgb(252, 253, 251);
+    style.spacing.item_spacing = Vec2::new(8.0, 6.0);
+    style.spacing.button_padding = Vec2::new(12.0, 7.0);
+    ctx.set_style(style);
+}

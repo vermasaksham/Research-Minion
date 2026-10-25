@@ -1,0 +1,34 @@
+Research Minion 0.2 - CVT experiments preview
+
+Extract the ZIP into a folder, then double-click research-minion.exe.
+This is a native, offline application. No account, browser, .NET, WebView2,
+Python, Rust toolchain, or separate SQLite installation is needed to use it.
+Target: Windows 10/11 x64 with a working OpenGL graphics driver.
+
+1. The app opens in CVT Experiments. Click + New experiment.
+2. Enter source and sink temperatures in degrees C. A name is optional.
+3. Check the live temperature difference (source minus sink), then Save experiment.
+4. Compare the experiments on the common temperature axis. Horizontal positions
+   and connecting lines are schematic, not measured spatial profiles.
+5. Close and reopen the application to see your saved experiments.
+6. Choose Tools for the planned Peak Explorer or Logbook for project notes.
+   Logbook entries are saved with Save entry or Ctrl+S.
+
+Default data folder: %LOCALAPPDATA%\ResearchMinion
+The database path is also shown at the bottom of the window.
+Keep this folder separate from the extracted application ZIP. Replacing the
+executable does not require deleting the data folder.
+
+Save is explicit. Unsaved edits are not crash recovery. To make a manual
+safety copy, save and close all instances, then copy the whole data folder.
+
+This preview has no attachments, deletion, history, automatic backups,
+or integrated Peak Explorer. They remain future increments.
+
+Version 0.2 adds a CVT table to an existing 0.1 database while preserving its
+projects and notes. The old 0.1 app cannot open an upgraded database.
+
+The Linux UI and storage were tested in the development environment. An x64
+Windows GNU executable was cross-compiled there. Windows execution, the MSVC
+packaging script, and Windows accessibility/DPI checks are still unverified.
+See docs/VALIDATION.md for the acceptance checklist and current evidence.
