@@ -1,17 +1,18 @@
-Research Minion 0.4 - recoverable deletion, dates and initial Peak Explorer
+Research Minion 0.4.1 - clearer forms and individual note deletion
 
 Extract the ZIP, then double-click research-minion.exe, or use the standalone EXE.
 Windows 10/11 x64 with a working OpenGL graphics driver is required. No account,
 Rust, Python, .NET, WebView2 or separate SQLite installation is needed to use it.
 
-1. CVT Experiments > + New experiment: enter a name if useful, experiment date
+1. CVT Experiments > + New experiment > Conditions: enter a name, experiment date
    (YYYY-MM-DD; blank if unknown), and source/sink temperatures in degrees C.
-2. Choose thermal character, enter precursor/product formulas or names, confirm
+2. Choose thermal character. Open Materials & transport agent for optional
+   precursor/product formulas or names. Confirm
    element suggestions or use the periodic table. Transport agent is optional.
 3. Save and click the experiment bar or name to open its own log. Save entries
    with Save entry or Ctrl+S. Back to experiments is at the top of the log.
-4. Delete experiment hides that experiment and its log. Delete log clears all
-   saved entries but keeps the experiment. Delete log entry removes one note.
+4. Every saved note card has Delete note; the editor has Delete this note.
+   Delete all notes clears the whole log; Delete experiment hides it and its log.
    All require confirmation. Restore records from Recently deleted on the overview.
    Unsaved edits discarded during deletion cannot be restored.
 5. Tools > Peak Explorer: enter your own orthorhombic a/b/c cell in Angstrom,
@@ -25,8 +26,8 @@ Rust, Python, .NET, WebView2 or separate SQLite installation is needed to use it
 
 Default data: %LOCALAPPDATA%\ResearchMinion\research-minion.sqlite3
 Replacing the executable does not require deleting the data folder.
-Version 0.4 upgrades old databases to schema 4, preserving records. Older app
-versions cannot open the upgraded database. Old experiment dates remain unknown.
+Versions 0.4 and 0.4.1 share schema 4 and are compatible with the same database.
+Versions 0.1-0.3 cannot open a database upgraded to schema 4. Old experiment dates remain unknown.
 Previous unlinked project notes stay under Previous project logs on the overview.
 
 Save is explicit. Tool inputs last only while the app is open; save analyses to

@@ -58,6 +58,19 @@ enum Deletion {
     },
 }
 
+impl Deletion {
+    fn affects_editor(&self, editor: &Editor) -> bool {
+        match self {
+            Self::Experiment(experiment) => experiment.log_project_id == editor.project_id,
+            Self::Entry(entry) => editor
+                .saved
+                .as_ref()
+                .is_some_and(|saved| saved.id == entry.id),
+            Self::Log { project_id, .. } => *project_id == editor.project_id,
+        }
+    }
+}
+
 #[derive(Default)]
 struct ProjectForm {
     name: String,
@@ -444,6 +457,10 @@ impl ResearchMinionApp {
         let (Some(store), Some(target)) = (&self.store, self.deletion.clone()) else {
             return;
         };
+        let replaces_editor = self
+            .editor
+            .as_ref()
+            .is_some_and(|editor| target.affects_editor(editor));
         let result = match &target {
             Deletion::Experiment(experiment) => store.delete_experiment(&experiment.id),
             Deletion::Entry(entry) => store.delete_entry(&entry.id, entry.revision),
@@ -480,8 +497,14 @@ impl ResearchMinionApp {
                         self.refresh_experiments();
                     }
                     Deletion::Entry(_) | Deletion::Log { .. } => {
-                        if let Some(id) = self.project_id.clone() {
-                            self.select_project(id);
+                        self.refresh_entries();
+                        if replaces_editor {
+                            self.editor = self
+                                .entries
+                                .first()
+                                .cloned()
+                                .map(Editor::from_entry)
+                                .or_else(|| self.project_id.clone().map(Editor::new));
                         }
                     }
                 }
@@ -625,9 +648,6 @@ impl ResearchMinionApp {
                     if self.project_id.is_some() && ui.button("+ New log entry").clicked() {
                         actions.push(Action::NewEntry);
                     }
-                    if self.project_id.is_some() && ui.button("Delete log…").clicked() {
-                        actions.push(Action::DeleteLog);
-                    }
                     if let Some(experiment) = &self.active_experiment
                         && ui.button("Delete experiment…").clicked()
                     {
@@ -711,13 +731,16 @@ impl ResearchMinionApp {
         egui::SidePanel::left("entry-list").exact_width(284.0).resizable(true)
             .frame(egui::Frame::new().fill(PAPER).inner_margin(16))
             .show_inside(ui, |ui| {
-                ui.label(RichText::new("Entries").size(18.0).strong().color(INK));
+                ui.label(RichText::new("Notes").size(18.0).strong().color(INK));
                 ui.add_space(12.0);
                 if ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search title or notes…").desired_width(f32::INFINITY)).changed() {
                     actions.push(Action::Filter);
                 }
                 ui.add_space(5.0);
-                ui.label(RichText::new(format!("{} entries · newest event first", self.entries.len())).size(11.0).color(MUTED));
+                ui.label(RichText::new(format!("{} notes", self.entries.len())).size(12.0).color(MUTED));
+                if ui.add_enabled(!self.entries.is_empty(), egui::Button::new("Delete all notes…"))
+                    .on_hover_text("Clear every saved note in this log, including notes hidden by search.")
+                    .clicked() { actions.push(Action::DeleteLog); }
                 ui.add_space(12.0);
                 egui::ScrollArea::vertical().id_salt("entry-list-scroll").show(ui, |ui| {
                     if self.entries.is_empty() {
@@ -725,20 +748,26 @@ impl ResearchMinionApp {
                     }
                     for entry in &self.entries {
                         let selected = self.editor.as_ref().and_then(|e| e.saved.as_ref()).is_some_and(|e| e.id == entry.id);
-                        let response = egui::Frame::new()
-                            .fill(if selected { Color32::from_rgb(224, 239, 234) } else { PAPER })
-                            .stroke(Stroke::new(1.0, if selected { Color32::from_rgb(155, 198, 188) } else { Color32::from_gray(224) }))
-                            .corner_radius(6.0).inner_margin(12)
-                            .show(ui, |ui| {
-                                ui.set_width(ui.available_width());
-                                ui.label(RichText::new(entry.event_date.to_string()).size(11.0).color(TEAL));
-                                ui.label(RichText::new(&entry.title).strong().color(INK));
-                                let preview: String = entry.body.lines().find(|s| !s.trim().is_empty()).unwrap_or("No notes").chars().take(70).collect();
-                                ui.label(RichText::new(preview).size(12.0).color(MUTED));
-                            }).response;
-                        if ui.interact(response.rect, response.id, egui::Sense::click()).clicked() && !selected {
-                            actions.push(Action::OpenEntry(entry.id.clone()));
-                        }
+                        ui.push_id(&entry.id, |ui| {
+                            egui::Frame::new()
+                                .fill(if selected { Color32::from_rgb(224, 239, 234) } else { Color32::WHITE })
+                                .stroke(Stroke::new(1.0, if selected { Color32::from_rgb(125, 178, 165) } else { Color32::from_gray(214) }))
+                                .corner_radius(7.0).inner_margin(12)
+                                .show(ui, |ui| {
+                                    ui.set_width(ui.available_width());
+                                    let open = ui.vertical(|ui| {
+                                        ui.label(RichText::new(entry.event_date.to_string()).size(12.0).color(TEAL));
+                                        ui.label(RichText::new(&entry.title).strong().color(INK));
+                                        let preview: String = entry.body.lines().find(|s| !s.trim().is_empty()).unwrap_or("No notes").chars().take(55).collect();
+                                        ui.label(RichText::new(preview).size(12.0).color(MUTED));
+                                    }).response.interact(egui::Sense::click()).on_hover_cursor(egui::CursorIcon::PointingHand);
+                                    if open.clicked() && !selected { actions.push(Action::OpenEntry(entry.id.clone())); }
+                                    ui.add_space(6.0);
+                                    if ui.button("Delete note…").on_hover_text("Delete only this saved note").clicked() {
+                                        actions.push(Action::DeleteEntry(entry.clone()));
+                                    }
+                                });
+                        });
                         ui.add_space(8.0);
                     }
                 });
@@ -823,7 +852,7 @@ impl ResearchMinionApp {
             let mut cancel = false;
             egui::Modal::new(egui::Id::new("confirm-deletion")).show(ctx,|ui| {
                 ui.set_width(480.0);
-                ui.heading(match target { Deletion::Experiment(_) => "Delete experiment?", Deletion::Entry(_) => "Delete log entry?", Deletion::Log {..} => "Delete all entries in this log?" });
+                ui.heading(match target { Deletion::Experiment(_) => "Delete experiment?", Deletion::Entry(_) => "Delete this note?", Deletion::Log {..} => "Delete all notes in this log?" });
                 match target {
                     Deletion::Experiment(experiment) => {
                         ui.strong(&experiment.name);
@@ -831,14 +860,16 @@ impl ResearchMinionApp {
                     }
                     Deletion::Entry(entry) => {
                         ui.strong(&entry.title);
-                        ui.label("This removes the saved entry from this log. Restore it from Recently deleted on the Experiments page.");
+                        ui.label("Only this note will be deleted. Other notes stay in this log. You can restore it from Recently deleted.");
                     }                    Deletion::Log {name,entries,..} => {
                         ui.strong(name);
                         ui.label(format!("Move all {} saved log entries to Recently deleted? The experiment remains. Restore entries individually from Recently deleted.",entries.len()));
                     }
 
                 }
-                if self.has_unsaved_changes() { ui.colored_label(Color32::DARK_RED,"Unsaved edits in this view will be discarded if you delete. Cancel to keep editing."); }
+                if self.editor.as_ref().is_some_and(|editor| editor.is_dirty() && target.affects_editor(editor)) {
+                    ui.colored_label(Color32::DARK_RED,"Unsaved edits to this note will be discarded if you delete. Cancel to keep editing.");
+                }
                 if let Some(error)=&self.error {ui.colored_label(Color32::DARK_RED,error);}
                 ui.add_space(14.0);
                 ui.horizontal(|ui| {
@@ -1018,7 +1049,7 @@ fn draw_editor(
         });
     });
     if let Some(entry) = &editor.saved
-        && ui.button("Delete log entry…").clicked()
+        && ui.button("Delete this note…").clicked()
     {
         actions.push(Action::DeleteEntry(entry.clone()));
     }
@@ -1094,12 +1125,6 @@ fn draw_editor(
             )
             .truncate(),
         );
-    } else {
-        ui.label(
-            RichText::new("A stable ID and creation time will be assigned on first save.")
-                .size(10.0)
-                .color(MUTED),
-        );
     }
 }
 
@@ -1113,16 +1138,31 @@ pub(crate) fn primary_button(ui: &mut egui::Ui, text: &str) -> egui::Response {
 }
 
 fn configure_style(ctx: &egui::Context) {
+    ctx.set_theme(egui::ThemePreference::Light);
     let mut style = (*ctx.style()).clone();
     style.visuals = egui::Visuals::light();
     style.visuals.override_text_color = Some(INK);
     style.visuals.selection.bg_fill = Color32::from_rgb(190, 223, 214);
     style.visuals.selection.stroke = Stroke::new(1.0, TEAL);
     style.visuals.widgets.inactive.bg_fill = Color32::from_rgb(244, 247, 245);
-    style.visuals.widgets.inactive.bg_stroke = Stroke::new(1.0, Color32::from_gray(214));
+    style.visuals.widgets.inactive.bg_stroke = Stroke::new(1.0, Color32::from_rgb(151, 166, 175));
+    style.visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0, Color32::from_gray(214));
+    style.visuals.widgets.hovered.bg_stroke = Stroke::new(1.0, TEAL);
+    style.visuals.text_edit_bg_color = Some(Color32::WHITE);
+    style.visuals.weak_text_color = Some(MUTED);
     style.visuals.widgets.hovered.bg_fill = Color32::from_rgb(227, 239, 234);
     style.visuals.extreme_bg_color = Color32::from_rgb(252, 253, 251);
     style.spacing.item_spacing = Vec2::new(8.0, 6.0);
     style.spacing.button_padding = Vec2::new(12.0, 7.0);
+    style
+        .text_styles
+        .insert(egui::TextStyle::Body, egui::FontId::proportional(15.0));
+    style
+        .text_styles
+        .insert(egui::TextStyle::Button, egui::FontId::proportional(14.0));
+    style
+        .text_styles
+        .insert(egui::TextStyle::Small, egui::FontId::proportional(12.0));
+    // Apply after system-theme selection so Windows theme events keep the same fields.
     ctx.set_style(style);
 }

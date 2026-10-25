@@ -114,9 +114,10 @@ not calculate stoichiometry or predict products. The periodic table provides a
 complete fallback for names the helper cannot recognise. No network or AI is used.
 See [chemistry conventions](CHEMISTRY.md) for precise scope and naming reference.
 
-The add form uses a single scrollable modal with fixed save/cancel controls.
-Precursor and obtained-material selectors have separate sets; one inline periodic
-table targets the currently chosen set. Form identity is unique per new draft so
+The add form uses a modal with Conditions and Materials & transport agent
+sections, a scrollable body, and fixed save/cancel controls. Material cards retain
+separate precursor and obtained-material sets; one inline periodic table targets
+the currently chosen set. Form identity is unique per new draft so
 scroll/collapse state resets, while Keep editing retains the same draft and state.
 
 The event date is a calendar date, without a time zone. Creation/edit times are
@@ -218,3 +219,20 @@ They can subsequently be edited as notes; they are not immutable audit records.
 Tool form state lasts for the current process; only saved analysis snapshots are
 durable. There is no original-tool reference database, symmetry check or automatic
 setting conversion in this increment.
+
+## Version 0.4.1 interface refinement
+
+The overview and Tools use a single page title. The marked overview subtitle and
+repeated source/sink legend are removed; schematic-axis and ΔT definitions remain
+in chart contextual help. The experiment form separates conditions from optional
+material cards, with larger input text, consistent field borders, more spacing,
+and fixed footer controls at the minimum window size. The light theme is selected
+before styling, so OS theme changes do not replace the intended field appearance.
+
+Each saved note card has an explicit Delete note action outside its clickable
+open area. The editor also has Delete this note. Delete all notes is labelled
+separately in the note-list panel. Confirmation names the selected record. Only
+when the target contains the current editor is that editor replaced after deletion;
+other current drafts and search text are retained. Unsaved warnings apply only to
+the draft the chosen deletion would discard. Schema, scientific calculations, and
+reference datasets are unchanged from 0.4.

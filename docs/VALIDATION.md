@@ -1,6 +1,6 @@
 # Validation record
 
-Version 0.4 deletion/date/Peak increment, 25 October 2026. The development host is Debian Linux x64;
+Version 0.4.1 interface refinement, 25 October 2026. The development host is Debian Linux x64;
 Windows execution is not claimed.
 
 ## Executed
@@ -11,7 +11,7 @@ Windows execution is not claimed.
 | `cargo fmt --all -- --check` | Passed |
 | `cargo clippy --locked --all-targets -- -D warnings` | Passed |
 | `cargo test --locked --offline` | 43 integration tests passed; no ignored/failed tests |
-| `cargo test --locked --offline --no-default-features` | The same 43 integration tests passed without desktop features or network restore |
+| `cargo test --locked --offline --no-default-features` | 43 passed in 0.4; this interface patch changes no headless logic |
 | `cargo build --locked` | Linux desktop build passed |
 | `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.4 |
 | Windows GNU x64 cross-build | Passed; Windows UI subsystem confirmed in the executable |
@@ -38,6 +38,25 @@ name parts, rejection of unknown matches, exact metadata round-trips, different
 precursor/product sets, optional agent/manual-only input, independent persistent
 logs, rollback of partially written records, and migration from schema 2 without
 reassigning old project notes or inventing a thermal assignment.
+
+## Interface checks executed on Linux in 0.4.1
+
+Used the real desktop under Xvfb with disposable data and independent SQLite reads.
+Confirmed the overview subtitle, repeated legend and duplicate page eyebrows were
+removed. Entered a retrospective experiment date, set-points and thermal character
+in Conditions, then separate precursor/product text and element sets plus an
+optional agent in Materials & transport agent. Saving retained the exact inputs.
+The new form's fixed footer and readable controls fit at 1000×650.
+
+Created separate notes and clicked the Delete note button on one card while a
+different saved note had unsaved edits. Confirmed only the chosen note was hidden,
+the other editor retained its draft, and Ctrl+S persisted that draft. Repeated
+with a brand-new unsaved note; it also retained its fields and saved successfully.
+Deleting the current dirty note displayed the unsaved-edit warning; Cancel retained
+the draft. A material-only draft triggered native close protection at minimum size; Keep
+editing retained its text and section. Scrolling reached the periodic-table rows
+and optional agent while Save/Cancel stayed accessible. Restarting retained the
+saved metadata and notes, and individually deleted notes restored successfully.
 
 ## Checks added in 0.4
 

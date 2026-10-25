@@ -14,32 +14,31 @@ pub enum ElementTarget {
 
 pub fn material_input(ui: &mut egui::Ui, title: &str, material: &mut Material) -> bool {
     let mut changed = false;
-    ui.strong(title);
+    ui.label(RichText::new(title).size(17.0).strong().color(INK));
+    ui.add_space(3.0);
     changed |= ui
         .add(
             egui::TextEdit::singleline(&mut material.text)
-                .hint_text("Formula or name, e.g. Sb2Se3")
+                .hint_text("Formula or chemical name")
+                .margin(egui::vec2(10.0, 9.0))
                 .desired_width(f32::INFINITY),
         )
+        .on_hover_text(
+            "Your text is saved as entered. Suggestions are added only when you select them.",
+        )
         .changed();
-    ui.label(
-        RichText::new("Manual description (saved as typed)")
-            .size(10.0)
-            .color(MUTED),
-    );
-    let suggestions = suggest_elements(&material.text);
+    let suggestions: Vec<_> = suggest_elements(&material.text)
+        .into_iter()
+        .filter(|number| !material.elements.contains(number))
+        .collect();
     if !suggestions.is_empty() {
-        ui.label(
-            RichText::new("Suggested elements — click to select")
-                .size(11.0)
-                .color(MUTED),
-        );
+        ui.add_space(4.0);
+        ui.label(RichText::new("Suggestions").size(13.0).color(MUTED));
         ui.horizontal_wrapped(|ui| {
             for number in &suggestions {
                 let e = element(*number).expect("suggestions use the element catalog");
-                let selected = material.elements.contains(number);
                 if ui
-                    .add_enabled(!selected, egui::Button::new(format!("+ {}", e.symbol)))
+                    .button(format!("+ {}", e.symbol))
                     .on_hover_text(e.name)
                     .clicked()
                 {
@@ -47,31 +46,28 @@ pub fn material_input(ui: &mut egui::Ui, title: &str, material: &mut Material) -
                     changed = true;
                 }
             }
-            if suggestions.iter().any(|n| !material.elements.contains(n))
-                && ui.small_button("Add suggested").clicked()
-            {
+            if ui.button("Add all").clicked() {
                 material.elements.extend(suggestions);
                 changed = true;
             }
         });
-    } else if !material.text.trim().is_empty() {
-        ui.label(
-            RichText::new("No local matches. Keep your text or choose elements below.")
-                .size(11.0)
-                .color(MUTED),
-        );
     }
-    ui.add_space(4.0);
-    ui.label(RichText::new("Selected elements").size(11.0).color(TEAL));
+    ui.add_space(6.0);
+    ui.label(
+        RichText::new("Selected elements")
+            .size(13.0)
+            .strong()
+            .color(INK),
+    );
     let selected: Vec<_> = material.elements.iter().copied().collect();
     ui.horizontal_wrapped(|ui| {
         if selected.is_empty() {
-            ui.label(RichText::new("None selected").color(MUTED));
+            ui.label(RichText::new("None selected").size(13.0).color(MUTED));
         }
         for number in selected {
             if let Some(e) = element(number)
                 && ui
-                    .small_button(format!("{} ×", e.symbol))
+                    .button(format!("{} ×", e.symbol))
                     .on_hover_text(format!("Remove {}", e.name))
                     .clicked()
             {
@@ -123,7 +119,7 @@ pub fn periodic_table(
             for group in 1..=18 {
                 ui.add_sized(
                     [34.0, 16.0],
-                    egui::Label::new(RichText::new(group.to_string()).size(9.0).color(MUTED)),
+                    egui::Label::new(RichText::new(group.to_string()).size(10.0).color(MUTED)),
                 );
             }
         });
@@ -151,7 +147,7 @@ pub fn periodic_table(
                     {
                         let selected = material.elements.contains(&e.number);
                         let label = RichText::new(format!("{}\n{}", e.number, e.symbol))
-                            .size(11.0)
+                            .size(12.0)
                             .color(if selected { Color32::WHITE } else { INK });
                         if ui
                             .add_sized(
@@ -176,7 +172,7 @@ pub fn periodic_table(
                             cell,
                             egui::Label::new(
                                 RichText::new(if row == 5 { "57-71" } else { "89-103" })
-                                    .size(9.0)
+                                    .size(10.0)
                                     .color(MUTED),
                             ),
                         );

@@ -4,3 +4,5 @@ a5fa2a6fb8bdd61c655bdd010efea10db13a19b5d2a2d5ce38d5ebbbe411dfaa  Research-Minio
 bad358379aa04ba4d557cc932ff89f0425ccb8f673d66c87ccae25755be6fec2  Research-Minion-0.3.0-windows-x64.exe
 aedec898ea5e9f3225ac277755febdfd48385213579e8e8f58fa3791a42afc61  Research-Minion-0.4.0-windows-x64-preview.zip
 f7b0274709dfa59fd92811acc9f246348f3753a14298690c146cd4c0c3bdee20  Research-Minion-0.4.0-windows-x64.exe
+0a0db37b17de9f8130fbc02b43cfb2a7ace0831e446059a6361d1979875b5986  Research-Minion-0.4.1-windows-x64-preview.zip
+8c3c96cadbba0eb328d8e9dc3c57b8a0322a83269616f5c98ce6aaea730f010a  Research-Minion-0.4.1-windows-x64.exe

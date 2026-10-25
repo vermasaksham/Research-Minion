@@ -1,15 +1,15 @@
 # Research Minion
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.4** adds recoverable deletion, experiment dates, clearer back navigation,
-and an initial offline Peak Explorer XRD calculator.
+Version **0.4.1** simplifies the interface, improves form legibility, and makes
+individual note deletion visible on every saved note.
 
 ## Download and try it
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.4.0-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.4.0-windows-x64-preview.zip)
+- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.4.1-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.4.1-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Download the executable and double-click it. If you choose the ZIP, extract it
@@ -17,25 +17,27 @@ first and open `research-minion.exe`. Using the app does not require installing
 Rust, .NET, Python, SQLite, or a web runtime.
 
 1. The app opens in **CVT Experiments**. Click **+ New experiment**.
-2. Enter the experiment date (`YYYY-MM-DD`; blank if unknown), a name if useful,
+2. In **Conditions**, enter the experiment date (`YYYY-MM-DD`; blank if unknown), a name if useful,
    and source and sink temperatures, for example **650 °C** and **600 °C**.
    The form previews **ΔT = Source − Sink = 50 °C**.
 3. Choose **Endothermic**, **Exothermic**, or **Not specified**. This is your
    scientific assignment; the application does not infer enthalpy from ΔT.
-4. Enter precursor and obtained-material descriptions. Try `Sb2Se3`, `Sb₂Se₃`,
-   or `antimony selenide`. Click suggested element chips or **Add suggested** to
+4. Open **Materials & transport agent** for the optional material fields.
+   Enter precursor and obtained-material descriptions. Try `Sb2Se3`, `Sb₂Se₃`,
+   or `antimony selenide`. Click suggested element chips or **Add all** to
    confirm those elements. Your typed text is kept whether or not you select chips.
-5. Alternatively, expand **Choose elements from the periodic table**, select
+5. Alternatively, expand **Choose from the periodic table**, select
    **Precursor** or **Obtained material**, and click element buttons. Each set is
    independent. Click a selected element again to remove it.
 6. Add a **Transport agent** if relevant, or leave it blank. Click **Save experiment**.
 7. **Click the experiment bar or its name to open its log.** Add a title, event
    date (`YYYY-MM-DD`), and notes; click **Save entry** or press **Ctrl+S**.
 8. Use **Back to experiments** at the top of the log to return to the main view.
-9. Use **Delete experiment…**, **Delete log…**, or **Delete log entry…** as needed.
-   Each asks you to confirm. **Recently deleted** on the overview lets you restore
-   saved records. Deleting a log clears its entries while keeping the experiment;
-   deleting an experiment hides it together with its log.
+9. Each saved note has its own **Delete note…** button in the **Notes** list;
+   the editor also offers **Delete this note…**. Confirmation names the chosen
+   note, and other notes remain. **Delete all notes…** clears the whole log.
+   **Delete experiment…** hides an experiment together with its log.
+   **Recently deleted** on the overview lets you restore saved records.
 10. Open **Tools → Peak Explorer** to calculate XRD positions from an explicitly
     entered orthorhombic cell, wavelength, and list of `h k l` reflections. Enter
     the source and axis convention for your parameters. Add an interpretation,
@@ -53,13 +55,15 @@ as GitHub Release assets, because release-API access is unavailable here.
 
 ![CVT experiment overview](docs/images/cvt-overview.png)
 
-![Material entry and thermal character](docs/images/materials-form.png)
+![Clearer conditions form](docs/images/conditions-form.png)
+
+![Optional material entry](docs/images/materials-form.png)
 
 ![Periodic table selection](docs/images/periodic-table.png)
 
 ![Experiment-linked log](docs/images/experiment-log.png)
 
-![Initial Peak Explorer XRD calculator](docs/images/peak-explorer.png)
+![Tools with a single page heading](docs/images/tools.png)
 
 Screenshots use disposable example records; new workspaces start empty.
 
@@ -82,7 +86,8 @@ Screenshots use disposable example records; new workspaces start empty.
   forward/inverse Bragg calculators. Analysis snapshots save into experiment logs.
 - Event dates are separate from UTC creation/edit timestamps. Stable IDs and
   revision checks protect against stale entry overwrites from another instance.
-- Normal navigation/close requests protect unsaved forms and notes.
+- Normal navigation/close requests protect unsaved forms and notes. Deleting a
+  different saved note preserves the current editor draft, including a new unsaved note.
 
 There are no accounts, telemetry, AI calls, hosted services, or runtime downloads.
 SQLite and interface fonts are bundled. Initial builds require Internet access to
@@ -111,8 +116,9 @@ You can choose a different local folder:
 .\research-minion.exe --data-dir "C:\Research\My logbook"
 ```
 
-Replacing the executable does not require deleting this data folder. Version 0.4
-upgrades older databases to schema 4, preserving experiments, projects, and notes.
+Replacing the executable does not require deleting this data folder. Versions 0.4
+and 0.4.1 use the same schema 4. Older databases upgrade while preserving
+experiments, projects, and notes.
 Records from 0.1/0.2 receive empty independent CVT logs and unspecified material/thermal
 fields. Experiments recorded before 0.4 keep an unknown experiment date; no date
 is inferred. Previous project notes are not assigned to experiments by guessing
