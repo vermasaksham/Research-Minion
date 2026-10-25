@@ -1,6 +1,6 @@
 # Validation record
 
-Version 0.5.1 corrected notes header, 25 October 2026. The development host is Debian Linux x64;
+Version 0.6 Markdown notes and revised header, 25 October 2026. The development host is Debian Linux x64;
 Windows execution is not claimed.
 
 ## Executed
@@ -10,8 +10,8 @@ Windows execution is not claimed.
 | Pinned Rust 1.95.0 installation and locked dependency restore | Passed |
 | `cargo fmt --all -- --check` | Passed |
 | `cargo clippy --locked --all-targets -- -D warnings` | Passed |
-| `cargo test --locked --offline` | 52 integration tests passed; no ignored/failed tests |
-| `cargo test --locked --offline --no-default-features` | 52 integration tests passed without desktop features |
+| `cargo test --locked --offline` | 58 integration tests passed; no ignored/failed tests |
+| `cargo test --locked --offline --no-default-features` | 58 integration tests passed without desktop features |
 | `cargo build --locked` | Linux desktop build passed |
 | `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.4 |
 | Windows GNU x64 cross-build | Passed; Windows UI subsystem confirmed in the executable |
@@ -20,7 +20,7 @@ Library, executable, and documentation test runners also report zero tests;
 the meaningful assertions are 11 tests in `tests/logbook.rs` and 9 in
 `tests/cvt.rs`, plus 5 each in `tests/chemistry.rs` and
 `tests/experiment_records.rs`, 6 in `tests/deletion.rs`, and 7 in
-`tests/peak.rs`, plus 9 in `tests/profiles.rs`. The logbook tests cover
+`tests/peak.rs`, plus 9 in `tests/profiles.rs` and 6 in `tests/markdown.rs`. The logbook tests cover
 on-disk close/reopen, exact notes persistence, stable identity, retrospective
 dates, ordering, scoped/literal/Unicode search, invalid records and dates,
 retained drafts, two-instance conflict detection, and refusal to alter newer or
@@ -50,6 +50,31 @@ identity editing without changing research IDs, invalid names/pictures, bounded
 JPEG/PNG decoding and JPEG orientation, and refusal to overwrite unsupported
 catalogs or unrecognised old research databases. A corrupt stored ID cannot become
 an arbitrary workspace path. The EXIF fixture is a synthetic red/blue image.
+
+## Markdown checks added in 0.6
+
+Six integration tests cover character-based Unicode formatting, empty/stale and
+reversed selections, whole-line formatting with selection boundaries and CRLF,
+code delimiters containing backticks/multiple lines, link destination selection,
+and exact source persistence/search/reopen including tables, tabs, formula
+subscripts and line endings. The older tests still cover plain-text notes.
+
+## Interface checks executed on Linux in 0.6
+
+The real app was checked under Xvfb at 1240×820 and 1000×650 using disposable
+synthetic profile data. Experiment metadata is on the left of the header and
+Back/New log entry/Delete experiment controls at the upper right. There is no
+duplicate editor delete button. The notes list and wider editor remain below.
+
+Created a Markdown note; selected text and applied toolbar Bold, then undid/redid
+it, checking the saved SQLite body after each operation. Pasted a Unicode Markdown
+fixture through the clipboard and verified the saved body exactly. Preview showed
+headings, emphasis, bullets, a table, a quote, task markers, a fenced code block
+and a link. Clicking a task marker in immutable Preview left the saved source
+unchanged. The italic shortcut and undo retained source. Preview navigation with
+a dirty draft displayed the unsaved-edit guard; Keep editing retained it and Save
+and continue saved the draft before returning to experiments. The small window
+wrapped toolbar buttons and allowed the editor to scroll.
 
 ## Interface checks executed on Linux in 0.5.1
 

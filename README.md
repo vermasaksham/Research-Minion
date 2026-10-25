@@ -1,16 +1,17 @@
 # Research Minion
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.5.1** places the experiment name and details in the upper-right
-header, with the notes list and wider editor below. Offline profiles keep
-each user’s research data separate.
+Version **0.6** adds Markdown editing and rendered previews for research notes.
+Experiment details sit on the left of the header, with navigation controls at the
+upper right and the notes list/editor below. Offline profiles keep each user’s
+research data separate.
 
 ## Download and try it
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.1-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.1-windows-x64-preview.zip)
+- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.6.0-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.6.0-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
@@ -42,7 +43,9 @@ create or switch users, or edit your name/picture. Switching protects unsaved no
    independent. Click a selected element again to remove it.
 6. Add a **Transport agent** if relevant, or leave it blank. Click **Save experiment**.
 7. **Click the experiment bar or its name to open its log.** Add a title, event
-   date (`YYYY-MM-DD`), and notes; click **Save entry** or press **Ctrl+S**.
+   date (`YYYY-MM-DD`), and notes. Use **Write** for Markdown source and **Preview**
+   to see the current draft rendered. Select text and use the formatting toolbar,
+   or type Markdown directly. Click **Save entry** or press **Ctrl+S**.
 8. Use **Back to experiments** at the top of the log to return to the main view.
 9. Each saved note has its own **Delete note…** button in the **Notes** list;
    confirmation names the chosen note, and other notes remain. **Delete all notes…** clears the whole log.
@@ -58,7 +61,7 @@ The sidebar contains **CVT Experiments** and **Scientific Utilities**. There is 
 Logbook tab. Earlier, unlinked project notes remain accessible through
 **Previous project logs** on the Experiments page when such notes exist.
 
-This is an early preview. Fifty-two automated tests and Linux interface checks pass.
+This is an early preview. Fifty-eight automated tests and Linux interface checks pass.
 The executable was cross-compiled for Windows; Windows execution remains
 unverified. Preview binaries are hosted directly in this repository, rather than
 as GitHub Release assets, because release-API access is unavailable here.
@@ -68,6 +71,8 @@ as GitHub Release assets, because release-API access is unavailable here.
 ![CVT experiment overview and active user](docs/images/cvt-overview.png)
 
 ![Experiment-linked log](docs/images/experiment-log.png)
+
+![Rendered Markdown research notes](docs/images/markdown-preview.png)
 
 ![Scientific Utilities](docs/images/tools.png)
 
@@ -82,10 +87,16 @@ New profiles start empty unless the first profile adopts an earlier workspace.
   is removed.
 - Each profile opens a separate research database: experiments, project notes,
   searches, saved analyses, and Recently deleted belong to that profile.
-- The experiment name, date, temperatures and materials sit in the upper-right
-  header, beside the navigation controls. Below it, the note list and editor share
+- The experiment name, date, temperatures and materials sit on the left of the
+  header; Back, New log entry and Delete experiment sit at the upper right.
+  Below it, the note list and editor share
   the available width. Expanded metadata scrolls within the header. Individual
   deletion remains on each note card; the duplicate editor delete button is removed.
+
+- Research notes support Markdown headings, bold/italic/strikethrough, lists,
+  quotes, links, tables, task markers and code blocks. Write/Preview switches
+  preserve the draft; saving retains the exact source. Toolbar formatting supports
+  Unicode selections and undo/redo. See the [Markdown guide](docs/MARKDOWN.md).
 
 - All saved CVT experiments appear on a shared temperature axis in °C. Horizontal
   position and joining lines are schematic, not measured distances or profiles.

@@ -2,6 +2,7 @@
 pub mod chemistry;
 pub mod cvt;
 pub mod editor;
+pub mod markdown;
 pub mod model;
 pub mod store;
 
@@ -23,3 +24,6 @@ pub mod profiles;
 
 #[cfg(feature = "desktop")]
 mod profile_view;
+
+#[cfg(feature = "desktop")]
+mod notes_view;

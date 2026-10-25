@@ -102,6 +102,7 @@ pub struct ResearchMinionApp {
     entries: Vec<Entry>,
     project_id: Option<String>,
     editor: Option<Editor>,
+    notes_view: crate::notes_view::NotesView,
     search: String,
     project_form: Option<ProjectForm>,
     pending: Option<Action>,
@@ -140,6 +141,7 @@ impl ResearchMinionApp {
             entries: vec![],
             project_id: None,
             editor: None,
+            notes_view: crate::notes_view::NotesView::default(),
             search: String::new(),
             project_form: None,
             pending: None,
@@ -210,6 +212,7 @@ impl ResearchMinionApp {
                 self.experiments = experiments;
                 self.entries.clear();
                 self.editor = None;
+                self.notes_view = crate::notes_view::NotesView::default();
                 self.project_id = None;
                 self.active_experiment = None;
                 self.search.clear();
@@ -303,6 +306,7 @@ impl ResearchMinionApp {
     }
 
     fn select_project(&mut self, id: String) {
+        self.notes_view = crate::notes_view::NotesView::default();
         self.search.clear();
         self.project_id = Some(id.clone());
         self.error = None;
@@ -394,6 +398,7 @@ impl ResearchMinionApp {
     }
 
     fn discard_changes(&mut self) {
+        self.notes_view = crate::notes_view::NotesView::default();
         self.profile_form = None;
         self.experiment_form = None;
         if let Some(editor) = &mut self.editor {
@@ -516,6 +521,7 @@ impl ResearchMinionApp {
             }
             Action::NewEntry => {
                 if let Some(id) = &self.project_id {
+                    self.notes_view = crate::notes_view::NotesView::default();
                     self.editor = Some(Editor::new(id.clone()));
                     self.error = None;
                 }
@@ -678,6 +684,7 @@ impl ResearchMinionApp {
                     Deletion::Entry(_) | Deletion::Log { .. } => {
                         self.refresh_entries();
                         if replaces_editor {
+                            self.notes_view = crate::notes_view::NotesView::default();
                             self.editor = self
                                 .entries
                                 .first()
@@ -734,6 +741,7 @@ impl ResearchMinionApp {
         if let Some(store) = &self.store {
             match store.entry(id) {
                 Ok(entry) => {
+                    self.notes_view = crate::notes_view::NotesView::default();
                     self.editor = Some(Editor::from_entry(entry));
                     self.error = None;
                 }
@@ -879,8 +887,20 @@ impl ResearchMinionApp {
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
                 ui.horizontal_top(|ui| {
-                    let details_width = (ui.available_width() * 0.42).clamp(380.0, 600.0);
-                    let controls_width = ui.available_width() - details_width - 20.0;
+                    let controls_width = 300.0;
+                    let details_width = (ui.available_width() - controls_width - 20.0).max(240.0);
+                    ui.allocate_ui_with_layout(
+                        Vec2::new(details_width, 200.0),
+                        egui::Layout::top_down(egui::Align::LEFT),
+                        |ui| {
+                            ui.set_min_width(details_width);
+                            egui::ScrollArea::vertical()
+                                .id_salt("experiment-header-scroll")
+                                .max_height(200.0)
+                                .show(ui, |ui| self.log_header_details(ui, actions));
+                        },
+                    );
+                    ui.add_space(12.0);
                     ui.allocate_ui_with_layout(
                         Vec2::new(controls_width, 0.0),
                         egui::Layout::top_down(egui::Align::LEFT),
@@ -902,17 +922,6 @@ impl ResearchMinionApp {
                                     actions.push(Action::DeleteExperiment(experiment.id.clone()));
                                 }
                             });
-                        },
-                    );
-                    ui.add_space(12.0);
-                    ui.allocate_ui_with_layout(
-                        Vec2::new(ui.available_width(), 200.0),
-                        egui::Layout::top_down(egui::Align::LEFT),
-                        |ui| {
-                            egui::ScrollArea::vertical()
-                                .id_salt("experiment-header-scroll")
-                                .max_height(200.0)
-                                .show(ui, |ui| self.log_header_details(ui, actions));
                         },
                     );
                 });
@@ -969,7 +978,13 @@ impl ResearchMinionApp {
                     egui::ScrollArea::vertical()
                         .id_salt("entry-editor-scroll")
                         .show_viewport(ui, |ui, viewport| {
-                            draw_editor(ui, editor, actions, viewport.height());
+                            draw_editor(
+                                ui,
+                                editor,
+                                &mut self.notes_view,
+                                actions,
+                                viewport.height(),
+                            );
                         });
                 }
             });
@@ -1333,6 +1348,7 @@ impl eframe::App for ResearchMinionApp {
 fn draw_editor(
     ui: &mut egui::Ui,
     editor: &mut Editor,
+    notes_view: &mut crate::notes_view::NotesView,
     actions: &mut Vec<Action>,
     viewport_height: f32,
 ) {
@@ -1386,11 +1402,7 @@ fn draw_editor(
     );
     ui.add_space(8.0);
     let notes_height = (viewport_height - (ui.cursor().top() - content_top) - 100.0).max(140.0);
-    egui::ScrollArea::vertical().id_salt("notes").max_height(notes_height).show(ui, |ui| {
-        ui.add_sized([ui.available_width(), notes_height], egui::TextEdit::multiline(&mut editor.body)
-            .hint_text("Write your notes here. Values and units are preserved exactly as you enter them.")
-            .desired_width(f32::INFINITY));
-    });
+    notes_view.show(ui, editor, notes_height);
     ui.add_space(14.0);
     if let Some(saved) = &editor.saved {
         ui.label(

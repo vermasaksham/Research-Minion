@@ -270,11 +270,32 @@ then crop/resize to a copied 256×256 PNG. A Windows-only `rfd` dependency suppl
 the native file picker. Dropped files and a file-path alternative also work. No
 password, encryption or online authentication is introduced.
 
-Version 0.5.1 corrects the notes layout: the experiment name and compact metadata
-occupy the upper-right header, with Back/New entry/Delete experiment controls on
-the left. Below the header, the note list is on the left and the editor uses the
+Version 0.6 follows the revised layout annotation: the experiment name and compact
+metadata occupy the left of the header, with Back/New entry/Delete experiment
+controls at the upper right. Below the header, the note list is on the left and the editor uses the
 remaining width. There is no details rail alongside the editor. Header metadata
 scrolls independently when expanded beyond 200 logical pixels, preserving space
 for notes at the minimum window size. The redundant editor deletion button and
 entry-type heading are removed; per-note actions remain on their own cards.
 Tools is labelled Scientific Utilities throughout the current interface.
+
+## Version 0.6 Markdown notes
+
+`markdown.rs` applies toolbar actions using character-based selections, converting
+to UTF-8 byte offsets only for source replacement. Block actions prefix whole
+touched lines; an end selection at the next line boundary leaves that line alone.
+Code delimiters account for backticks in the selected text. Text is never converted
+to HTML for storage. Existing body fields and schemas are unchanged.
+
+`notes_view.rs` supplies Write/Preview, formatting buttons, shortcut handling and
+help. Toolbar actions add explicit TextEdit undo points, restore the selection and
+return keyboard focus after the button click. Each loaded/new editor gets a fresh
+widget identity; reload/discard/deletion/profile switching resets its view and undo
+state. Saving preserves the view and undo history. Unrelated-note deletion retains
+the current draft/view.
+
+Preview uses `egui_commonmark` 0.22 and its CommonMark parser, matching egui 0.33.
+It renders the current immutable draft, including tables, task markers and code,
+without modifying it or making Save implicit. Image/file/HTTP loader features are
+disabled. Raw HTML has no renderer. Links open through the operating system only
+when clicked; no hosted renderer, JavaScript, or runtime network service is used.

@@ -1,4 +1,4 @@
-Research Minion 0.5.1 - corrected upper-right experiment header
+Research Minion 0.6 - Markdown research notes and revised header
 
 Run the standalone EXE, or extract the ZIP and open research-minion.exe.
 Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
@@ -15,9 +15,11 @@ Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
 4. CVT Experiments > + New experiment > Conditions: enter temperatures, date and
    optional name/thermal character. Materials & transport agent holds the optional
    descriptions, element selection and transport-agent text. Save experiment.
-5. Click its bar or name to open the log. Experiment details are in the upper-right
-   header, beside the navigation controls. The notes list and wider editor are below.
-   Save entry or Ctrl+S saves locally.
+5. Click its bar or name to open the log. Experiment details are on the left of the
+   header and navigation controls at the upper right. Notes and the editor are below.
+   Use Write to edit Markdown, select text and use formatting buttons, or type the
+   syntax directly. Preview renders the current draft. Save entry or Ctrl+S saves
+   the exact source locally. See docs/MARKDOWN.md for supported syntax.
 6. Each note card has Delete note. Delete all notes clears only this profile's log.
    Recently deleted restores saved records. Discarded unsaved edits cannot be restored.
 7. Scientific Utilities > Peak Explorer provides the initial orthorhombic XRD
@@ -39,6 +41,6 @@ Save is explicit. Unsaved notes/tool inputs do not survive forced shutdown.
 Tool drafts stay in memory under their profile while the app remains open.
 Attachments, automatic backups, autosave/crash recovery and edit history are pending.
 
-52 automated tests and Linux desktop checks pass. This executable was cross-built
+58 automated tests and Linux desktop checks pass. This executable was cross-built
 for Windows. Native Windows execution, the native picture picker, MSVC packaging
 and Windows accessibility/DPI checks remain unverified here. See docs/VALIDATION.md.
