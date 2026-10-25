@@ -1,4 +1,4 @@
-Research Minion 0.5 - local user profiles and a larger notes workspace
+Research Minion 0.5.1 - corrected upper-right experiment header
 
 Run the standalone EXE, or extract the ZIP and open research-minion.exe.
 Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
@@ -15,8 +15,9 @@ Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
 4. CVT Experiments > + New experiment > Conditions: enter temperatures, date and
    optional name/thermal character. Materials & transport agent holds the optional
    descriptions, element selection and transport-agent text. Save experiment.
-5. Click its bar or name to open the log. Notes are on the left, the editor in the
-   centre, and experiment details on the right. Save entry or Ctrl+S saves locally.
+5. Click its bar or name to open the log. Experiment details are in the upper-right
+   header, beside the navigation controls. The notes list and wider editor are below.
+   Save entry or Ctrl+S saves locally.
 6. Each note card has Delete note. Delete all notes clears only this profile's log.
    Recently deleted restores saved records. Discarded unsaved edits cannot be restored.
 7. Scientific Utilities > Peak Explorer provides the initial orthorhombic XRD

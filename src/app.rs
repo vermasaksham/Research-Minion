@@ -837,73 +837,87 @@ impl ResearchMinionApp {
             });
     }
 
+    fn log_header_details(&self, ui: &mut egui::Ui, actions: &mut Vec<Action>) {
+        if let Some(experiment) = &self.active_experiment {
+            ui.heading(RichText::new(&experiment.name).size(23.0).color(INK));
+            ui.add_space(5.0);
+            crate::materials_view::experiment_summary(ui, experiment);
+        } else {
+            ui.heading("Previous project logs");
+            let project = self
+                .projects
+                .iter()
+                .find(|project| Some(&project.id) == self.project_id.as_ref());
+            egui::ComboBox::from_id_salt("previous-project")
+                .selected_text(project.map_or("Choose project", |project| project.name.as_str()))
+                .show_ui(ui, |ui| {
+                    for project in &self.projects {
+                        if ui
+                            .selectable_label(
+                                Some(&project.id) == self.project_id.as_ref(),
+                                &project.name,
+                            )
+                            .clicked()
+                        {
+                            actions.push(Action::SelectProject(project.id.clone()));
+                        }
+                    }
+                });
+            if ui.button("New project").clicked() {
+                actions.push(Action::NewProject);
+            }
+            if let Some(project) = project {
+                ui.label(&project.description);
+            }
+        }
+    }
+
     fn workspace(&mut self, ui: &mut egui::Ui, actions: &mut Vec<Action>) {
         egui::Frame::new()
             .fill(PAPER)
             .inner_margin(12)
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
-                ui.horizontal_wrapped(|ui| {
-                    if primary_button(ui, "Back to experiments").clicked() {
-                        actions.push(Action::SelectTab(Tab::Experiments));
-                    }
-                    if self.project_id.is_some() && ui.button("+ New log entry").clicked() {
-                        actions.push(Action::NewEntry);
-                    }
+                ui.horizontal_top(|ui| {
+                    let details_width = (ui.available_width() * 0.42).clamp(380.0, 600.0);
+                    let controls_width = ui.available_width() - details_width - 20.0;
+                    ui.allocate_ui_with_layout(
+                        Vec2::new(controls_width, 0.0),
+                        egui::Layout::top_down(egui::Align::LEFT),
+                        |ui| {
+                            ui.set_min_width(controls_width);
+                            if primary_button(ui, "Back to experiments").clicked() {
+                                actions.push(Action::SelectTab(Tab::Experiments));
+                            }
+                            ui.add_space(12.0);
+                            ui.horizontal_wrapped(|ui| {
+                                if self.project_id.is_some()
+                                    && ui.button("+ New log entry").clicked()
+                                {
+                                    actions.push(Action::NewEntry);
+                                }
+                                if let Some(experiment) = &self.active_experiment
+                                    && ui.button("Delete experiment…").clicked()
+                                {
+                                    actions.push(Action::DeleteExperiment(experiment.id.clone()));
+                                }
+                            });
+                        },
+                    );
+                    ui.add_space(12.0);
+                    ui.allocate_ui_with_layout(
+                        Vec2::new(ui.available_width(), 200.0),
+                        egui::Layout::top_down(egui::Align::LEFT),
+                        |ui| {
+                            egui::ScrollArea::vertical()
+                                .id_salt("experiment-header-scroll")
+                                .max_height(200.0)
+                                .show(ui, |ui| self.log_header_details(ui, actions));
+                        },
+                    );
                 });
             });
         ui.separator();
-        egui::SidePanel::right("experiment-details")
-            .default_width(260.0)
-            .width_range(220.0..=340.0)
-            .resizable(true)
-            .frame(egui::Frame::new().fill(PAPER).inner_margin(18))
-            .show_inside(ui, |ui| {
-                egui::ScrollArea::vertical()
-                    .id_salt("experiment-details-scroll")
-                    .show(ui, |ui| {
-                        if let Some(experiment) = &self.active_experiment {
-                            ui.label(RichText::new("EXPERIMENT").size(11.0).strong().color(MUTED));
-                            ui.heading(RichText::new(&experiment.name).size(23.0).color(INK));
-                            ui.add_space(14.0);
-                            crate::materials_view::experiment_summary(ui, experiment);
-                            ui.add_space(20.0);
-                            if ui.button("Delete experiment…").clicked() {
-                                actions.push(Action::DeleteExperiment(experiment.id.clone()));
-                            }
-                        } else {
-                            ui.heading("Previous project logs");
-                            let project = self
-                                .projects
-                                .iter()
-                                .find(|project| Some(&project.id) == self.project_id.as_ref());
-                            egui::ComboBox::from_id_salt("previous-project")
-                                .selected_text(
-                                    project
-                                        .map_or("Choose project", |project| project.name.as_str()),
-                                )
-                                .show_ui(ui, |ui| {
-                                    for project in &self.projects {
-                                        if ui
-                                            .selectable_label(
-                                                Some(&project.id) == self.project_id.as_ref(),
-                                                &project.name,
-                                            )
-                                            .clicked()
-                                        {
-                                            actions.push(Action::SelectProject(project.id.clone()));
-                                        }
-                                    }
-                                });
-                            if ui.button("New project").clicked() {
-                                actions.push(Action::NewProject);
-                            }
-                            if let Some(project) = project {
-                                ui.label(&project.description);
-                            }
-                        }
-                    });
-            });
         egui::SidePanel::left("entry-list").exact_width(228.0).resizable(false)
             .frame(egui::Frame::new().fill(PAPER).inner_margin(16))
             .show_inside(ui, |ui| {

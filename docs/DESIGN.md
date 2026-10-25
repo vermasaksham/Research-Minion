@@ -270,8 +270,11 @@ then crop/resize to a copied 256×256 PNG. A Windows-only `rfd` dependency suppl
 the native file picker. Dropped files and a file-path alternative also work. No
 password, encryption or online authentication is introduced.
 
-The notes page now has a compact navigation toolbar, a note list on the left,
-the taller editor in the middle, and a resizable experiment-details rail on the
-right. Metadata can scroll independently. The redundant editor deletion button
-and entry-type heading are removed; per-note actions remain on their own cards.
+Version 0.5.1 corrects the notes layout: the experiment name and compact metadata
+occupy the upper-right header, with Back/New entry/Delete experiment controls on
+the left. Below the header, the note list is on the left and the editor uses the
+remaining width. There is no details rail alongside the editor. Header metadata
+scrolls independently when expanded beyond 200 logical pixels, preserving space
+for notes at the minimum window size. The redundant editor deletion button and
+entry-type heading are removed; per-note actions remain on their own cards.
 Tools is labelled Scientific Utilities throughout the current interface.

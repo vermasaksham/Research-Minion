@@ -1,6 +1,6 @@
 # Validation record
 
-Version 0.5 profiles and notes layout, 25 October 2026. The development host is Debian Linux x64;
+Version 0.5.1 corrected notes header, 25 October 2026. The development host is Debian Linux x64;
 Windows execution is not claimed.
 
 ## Executed
@@ -50,6 +50,19 @@ identity editing without changing research IDs, invalid names/pictures, bounded
 JPEG/PNG decoding and JPEG orientation, and refusal to overwrite unsupported
 catalogs or unrecognised old research databases. A corrupt stored ID cannot become
 an arbitrary workspace path. The EXIF fixture is a synthetic red/blue image.
+
+## Interface checks executed on Linux in 0.5.1
+
+The real desktop was checked under Xvfb at 1240×820 and 1000×650 using a
+disposable copy of the earlier synthetic profile workspace. The experiment name,
+date, temperatures, heat assignment and material expander now occupy the upper-right
+header, beside the navigation controls. The notes list and editor occupy the area
+below, without a right-hand details rail. Expanded metadata scrolls within the
+200-pixel header limit. Existing notes remain visible, card deletion remains
+available, and the duplicate editor delete button remains absent. Created a new
+note from the header toolbar, saved with Ctrl+S and independently checked the
+exact title/body in SQLite. Back returned to the overview and reopening the
+experiment retained its notes.
 
 ## Interface checks executed on Linux in 0.5
 

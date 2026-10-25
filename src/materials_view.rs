@@ -187,37 +187,35 @@ pub fn periodic_table(
 }
 
 pub fn experiment_summary(ui: &mut egui::Ui, experiment: &CvtExperiment) {
-    ui.label(RichText::new("Experiment date").strong());
-    ui.label(
+    ui.label(format!(
+        "Experiment date: {}",
         experiment
             .details
             .experiment_date
             .map(|date| date.to_string())
             .unwrap_or_else(|| "Not specified".into()),
-    );
-    ui.add_space(12.0);
-    ui.strong("Temperatures");
-    egui::Grid::new(("experiment-temperatures", &experiment.id))
-        .spacing([16.0, 8.0])
-        .show(ui, |ui| {
-            for (label, value) in [
-                ("Source", experiment.conditions.source_c()),
-                ("Sink", experiment.conditions.sink_c()),
-                ("ΔT", experiment.conditions.delta_c()),
-            ] {
-                ui.label(label);
-                ui.label(
-                    RichText::new(format!("{} °C", crate::cvt::temperature_text(value)))
-                        .color(if label == "ΔT" { TEAL } else { INK }),
-                );
-                ui.end_row();
-            }
-        });
-    ui.add_space(12.0);
-    ui.strong("Thermal character")
+    ));
+    ui.horizontal_wrapped(|ui| {
+        for (label, value) in [
+            ("Source", experiment.conditions.source_c()),
+            ("Sink", experiment.conditions.sink_c()),
+            ("ΔT", experiment.conditions.delta_c()),
+        ] {
+            ui.label(
+                RichText::new(format!(
+                    "{label} {} °C",
+                    crate::cvt::temperature_text(value)
+                ))
+                .color(if label == "ΔT" { TEAL } else { INK }),
+            );
+        }
+        ui.label(format!(
+            "Thermal character: {}",
+            experiment.details.heat_effect.label()
+        ))
         .on_hover_text("Researcher-assigned; not inferred from ΔT.");
-    ui.label(experiment.details.heat_effect.label());
-    ui.add_space(12.0);
+    });
+    ui.add_space(5.0);
     ui.collapsing("Materials and transport agent", |ui| {
         for (name, material) in [
             ("Precursor", &experiment.details.precursor),

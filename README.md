@@ -1,15 +1,16 @@
 # Research Minion
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.5** adds offline user profiles with pictures and separate research
-workspaces, plus a taller notes editor with experiment details on the right.
+Version **0.5.1** places the experiment name and details in the upper-right
+header, with the notes list and wider editor below. Offline profiles keep
+each user’s research data separate.
 
 ## Download and try it
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.0-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.0-windows-x64-preview.zip)
+- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.1-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.1-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
@@ -81,8 +82,10 @@ New profiles start empty unless the first profile adopts an earlier workspace.
   is removed.
 - Each profile opens a separate research database: experiments, project notes,
   searches, saved analyses, and Recently deleted belong to that profile.
-- The note list and editor use the window height; experiment metadata lives in
-  a resizable right-hand panel. Individual deletion remains on each note card.
+- The experiment name, date, temperatures and materials sit in the upper-right
+  header, beside the navigation controls. Below it, the note list and editor share
+  the available width. Expanded metadata scrolls within the header. Individual
+  deletion remains on each note card; the duplicate editor delete button is removed.
 
 - All saved CVT experiments appear on a shared temperature axis in °C. Horizontal
   position and joining lines are schematic, not measured distances or profiles.

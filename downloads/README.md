@@ -1,9 +1,9 @@
 # Windows preview downloads
 
-Version **0.5.0** for Windows 10/11 x64:
+Version **0.5.1** for Windows 10/11 x64:
 
-- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.0-windows-x64.exe)
-- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.0-windows-x64-preview.zip)
+- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.1-windows-x64.exe)
+- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.5.1-windows-x64-preview.zip)
 - [SHA-256 checksums](SHA256SUMS.txt)
 
 Run the EXE, or extract the ZIP and open `research-minion.exe`. No Rust installation
@@ -11,8 +11,9 @@ is required. First launch asks for a full name and optional picture. The active
 identity appears above Workspace. Profiles keep separate research databases;
 the first profile owns earlier root-folder records, and later profiles start empty.
 
-The notes editor is taller, experiment details sit on the right, and individual
-deletion stays on note cards. Tools is now called Scientific Utilities.
+Experiment details now sit in the upper-right header, beside the navigation
+controls. The notes list and wider editor are below. Individual deletion stays
+on note cards. Tools is called Scientific Utilities.
 
 Keep the entire `%LOCALAPPDATA%\ResearchMinion` folder when replacing the app or
 making a closed-app backup: profile catalog, pictures, all profile subfolders,
