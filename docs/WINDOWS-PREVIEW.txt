@@ -1,4 +1,4 @@
-CrystalForge 0.9 - Crystal-growth experiments and scientific utilities
+CrystalForge 0.9.1 - Crystal-growth experiments and scientific utilities
 
 Run the standalone EXE, or extract the ZIP and open crystal-forge.exe.
 Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
@@ -47,6 +47,6 @@ Save is explicit. Unsaved notes/tool inputs do not survive forced shutdown.
 Tool drafts stay in memory under their profile while the app remains open.
 Attachments, automatic backups, autosave/crash recovery and edit history are pending.
 
-73 automated tests and Linux desktop checks pass. This executable was cross-built
+74 automated tests and Linux desktop checks pass. This executable was cross-built
 for Windows. Native Windows execution, the native picture picker, MSVC packaging
 and Windows accessibility/DPI checks remain unverified here. See docs/VALIDATION.md.

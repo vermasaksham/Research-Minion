@@ -3,7 +3,7 @@
 **Crystal-growth experiments and scientific utilities.**
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.9** adds local note pictures, subscript/superscript buttons and a
+Version **0.9.1** lets subscript/superscript style entire words. Version 0.9 added local note pictures and a
 simpler profile control. The Sb₂Se₃ Peak Explorer keeps separate EDX energy
 and XRD diffraction views, source inspection, crystal-setting mapping and local
 reference snapshots. Markdown notes and separate offline user profiles remain available.
@@ -12,8 +12,8 @@ reference snapshots. Markdown notes and separate offline user profiles remain av
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.0-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.0-windows-x64-preview.zip)
+- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.1-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.1-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
@@ -65,7 +65,7 @@ The sidebar contains **CVT Experiments** and **Scientific Utilities**. There is 
 Logbook tab. Earlier, unlinked project notes remain accessible through
 **Previous project logs** on the Experiments page when such notes exist.
 
-This is an early preview. Seventy-three automated tests and Linux interface checks pass.
+This is an early preview. Seventy-four automated tests and Linux interface checks pass.
 The executable was cross-compiled for Windows; Windows execution remains
 unverified. Preview binaries are hosted directly in this repository, rather than
 as GitHub Release assets, because release-API access is unavailable here.

@@ -15,6 +15,55 @@ pub enum Format {
     Superscript,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ScriptSpan<'a> {
+    pub text: &'a str,
+    pub raised: Option<bool>,
+}
+
+/// Recognise only complete, literal script tags. Other HTML stays with the
+/// ordinary Markdown renderer and is never interpreted as active content.
+pub fn script_spans(line: &str) -> Option<Vec<ScriptSpan<'_>>> {
+    let mut rest = line;
+    let mut spans = Vec::new();
+    let mut found = false;
+    while let Some((start, raised, open, close)) = [
+        (rest.find("<sup>"), true, "<sup>", "</sup>"),
+        (rest.find("<sub>"), false, "<sub>", "</sub>"),
+    ]
+    .into_iter()
+    .filter_map(|(at, raised, open, close)| at.map(|at| (at, raised, open, close)))
+    .min_by_key(|item| item.0)
+    {
+        let after_open = &rest[start + open.len()..];
+        let Some(end) = after_open.find(close) else {
+            break;
+        };
+        if start > 0 {
+            spans.push(ScriptSpan {
+                text: &rest[..start],
+                raised: None,
+            });
+        }
+        spans.push(ScriptSpan {
+            text: &after_open[..end],
+            raised: Some(raised),
+        });
+        rest = &after_open[end + close.len()..];
+        found = true;
+    }
+    if !found {
+        return None;
+    }
+    if !rest.is_empty() {
+        spans.push(ScriptSpan {
+            text: rest,
+            raised: None,
+        });
+    }
+    Some(spans)
+}
+
 /// Apply a toolbar action and return the selection in the resulting source.
 /// Egui cursor positions count Unicode characters, not UTF-8 bytes.
 pub fn format(body: &mut String, selection: Range<usize>, action: Format) -> Range<usize> {
@@ -65,13 +114,8 @@ pub fn format(body: &mut String, selection: Range<usize>, action: Format) -> Ran
         selected
     };
     let (replacement, offset, length) = match action {
-        Format::Subscript | Format::Superscript => {
-            let converted: String = text
-                .chars()
-                .map(|c| script_char(c, matches!(action, Format::Superscript)).unwrap_or(c))
-                .collect();
-            (converted.clone(), 0, converted.chars().count())
-        }
+        Format::Subscript => (format!("<sub>{text}</sub>"), 5, text.chars().count()),
+        Format::Superscript => (format!("<sup>{text}</sup>"), 5, text.chars().count()),
         Format::Bold => (format!("**{text}**"), 2, text.chars().count()),
         Format::Italic => (format!("*{text}*"), 1, text.chars().count()),
         Format::Link => {
@@ -117,15 +161,4 @@ pub fn format(body: &mut String, selection: Range<usize>, action: Format) -> Ran
     };
     body.replace_range(from..to, &replacement);
     (start + offset)..(start + offset + length)
-}
-
-fn script_char(c: char, superscript: bool) -> Option<char> {
-    let plain = "0123456789+-=()";
-    let raised = "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾";
-    let lowered = "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎";
-    plain.chars().position(|item| item == c).and_then(|index| {
-        (if superscript { raised } else { lowered })
-            .chars()
-            .nth(index)
-    })
 }

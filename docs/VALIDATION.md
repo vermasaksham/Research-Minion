@@ -1,5 +1,12 @@
 # Validation record
 
+## CrystalForge 0.9.1 arbitrary-text scripts, 26 October 2026
+
+Subscript and superscript buttons now wrap any selected text in editable
+`<sub>`/`<sup>` tags. Preview renders the tagged span in a smaller lowered or
+raised font, including whole words and Unicode letters. Tests cover formula
+digits, multiple words, Unicode source preservation and malformed tags.
+
 ## CrystalForge 0.9 note pictures and formatting, 26 October 2026
 
 PNG/JPEG import stores bounded, orientation-corrected PNG copies beside the
@@ -28,8 +35,8 @@ Windows execution is not claimed.
 | Pinned Rust 1.95.0 installation and locked dependency restore | Passed |
 | `cargo fmt --all -- --check` | Passed |
 | `cargo clippy --locked --all-targets -- -D warnings` | Passed |
-| `cargo test --locked --offline` | 73 integration tests passed; no ignored/failed tests |
-| `cargo test --locked --offline --no-default-features` | 73 integration tests passed without desktop features |
+| `cargo test --locked --offline` | 74 integration tests passed; no ignored/failed tests |
+| `cargo test --locked --offline --no-default-features` | 74 integration tests passed without desktop features |
 | `cargo build --locked` | Linux desktop build passed |
 | `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.4 |
 | Windows GNU x64 cross-build | Passed; Windows UI subsystem confirmed in the executable |

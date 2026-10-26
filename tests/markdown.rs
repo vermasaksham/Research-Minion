@@ -28,9 +28,37 @@ fn inline_formatting_preserves_unicode_and_selects_the_original_text() {
 fn scientific_script_buttons_keep_formula_characters_readable() {
     let mut body = "Sb2Se3 and cm-1".to_string();
     markdown::format(&mut body, 2..3, Format::Subscript);
-    markdown::format(&mut body, 5..6, Format::Subscript);
-    markdown::format(&mut body, 13..15, Format::Superscript);
-    assert_eq!(body, "Sb₂Se₃ and cm⁻¹");
+    let second = body.find('3').unwrap();
+    markdown::format(&mut body, second..second + 1, Format::Subscript);
+    let power = body.find("-1").unwrap();
+    markdown::format(&mut body, power..power + 2, Format::Superscript);
+    assert_eq!(body, "Sb<sub>2</sub>Se<sub>3</sub> and cm<sup>-1</sup>");
+    let segments = markdown::script_spans(&body).unwrap();
+    assert_eq!(
+        segments.iter().filter(|s| s.raised == Some(false)).count(),
+        2
+    );
+    assert_eq!(
+        segments.iter().filter(|s| s.raised == Some(true)).count(),
+        1
+    );
+}
+
+#[test]
+fn script_buttons_format_whole_words_and_unicode_without_losing_source() {
+    let mut body = "phase alpha and β₂".to_string();
+    let selection = markdown::format(&mut body, 6..11, Format::Superscript);
+    assert_eq!(body, "phase <sup>alpha</sup> and β₂");
+    assert_eq!(selection, 11..16);
+    let start = body.chars().position(|c| c == 'β').unwrap();
+    markdown::format(&mut body, start..start + 2, Format::Subscript);
+    assert_eq!(body, "phase <sup>alpha</sup> and <sub>β₂</sub>");
+    let spans = markdown::script_spans(&body).unwrap();
+    assert_eq!(spans[1].text, "alpha");
+    assert_eq!(spans[1].raised, Some(true));
+    assert_eq!(spans[3].text, "β₂");
+    assert_eq!(spans[3].raised, Some(false));
+    assert!(markdown::script_spans("keep <sup>unfinished as plain text").is_none());
 }
 
 #[test]

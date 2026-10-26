@@ -13,8 +13,10 @@ Code uses a fenced block for a multiline selection. Undo/redo works with the
 formatting buttons. While writing, **Ctrl+B**, **Ctrl+I** and **Ctrl+K** apply bold,
 italic and link formatting.
 
-Subscript and superscript turn selected digits and common signs into Unicode
-characters, for example `Sb₂Se₃` and `cm⁻¹`. Other letters stay as typed.
+Subscript and superscript format any selected characters, including complete
+words. For example, `Sb<sub>2</sub>Se<sub>3</sub>` and
+`phase<sup>alpha</sup>` appear lowered or raised in Preview. The tags remain
+in Write so the original letters are preserved when you save or search a note.
 On Windows, **Add picture…** chooses a PNG or JPEG and copies a bounded PNG into
 the active profile's `note-images` folder. It adds a reference at the end of the
 draft. Save the note, then use Preview to see the picture below the text. Back up

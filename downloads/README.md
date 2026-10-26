@@ -2,10 +2,10 @@
 
 CrystalForge — crystal-growth experiments and scientific utilities.
 
-Version **0.9.0** for Windows 10/11 x64:
+Version **0.9.1** for Windows 10/11 x64:
 
-- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.0-windows-x64.exe)
-- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.0-windows-x64-preview.zip)
+- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.1-windows-x64.exe)
+- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.1-windows-x64-preview.zip)
 - [SHA-256 checksums](SHA256SUMS.txt)
 
 Run the EXE, or extract the ZIP and open `crystal-forge.exe`. No Rust installation
@@ -32,7 +32,7 @@ Iodine-containing XRD phases are not bundled. The ZIP includes retained source
 files and a reproducible Gemmi validation script; Python is not needed to use the app.
 
 Built with Rust 1.95.0, `x86_64-pc-windows-gnu`, bundled SQLite/fonts/image decoding.
-73 automated tests and Linux interface checks passed. Native Windows execution and
+74 automated tests and Linux interface checks passed. Native Windows execution and
 the Windows picture picker remain unverified. These are portable previews, not
 installers. Binaries are committed here because release-API access is unavailable.
 

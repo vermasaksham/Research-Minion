@@ -41,9 +41,9 @@ impl NotesView {
                 ui.label("# Heading\n**bold** · *italic* · ~~strikethrough~~\n- Bullet · 1. Numbered item\n> Quoted text\n`inline code` · ``` fenced code blocks\n[label](https://example.com)\n- [ ] Task · - [x] Completed task");
                 ui.separator();
                 ui.label("Tables: separate columns with | and add a |---|---| separator row.");
-                ui.label("Select digits or + - = ( ) for subscript/superscript. Ctrl+B / Ctrl+I / Ctrl+K also work while writing.");
+                ui.label("Select any letters, words or numbers for subscript/superscript. Ctrl+B / Ctrl+I / Ctrl+K also work while writing.");
                 ui.label("Add picture copies a PNG/JPEG into this profile. Save the note to keep its reference.");
-                ui.label("Preview reads the current draft. Save entry stores the Markdown source.");
+                ui.label("Script formatting is visible in Preview; Write keeps editable <sub> and <sup> tags. Save entry stores the source.");
             });
         });
         let mut format = None;
@@ -65,12 +65,12 @@ impl NotesView {
                     (
                         "Subscript",
                         Format::Subscript,
-                        "Turn selected digits and signs into subscripts",
+                        "Lower any selected text, including words",
                     ),
                     (
                         "Superscript",
                         Format::Superscript,
-                        "Turn selected digits and signs into superscripts",
+                        "Raise any selected text, including words",
                     ),
                 ] {
                     if ui.small_button(label).on_hover_text(hint).clicked() {
@@ -148,7 +148,7 @@ impl NotesView {
                                 ui.style_mut().url_in_tooltip = true;
                                 let (markdown, pictures) =
                                     note_images::split_markdown(&editor.body);
-                                CommonMarkViewer::new().show(ui, &mut self.cache, &markdown);
+                                show_markdown_with_scripts(ui, &mut self.cache, &markdown);
                                 for (caption, id) in pictures {
                                     if !self.image_textures.contains_key(&id)
                                         && let Some(path) =
@@ -199,5 +199,46 @@ impl NotesView {
                     }
                 }
             });
+    }
+}
+
+fn show_markdown_with_scripts(ui: &mut egui::Ui, cache: &mut CommonMarkCache, source: &str) {
+    let mut ordinary = String::new();
+    let mut code_fence = false;
+    for line in source.split_inclusive('\n') {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            code_fence = !code_fence;
+        }
+        if !code_fence && let Some(spans) = markdown::script_spans(line.trim_end_matches('\n')) {
+            if !ordinary.is_empty() {
+                CommonMarkViewer::new().show(ui, cache, &ordinary);
+                ordinary.clear();
+            }
+            let mut job = egui::text::LayoutJob::default();
+            for span in spans {
+                let format = egui::TextFormat {
+                    font_id: egui::FontId::proportional(if span.raised.is_some() {
+                        11.0
+                    } else {
+                        15.0
+                    }),
+                    color: INK,
+                    valign: if span.raised == Some(true) {
+                        egui::Align::TOP
+                    } else {
+                        egui::Align::BOTTOM
+                    },
+                    ..Default::default()
+                };
+                job.append(span.text, 0.0, format);
+            }
+            ui.label(job);
+        } else {
+            ordinary.push_str(line);
+        }
+    }
+    if !ordinary.is_empty() {
+        CommonMarkViewer::new().show(ui, cache, &ordinary);
     }
 }
