@@ -2,17 +2,21 @@ use crate::{
     app::{INK, MUTED, PAPER},
     editor::Editor,
     markdown::{self, Format},
+    note_images,
 };
 use eframe::egui::{
     self, RichText,
     text::{CCursor, CCursorRange},
 };
 use egui_commonmark::{CommonMarkCache, CommonMarkViewer};
+use std::{collections::HashMap, path::Path};
 
 pub struct NotesView {
     preview: bool,
     cache: CommonMarkCache,
     text_id: egui::Id,
+    image_textures: HashMap<String, egui::TextureHandle>,
+    image_error: Option<String>,
 }
 
 impl Default for NotesView {
@@ -21,12 +25,14 @@ impl Default for NotesView {
             preview: false,
             cache: CommonMarkCache::default(),
             text_id: egui::Id::new(uuid::Uuid::new_v4()),
+            image_textures: HashMap::new(),
+            image_error: None,
         }
     }
 }
 
 impl NotesView {
-    pub fn show(&mut self, ui: &mut egui::Ui, editor: &mut Editor, height: f32) {
+    pub fn show(&mut self, ui: &mut egui::Ui, editor: &mut Editor, height: f32, workspace: &Path) {
         let top = ui.cursor().top();
         ui.horizontal_wrapped(|ui| {
             ui.selectable_value(&mut self.preview, false, "Write");
@@ -35,7 +41,8 @@ impl NotesView {
                 ui.label("# Heading\n**bold** · *italic* · ~~strikethrough~~\n- Bullet · 1. Numbered item\n> Quoted text\n`inline code` · ``` fenced code blocks\n[label](https://example.com)\n- [ ] Task · - [x] Completed task");
                 ui.separator();
                 ui.label("Tables: separate columns with | and add a |---|---| separator row.");
-                ui.label("Select text, then choose formatting. Ctrl+B / Ctrl+I / Ctrl+K also work while writing.");
+                ui.label("Select digits or + - = ( ) for subscript/superscript. Ctrl+B / Ctrl+I / Ctrl+K also work while writing.");
+                ui.label("Add picture copies a PNG/JPEG into this profile. Save the note to keep its reference.");
                 ui.label("Preview reads the current draft. Save entry stores the Markdown source.");
             });
         });
@@ -55,9 +62,34 @@ impl NotesView {
                         "Inline code or fenced code for multiple lines",
                     ),
                     ("Link", Format::Link, "Link · Ctrl+K"),
+                    (
+                        "Subscript",
+                        Format::Subscript,
+                        "Turn selected digits and signs into subscripts",
+                    ),
+                    (
+                        "Superscript",
+                        Format::Superscript,
+                        "Turn selected digits and signs into superscripts",
+                    ),
                 ] {
                     if ui.small_button(label).on_hover_text(hint).clicked() {
                         format = Some(action);
+                    }
+                }
+                #[cfg(windows)]
+                if ui.small_button("Add picture…").clicked()
+                    && let Some(path) = rfd::FileDialog::new()
+                        .set_title("Add a picture to this note")
+                        .add_filter("Pictures", &["png", "jpg", "jpeg"])
+                        .pick_file()
+                {
+                    match note_images::add(workspace, &path) {
+                        Ok((reference, _)) => {
+                            editor.body.push_str(&format!("\n\n{reference}\n"));
+                            self.image_error = None;
+                        }
+                        Err(error) => self.image_error = Some(error),
                     }
                 }
             });
@@ -72,6 +104,9 @@ impl NotesView {
                     }
                 }
             }
+        }
+        if let Some(error) = &self.image_error {
+            ui.colored_label(egui::Color32::DARK_RED, error);
         }
         if let Some(action) = format {
             let mut state = egui::TextEdit::load_state(ui.ctx(), self.text_id).unwrap_or_default();
@@ -111,7 +146,41 @@ impl NotesView {
                                 );
                             } else {
                                 ui.style_mut().url_in_tooltip = true;
-                                CommonMarkViewer::new().show(ui, &mut self.cache, &editor.body);
+                                let (markdown, pictures) =
+                                    note_images::split_markdown(&editor.body);
+                                CommonMarkViewer::new().show(ui, &mut self.cache, &markdown);
+                                for (caption, id) in pictures {
+                                    if !self.image_textures.contains_key(&id)
+                                        && let Some(path) =
+                                            note_images::picture_path(workspace, &id)
+                                        && let Ok(bytes) = std::fs::read(path)
+                                        && let Ok(image) = image::load_from_memory(&bytes)
+                                    {
+                                        let rgba = image.to_rgba8();
+                                        let texture = ui.ctx().load_texture(
+                                            format!("note-picture-{}-{id}", workspace.display()),
+                                            egui::ColorImage::from_rgba_unmultiplied(
+                                                [rgba.width() as usize, rgba.height() as usize],
+                                                rgba.as_raw(),
+                                            ),
+                                            egui::TextureOptions::LINEAR,
+                                        );
+                                        self.image_textures.insert(id.clone(), texture);
+                                    }
+                                    ui.add_space(8.0);
+                                    if let Some(texture) = self.image_textures.get(&id) {
+                                        ui.add(
+                                            egui::Image::new(texture)
+                                                .max_width(ui.available_width().min(720.0)),
+                                        );
+                                        ui.label(caption);
+                                    } else {
+                                        ui.colored_label(
+                                            egui::Color32::DARK_RED,
+                                            "Picture missing from this profile",
+                                        );
+                                    }
+                                }
                             }
                         });
                 } else {

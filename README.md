@@ -3,7 +3,8 @@
 **Crystal-growth experiments and scientific utilities.**
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.8** introduces the CrystalForge name and keeps the interactive Sb₂Se₃ Peak Explorer: separate EDX energy
+Version **0.9** adds local note pictures, subscript/superscript buttons and a
+simpler profile control. The Sb₂Se₃ Peak Explorer keeps separate EDX energy
 and XRD diffraction views, source inspection, crystal-setting mapping and local
 reference snapshots. Markdown notes and separate offline user profiles remain available.
 
@@ -11,8 +12,8 @@ reference snapshots. Markdown notes and separate offline user profiles remain av
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.8.0-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.8.0-windows-x64-preview.zip)
+- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.0-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.0-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
@@ -21,12 +22,12 @@ Rust, .NET, Python, SQLite, or a web runtime.
 
 On first launch, enter your **Full name** and choose a **User picture** (optional).
 Windows offers a native **Choose picture…** dialog; you can also drop a PNG/JPEG
-onto the profile form or use its file-path option. Pictures are copied into the
+onto the profile form. Pictures are copied into the
 profile, so the original file is no longer required. If you skip the picture,
 your initials are shown.
 
 The first profile takes ownership of earlier experiments and notes in this data
-folder. Later profiles start empty. Use **Profiles…** under your sidebar name to
+folder. Later profiles start empty. Click your sidebar name or picture to
 create or switch users, or edit your name/picture. Switching protects unsaved notes.
 
 1. After profile setup, the app opens in **CVT Experiments**. Click **+ New experiment**.
@@ -46,7 +47,8 @@ create or switch users, or edit your name/picture. Switching protects unsaved no
 7. **Click the experiment bar or its name to open its log.** Add a title, event
    date (`YYYY-MM-DD`), and notes. Use **Write** for Markdown source and **Preview**
    to see the current draft rendered. Select text and use the formatting toolbar,
-   or type Markdown directly. Click **Save entry** or press **Ctrl+S**.
+   or type Markdown directly. Use **Add picture…** for a local PNG/JPEG, or select
+   numbers and use **Subscript**/**Superscript**. Click **Save entry** or press **Ctrl+S**.
 8. Use **Back to experiments** at the top of the log to return to the main view.
 9. Each saved note has its own **Delete note…** button in the **Notes** list;
    confirmation names the chosen note, and other notes remain. **Delete all notes…** clears the whole log.
@@ -63,7 +65,7 @@ The sidebar contains **CVT Experiments** and **Scientific Utilities**. There is 
 Logbook tab. Earlier, unlinked project notes remain accessible through
 **Previous project logs** on the Experiments page when such notes exist.
 
-This is an early preview. Seventy-one automated tests and Linux interface checks pass.
+This is an early preview. Seventy-three automated tests and Linux interface checks pass.
 The executable was cross-compiled for Windows; Windows execution remains
 unverified. Preview binaries are hosted directly in this repository, rather than
 as GitHub Release assets, because release-API access is unavailable here.
@@ -155,6 +157,7 @@ The default Windows folder is `%LOCALAPPDATA%\CrystalForge`. On Linux it uses
   active profile.
 - New profiles use `profiles/<profile UUID>/crystal-forge.sqlite3` for their
   research records.
+- Pictures added to notes are copied into each profile's `note-images` folder.
 - If an earlier installation already has a `research-minion.sqlite3` database or
   `%LOCALAPPDATA%\ResearchMinion` data folder, CrystalForge opens it in place so
   existing profiles, experiments and notes remain available. The first profile

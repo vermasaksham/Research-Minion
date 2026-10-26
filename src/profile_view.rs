@@ -143,18 +143,6 @@ impl ProfileForm {
                 }
             });
         });
-        ui.collapsing("Choose picture using a file path", |ui| {
-            ui.add(
-                egui::TextEdit::singleline(&mut self.picture_path)
-                    .hint_text("Path to a PNG or JPEG picture")
-                    .desired_width(f32::INFINITY),
-            );
-            if ui.button("Load picture").clicked()
-                && let Err(error) = self.resolve_picture()
-            {
-                self.picture_error = Some(error);
-            }
-        });
         if let Some(path) = ui.ctx().input(|input| {
             input
                 .raw

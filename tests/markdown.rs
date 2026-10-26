@@ -25,6 +25,15 @@ fn inline_formatting_preserves_unicode_and_selects_the_original_text() {
 }
 
 #[test]
+fn scientific_script_buttons_keep_formula_characters_readable() {
+    let mut body = "Sb2Se3 and cm-1".to_string();
+    markdown::format(&mut body, 2..3, Format::Subscript);
+    markdown::format(&mut body, 5..6, Format::Subscript);
+    markdown::format(&mut body, 13..15, Format::Superscript);
+    assert_eq!(body, "Sb₂Se₃ and cm⁻¹");
+}
+
+#[test]
 fn empty_and_stale_selections_insert_editable_placeholders_without_panicking() {
     let mut body = "Se".to_string();
     assert_eq!(markdown::format(&mut body, 100..100, Format::Bold), 4..8);

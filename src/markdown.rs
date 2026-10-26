@@ -11,6 +11,8 @@ pub enum Format {
     Quote,
     Code,
     Link,
+    Subscript,
+    Superscript,
 }
 
 /// Apply a toolbar action and return the selection in the resulting source.
@@ -63,6 +65,13 @@ pub fn format(body: &mut String, selection: Range<usize>, action: Format) -> Ran
         selected
     };
     let (replacement, offset, length) = match action {
+        Format::Subscript | Format::Superscript => {
+            let converted: String = text
+                .chars()
+                .map(|c| script_char(c, matches!(action, Format::Superscript)).unwrap_or(c))
+                .collect();
+            (converted.clone(), 0, converted.chars().count())
+        }
         Format::Bold => (format!("**{text}**"), 2, text.chars().count()),
         Format::Italic => (format!("*{text}*"), 1, text.chars().count()),
         Format::Link => {
@@ -108,4 +117,15 @@ pub fn format(body: &mut String, selection: Range<usize>, action: Format) -> Ran
     };
     body.replace_range(from..to, &replacement);
     (start + offset)..(start + offset + length)
+}
+
+fn script_char(c: char, superscript: bool) -> Option<char> {
+    let plain = "0123456789+-=()";
+    let raised = "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾";
+    let lowered = "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎";
+    plain.chars().position(|item| item == c).and_then(|index| {
+        (if superscript { raised } else { lowered })
+            .chars()
+            .nth(index)
+    })
 }

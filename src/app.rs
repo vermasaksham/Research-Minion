@@ -771,14 +771,14 @@ impl CrystalForgeApp {
                 );
                 ui.add_space(24.0);
                 if let Some(profile) = &self.active_profile {
-                    ui.horizontal(|ui| {
-                        profile_view::avatar(
-                            ui,
-                            &profile.full_name,
-                            self.profile_texture.as_ref(),
-                            48.0,
-                        );
-                        ui.vertical(|ui| {
+                    let clicked = ui
+                        .horizontal(|ui| {
+                            profile_view::avatar(
+                                ui,
+                                &profile.full_name,
+                                self.profile_texture.as_ref(),
+                                48.0,
+                            );
                             ui.add(
                                 egui::Label::new(
                                     RichText::new(&profile.full_name)
@@ -786,13 +786,14 @@ impl CrystalForgeApp {
                                         .color(Color32::WHITE),
                                 )
                                 .truncate(),
-                            )
-                            .on_hover_text(&profile.full_name);
-                            if ui.button("Profiles…").clicked() {
-                                actions.push(Action::OpenProfiles);
-                            }
-                        });
-                    });
+                            );
+                        })
+                        .response
+                        .interact(egui::Sense::click())
+                        .on_hover_text("Open profiles and edit your picture or name");
+                    if clicked.clicked() {
+                        actions.push(Action::OpenProfiles);
+                    }
                 }
                 ui.add_space(24.0);
                 ui.label(
@@ -979,6 +980,7 @@ impl CrystalForgeApp {
                                 &mut self.notes_view,
                                 actions,
                                 viewport.height(),
+                                self.store.as_ref().map(|store| store.path()),
                             );
                         });
                 }
@@ -1346,6 +1348,7 @@ fn draw_editor(
     notes_view: &mut crate::notes_view::NotesView,
     actions: &mut Vec<Action>,
     viewport_height: f32,
+    workspace_path: Option<&std::path::Path>,
 ) {
     let content_top = ui.cursor().top();
     ui.horizontal_wrapped(|ui| {
@@ -1397,7 +1400,9 @@ fn draw_editor(
     );
     ui.add_space(8.0);
     let notes_height = (viewport_height - (ui.cursor().top() - content_top) - 100.0).max(140.0);
-    notes_view.show(ui, editor, notes_height);
+    if let Some(path) = workspace_path.and_then(|path| path.parent()) {
+        notes_view.show(ui, editor, notes_height, path);
+    }
     ui.add_space(14.0);
     if let Some(saved) = &editor.saved {
         ui.label(

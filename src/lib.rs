@@ -4,6 +4,7 @@ pub mod cvt;
 pub mod editor;
 pub mod markdown;
 pub mod model;
+pub mod note_images;
 pub mod store;
 
 #[cfg(feature = "desktop")]

@@ -1,4 +1,4 @@
-CrystalForge 0.8 - Crystal-growth experiments and scientific utilities
+CrystalForge 0.9 - Crystal-growth experiments and scientific utilities
 
 Run the standalone EXE, or extract the ZIP and open crystal-forge.exe.
 Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
@@ -6,11 +6,11 @@ Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
 
 1. On first launch, enter Full name and optionally choose a User picture.
    Windows opens a native file picker. PNG/JPEG files under 10 MiB are supported;
-   dropping a file onto the profile form or entering its path also works.
+   dropping a file onto the profile form also works.
    Pictures are copied into the local profile; initials appear when no picture is used.
 2. Existing experiments and notes belong to the first profile created for this
    data folder. Their database stays in place. Later profiles start empty.
-3. The active name/picture appear above Workspace in the sidebar. Profiles lets
+3. The active name/picture appear above Workspace in the sidebar. Click them to
    you create/switch profiles or edit your identity. Switches protect unsaved notes.
 4. CVT Experiments > + New experiment > Conditions: enter temperatures, date and
    optional name/thermal character. Materials & transport agent holds the optional
@@ -47,6 +47,6 @@ Save is explicit. Unsaved notes/tool inputs do not survive forced shutdown.
 Tool drafts stay in memory under their profile while the app remains open.
 Attachments, automatic backups, autosave/crash recovery and edit history are pending.
 
-71 automated tests and Linux desktop checks pass. This executable was cross-built
+73 automated tests and Linux desktop checks pass. This executable was cross-built
 for Windows. Native Windows execution, the native picture picker, MSVC packaging
 and Windows accessibility/DPI checks remain unverified here. See docs/VALIDATION.md.

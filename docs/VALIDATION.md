@@ -1,5 +1,14 @@
 # Validation record
 
+## CrystalForge 0.9 note pictures and formatting, 26 October 2026
+
+PNG/JPEG import stores bounded, orientation-corrected PNG copies beside the
+active profile database. Markdown keeps a stable UUID reference; Preview shows
+the copied picture below the text. Subscript and superscript buttons convert
+selected digits and signs to Unicode. Clicking the sidebar name/picture opens
+profile management; the duplicate picture-path field is removed. New tests
+cover profile-scoped image storage, reference parsing and scientific notation.
+
 ## CrystalForge 0.8 rename, 26 October 2026
 
 The product, executable, Rust package, window title, sidebar, reports, build
@@ -19,8 +28,8 @@ Windows execution is not claimed.
 | Pinned Rust 1.95.0 installation and locked dependency restore | Passed |
 | `cargo fmt --all -- --check` | Passed |
 | `cargo clippy --locked --all-targets -- -D warnings` | Passed |
-| `cargo test --locked --offline` | 71 integration tests passed; no ignored/failed tests |
-| `cargo test --locked --offline --no-default-features` | 71 integration tests passed without desktop features |
+| `cargo test --locked --offline` | 73 integration tests passed; no ignored/failed tests |
+| `cargo test --locked --offline --no-default-features` | 73 integration tests passed without desktop features |
 | `cargo build --locked` | Linux desktop build passed |
 | `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.4 |
 | Windows GNU x64 cross-build | Passed; Windows UI subsystem confirmed in the executable |
