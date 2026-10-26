@@ -1,4 +1,4 @@
-use research_minion::chemistry::{
+use crystal_forge::chemistry::{
     ELEMENTS, element, formula_elements, suggest_elements, table_position,
 };
 use std::collections::BTreeSet;

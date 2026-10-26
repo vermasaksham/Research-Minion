@@ -161,7 +161,7 @@ impl Analysis {
     /// Self-contained readable snapshot, frozen on save; never a reference to mutable UI state.
     pub fn report(&self) -> String {
         let mut text = format!(
-            "Peak Explorer — user-entered orthorhombic XRD\nResearch Minion {}\nCalculation: {}\nCalculated: {} UTC\nMaterial/phase label: {}\nAxis/structure setting (as entered): {}\nCell source/provenance (as entered): {}\na = {} Å; b = {} Å; c = {} Å\nα = β = γ = 90°\nWavelength = {} Å (user-entered); Bragg order n = 1\n1/d² = h²/a² + k²/b² + l²/c²; 2θ = 2 asin(λ/(2d))\n\nSelected h k l, d (Å), 2θ (degrees):\n",
+            "Peak Explorer — user-entered orthorhombic XRD\nCrystalForge {}\nCalculation: {}\nCalculated: {} UTC\nMaterial/phase label: {}\nAxis/structure setting (as entered): {}\nCell source/provenance (as entered): {}\na = {} Å; b = {} Å; c = {} Å\nα = β = γ = 90°\nWavelength = {} Å (user-entered); Bragg order n = 1\n1/d² = h²/a² + k²/b² + l²/c²; 2θ = 2 asin(λ/(2d))\n\nSelected h k l, d (Å), 2θ (degrees):\n",
             env!("CARGO_PKG_VERSION"),
             CALCULATION_VERSION,
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S"),

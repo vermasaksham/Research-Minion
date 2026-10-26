@@ -1,4 +1,4 @@
-use research_minion::{
+use crystal_forge::{
     editor::Editor,
     markdown::{self, Format},
     store::Store,

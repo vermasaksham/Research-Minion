@@ -1,4 +1,4 @@
--- Additions shipped by Research Minion 0.2.0; apply after schema-v1.sql.
+-- Additions shipped by the earlier 0.2.0 application; apply after schema-v1.sql.
 CREATE TABLE cvt_experiments (
     id TEXT PRIMARY KEY NOT NULL,
     name TEXT NOT NULL CHECK(length(trim(name)) > 0),

@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use research_minion::{
+use crystal_forge::{
     cvt::CvtConditions,
     editor::Editor,
     model::{EntryDraft, ExperimentDetails},
@@ -149,7 +149,7 @@ fn individually_deleted_note_stays_deleted_when_parent_experiment_restores() {
 #[test]
 fn schema_three_upgrade_keeps_metadata_notes_and_unknown_experiment_dates() {
     let folder = tempfile::tempdir().unwrap();
-    let path = folder.path().join("research-minion.sqlite3");
+    let path = folder.path().join("crystal-forge.sqlite3");
     let connection = rusqlite::Connection::open(&path).unwrap();
     connection
         .execute_batch(include_str!("fixtures/schema-v3.sql"))

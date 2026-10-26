@@ -1,6 +1,6 @@
-Research Minion 0.7 - offline EDX / XRD Peak Explorer
+CrystalForge 0.8 - Crystal-growth experiments and scientific utilities
 
-Run the standalone EXE, or extract the ZIP and open research-minion.exe.
+Run the standalone EXE, or extract the ZIP and open crystal-forge.exe.
 Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
 .NET, WebView2 and a separate SQLite installation are not needed to use it.
 
@@ -29,7 +29,9 @@ Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
    EDX covers Sb, Bi, Se, I, Cl, Br and S. XRD covers Sb2Se3, Sb and trigonal Se.
    No SbSeI or SbI3 diffraction references are bundled. See docs/PEAK-EXPLORER.md.
 
-Default complete data folder: %LOCALAPPDATA%\ResearchMinion
+Default complete data folder: %LOCALAPPDATA%\CrystalForge
+An existing %LOCALAPPDATA%\ResearchMinion folder is opened in place so earlier
+profiles, experiments and notes remain available after the rename.
 It contains profiles.sqlite3, profile subfolders and any earlier root database.
 JSON reference exports are stored in the owning profile's exports subfolder.
 Keep the WHOLE folder when replacing the executable or making a backup. Save and

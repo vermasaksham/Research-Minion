@@ -1,4 +1,4 @@
--- Schema shipped by Research Minion 0.1.0, retained as an upgrade fixture.
+-- Schema shipped by the earlier 0.1.0 application, retained as an upgrade fixture.
 CREATE TABLE projects (
     id TEXT PRIMARY KEY NOT NULL,
     name TEXT NOT NULL CHECK(length(trim(name)) > 0),

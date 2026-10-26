@@ -14,3 +14,5 @@ fea6996d6ceda4f19e04357df597d5c41911f5211e0498caa2ee639c1afb7a24  Research-Minio
 1b03632c66b09dcc02a97c63ea5e9cb015e2d6f0a9bc7c00dedab55e2d520d74  Research-Minion-0.6.0-windows-x64-preview.zip
 1a9c17373fe47f4db06e06998181721b641e478ad66f739810f6a3a1bf16dafd  Research-Minion-0.7.0-windows-x64.exe
 f913c7cb3b4148f313d33e1d546d85c194ba36a8abcc0fa343781a92ba33d606  Research-Minion-0.7.0-windows-x64-preview.zip
+a4c763fcb1bd280ae66bc741892cd6cdfd21df9e54fa1fa558163ef5c49f578f  CrystalForge-0.8.0-windows-x64.exe
+fac6097dc3f5d48c0ff0db4b8b603b0096ab42717723c3b92bd587d3dbe50fdb  CrystalForge-0.8.0-windows-x64-preview.zip

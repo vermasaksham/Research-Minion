@@ -25,10 +25,10 @@ pub enum StoreError {
     #[error("The requested record no longer exists.")]
     NotFound,
     #[error(
-        "Database version {0} is newer than this application supports. Use a newer Research Minion."
+        "Database version {0} is newer than this application supports. Use a newer CrystalForge."
     )]
     UnsupportedVersion(i64),
-    #[error("This is not an empty or recognised Research Minion database.")]
+    #[error("This is not an empty or recognised CrystalForge database.")]
     UnrecognisedDatabase,
     #[error("The local data directory is unavailable. Choose a location with --data-dir.")]
     NoDataDirectory,
@@ -49,7 +49,13 @@ pub struct Store {
 impl Store {
     pub fn open(data_dir: &Path) -> Result<Self> {
         std::fs::create_dir_all(data_dir)?;
-        Self::open_file(&data_dir.join("research-minion.sqlite3"))
+        let current = data_dir.join("crystal-forge.sqlite3");
+        let legacy = data_dir.join("research-minion.sqlite3");
+        Self::open_file(if current.exists() || !legacy.exists() {
+            &current
+        } else {
+            &legacy
+        })
     }
 
     pub fn open_file(path: &Path) -> Result<Self> {
@@ -545,9 +551,14 @@ impl Store {
 }
 
 pub fn default_data_dir() -> Result<PathBuf> {
-    dirs::data_local_dir()
-        .map(|p| p.join("ResearchMinion"))
-        .ok_or(StoreError::NoDataDirectory)
+    let base = dirs::data_local_dir().ok_or(StoreError::NoDataDirectory)?;
+    let current = base.join("CrystalForge");
+    let legacy = base.join("ResearchMinion");
+    Ok(if current.exists() || !legacy.exists() {
+        current
+    } else {
+        legacy
+    })
 }
 
 fn read_cvt_experiment(row: &Row<'_>) -> rusqlite::Result<CvtExperiment> {

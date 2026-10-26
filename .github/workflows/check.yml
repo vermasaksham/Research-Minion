@@ -44,6 +44,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Windows'
         with:
-          name: Research-Minion-windows-x64
+          name: CrystalForge-windows-x64
           path: target/packages/*.zip
           if-no-files-found: error

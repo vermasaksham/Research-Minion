@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use research_minion::{app::ResearchMinionApp, profiles::Profiles, store::default_data_dir};
+use crystal_forge::{app::CrystalForgeApp, profiles::Profiles, store::default_data_dir};
 
 fn main() -> eframe::Result {
     let data_dir = parse_data_dir().and_then(|path| {
@@ -15,15 +15,15 @@ fn main() -> eframe::Result {
     });
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
-            .with_title("Research Minion")
+            .with_title("CrystalForge — Crystal-growth experiments and scientific utilities")
             .with_inner_size([1240.0, 820.0])
             .with_min_inner_size([1000.0, 650.0]),
         ..Default::default()
     };
     eframe::run_native(
-        "Research Minion",
+        "CrystalForge",
         options,
-        Box::new(move |cc| Ok(Box::new(ResearchMinionApp::new(cc, store)))),
+        Box::new(move |cc| Ok(Box::new(CrystalForgeApp::new(cc, store)))),
     )
 }
 
@@ -36,7 +36,7 @@ fn parse_data_dir() -> Result<Option<PathBuf>, String> {
                 args.next().ok_or("--data-dir needs a folder path.")?,
             ));
         } else {
-            return Err("Usage: research-minion [--data-dir <folder>]".into());
+            return Err("Usage: crystal-forge [--data-dir <folder>]".into());
         }
     }
     Ok(result)

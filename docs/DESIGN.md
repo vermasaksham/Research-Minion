@@ -2,8 +2,8 @@
 
 ## Confirmed scope
 
-Research Minion is a Windows desktop application that works offline, centred on
-a research logbook. Scientific tools will be defined incrementally; the existing
+CrystalForge is a Windows desktop application that works offline, centred on
+crystal-growth experiments and scientific utilities. Scientific tools will be defined incrementally; the existing
 Sb₂Se₃ Peak Explorer is the first intended tool. AI is not a requirement.
 
 The implementation language is Rust, following the user's direction. The first

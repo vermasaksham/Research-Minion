@@ -84,7 +84,7 @@ struct ProjectForm {
     description: String,
 }
 
-pub struct ResearchMinionApp {
+pub struct CrystalForgeApp {
     store: Option<Store>,
     registry: Option<Profiles>,
     active_profile: Option<Profile>,
@@ -116,7 +116,7 @@ pub struct ResearchMinionApp {
     peak_drafts: std::collections::BTreeMap<String, PeakWorkspace>,
 }
 
-impl ResearchMinionApp {
+impl CrystalForgeApp {
     pub fn new(cc: &eframe::CreationContext<'_>, registry: Result<Profiles, String>) -> Self {
         configure_style(&cc.egui_ctx);
         let (registry, startup_error) = match registry {
@@ -758,20 +758,15 @@ impl ResearchMinionApp {
             .show(ctx, |ui| {
                 ui.add_space(10.0);
                 ui.label(
-                    RichText::new("RESEARCH")
-                        .size(13.0)
-                        .color(Color32::from_rgb(125, 185, 180)),
-                );
-                ui.label(
-                    RichText::new("Minion")
-                        .size(32.0)
+                    RichText::new("CrystalForge")
+                        .size(28.0)
                         .strong()
                         .color(Color32::WHITE),
                 );
                 ui.add_space(7.0);
                 ui.label(
-                    RichText::new("Your work, remembered.")
-                        .size(12.0)
+                    RichText::new("Crystal-growth experiments and scientific utilities")
+                        .size(11.0)
                         .color(Color32::LIGHT_GRAY),
                 );
                 ui.add_space(24.0);
@@ -837,7 +832,7 @@ impl ResearchMinionApp {
                             .color(Color32::from_rgb(125, 185, 180)),
                     );
                     ui.label(
-                        RichText::new(concat!("Research Minion ", env!("CARGO_PKG_VERSION")))
+                        RichText::new(concat!("CrystalForge ", env!("CARGO_PKG_VERSION")))
                             .size(11.0)
                             .color(Color32::from_gray(150)),
                     );
@@ -1213,12 +1208,12 @@ impl ResearchMinionApp {
     }
 }
 
-impl eframe::App for ResearchMinionApp {
+impl eframe::App for CrystalForgeApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if let Some(error) = &self.startup_error {
             egui::CentralPanel::default().show(ctx, |ui| {
                 ui.add_space(40.0);
-                ui.heading("Research Minion could not open its local workspace");
+                ui.heading("CrystalForge could not open its local workspace");
                 ui.add_space(12.0);
                 ui.label(error);
                 ui.add_space(18.0);
@@ -1241,7 +1236,7 @@ impl eframe::App for ResearchMinionApp {
             egui::CentralPanel::default().frame(egui::Frame::new().fill(PAPER).inner_margin(32)).show(ctx,|ui| {
                 ui.vertical_centered(|ui| {
                     ui.add_space(25.0);
-                    ui.heading(RichText::new("Welcome to Research Minion").size(28.0).color(INK));
+                    ui.heading(RichText::new("Welcome to CrystalForge").size(28.0).color(INK));
                     ui.label("Create your offline user profile to start.");
                     ui.add_space(20.0);
                     if self.pending.is_none() && !self.profile_menu {

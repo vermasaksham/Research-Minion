@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use research_minion::{
+use crystal_forge::{
     editor::Editor,
     model::EntryDraft,
     store::{Store, StoreError},
@@ -241,7 +241,7 @@ fn malformed_dates_never_replace_saved_data() {
 #[test]
 fn newer_database_schema_is_rejected_without_modification() {
     let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().join("research-minion.sqlite3");
+    let path = dir.path().join("crystal-forge.sqlite3");
     let connection = rusqlite::Connection::open(&path).unwrap();
     connection.execute_batch("CREATE TABLE future_data (value TEXT); INSERT INTO future_data VALUES ('keep me'); PRAGMA user_version = 42;").unwrap();
     drop(connection);
@@ -256,7 +256,7 @@ fn newer_database_schema_is_rejected_without_modification() {
 #[test]
 fn unrelated_database_is_not_adopted_or_modified() {
     let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().join("research-minion.sqlite3");
+    let path = dir.path().join("crystal-forge.sqlite3");
     let connection = rusqlite::Connection::open(&path).unwrap();
     connection
         .execute_batch("CREATE TABLE existing_work (value TEXT);")

@@ -1,5 +1,14 @@
 # Validation record
 
+## CrystalForge 0.8 rename, 26 October 2026
+
+The product, executable, Rust package, window title, sidebar, reports, build
+artifacts and current documentation use the CrystalForge name and the subtitle
+“Crystal-growth experiments and scientific utilities.” New data uses the
+`CrystalForge` folder and `crystal-forge.sqlite3`; compatibility tests confirm
+that earlier data folders and databases still open in place without renaming or
+copying research records.
+
 Version 0.7 EDX/XRD reference explorer, 26 October 2026. The development host is Debian Linux x64;
 Windows execution is not claimed.
 

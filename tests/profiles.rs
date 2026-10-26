@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use research_minion::{
+use crystal_forge::{
     cvt::CvtConditions,
     model::EntryDraft,
     profiles::{Profiles, picture_from_file, prepare_picture},
@@ -40,7 +40,16 @@ fn identity_and_copied_picture_survive_restart_without_the_source_file() {
     profiles.activate(&profile.id).unwrap();
     assert_eq!(profile.full_name, "René Example");
     assert!(!profile.owns_legacy_workspace);
-    assert!(!dir.path().join("research-minion.sqlite3").exists());
+    assert!(!dir.path().join("crystal-forge.sqlite3").exists());
+    assert_eq!(
+        profiles
+            .workspace(&profile.id)
+            .unwrap()
+            .path()
+            .file_name()
+            .unwrap(),
+        "crystal-forge.sqlite3"
+    );
     assert_eq!(
         image::load_from_memory(profile.picture_png.as_ref().unwrap())
             .unwrap()

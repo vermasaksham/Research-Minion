@@ -1,4 +1,4 @@
-use research_minion::{
+use crystal_forge::{
     cvt::{ABSOLUTE_ZERO_C, CvtConditions, TemperatureScale, temperature_text},
     store::{Store, StoreError},
 };
@@ -52,6 +52,7 @@ fn experiments_save_without_a_project_and_reopen_with_exact_temperatures() {
             .unwrap()
     };
     let store = Store::open(folder.path()).unwrap();
+    assert!(folder.path().join("crystal-forge.sqlite3").exists());
     let experiments = store.cvt_experiments().unwrap();
     assert_eq!(experiments, vec![saved.clone()]);
     assert_eq!(saved.name, "CVT trial A");
@@ -111,6 +112,8 @@ fn version_one_migration_preserves_existing_research_records() {
     }
     // Reopening must not repeat the migration or remove old/new records.
     let reopened = Store::open(folder.path()).unwrap();
+    assert_eq!(reopened.path(), path.as_path());
+    assert!(!folder.path().join("crystal-forge.sqlite3").exists());
     assert_eq!(reopened.cvt_experiments().unwrap().len(), 1);
     assert_eq!(reopened.entries("old-project", "").unwrap().len(), 1);
     let connection = rusqlite::Connection::open(&path).unwrap();
@@ -123,7 +126,7 @@ fn version_one_migration_preserves_existing_research_records() {
 #[test]
 fn incompatible_version_one_database_is_not_partially_upgraded() {
     let folder = tempfile::tempdir().unwrap();
-    let path = folder.path().join("research-minion.sqlite3");
+    let path = folder.path().join("crystal-forge.sqlite3");
     let connection = rusqlite::Connection::open(&path).unwrap();
     connection.execute_batch("CREATE TABLE unrelated (value TEXT); INSERT INTO unrelated VALUES ('keep me'); PRAGMA user_version = 1;").unwrap();
     drop(connection);

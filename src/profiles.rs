@@ -18,7 +18,7 @@ pub enum ProfileError {
     Validation(String),
     #[error("This profile is no longer available.")]
     NotFound,
-    #[error("This profile catalog is not supported by this version of Research Minion.")]
+    #[error("This profile catalog is not supported by this version of CrystalForge.")]
     UnsupportedCatalog,
     #[error("Local file error: {0}")]
     Io(#[from] std::io::Error),
@@ -142,7 +142,9 @@ impl Profiles {
         })
     }
     pub fn has_unassigned_workspace(&self) -> Result<bool> {
-        Ok(self.all()?.is_empty() && self.root.join("research-minion.sqlite3").exists())
+        Ok(self.all()?.is_empty()
+            && (self.root.join("crystal-forge.sqlite3").exists()
+                || self.root.join("research-minion.sqlite3").exists()))
     }
     pub fn all(&self) -> Result<Vec<Profile>> {
         let mut statement=self.connection.prepare("SELECT id,full_name,picture_png,created_at,owns_legacy FROM profiles ORDER BY created_at,id")?;
@@ -182,7 +184,9 @@ impl Profiles {
             full_name: name,
             picture_png,
             created_at: Utc::now(),
-            owns_legacy_workspace: count == 0 && self.root.join("research-minion.sqlite3").exists(),
+            owns_legacy_workspace: count == 0
+                && (self.root.join("crystal-forge.sqlite3").exists()
+                    || self.root.join("research-minion.sqlite3").exists()),
         };
         let folder = if profile.owns_legacy_workspace {
             self.root.clone()

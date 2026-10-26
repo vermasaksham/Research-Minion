@@ -16,10 +16,10 @@ try {
     $metadataJson = cargo metadata --locked --no-deps --format-version 1
     if ($LASTEXITCODE -ne 0) { throw 'Could not read package metadata.' }
     $metadata = $metadataJson | ConvertFrom-Json
-    $version = ($metadata.packages | Where-Object name -eq 'research-minion').version
-    $staging = 'target/packages/ResearchMinion'
+    $version = ($metadata.packages | Where-Object name -eq 'crystal-forge').version
+    $staging = 'target/packages/CrystalForge'
     New-Item -ItemType Directory -Force -Path $staging | Out-Null
-    Copy-Item "target/$target/release/research-minion.exe" $staging -Force
+    Copy-Item "target/$target/release/crystal-forge.exe" $staging -Force
     Copy-Item 'README.md' $staging -Force
     New-Item -ItemType Directory -Force -Path "$staging/docs" | Out-Null
     Copy-Item 'docs/*.md' "$staging/docs" -Force
@@ -31,7 +31,7 @@ try {
     New-Item -ItemType Directory -Force -Path "$staging/scripts" | Out-Null
     Copy-Item 'scripts/build-peak-catalog.py' "$staging/scripts" -Force
     Copy-Item 'scripts/peak-validation-requirements.txt' "$staging/scripts" -Force
-    $archive = "target/packages/Research-Minion-$version-windows-x64.zip"
+    $archive = "target/packages/CrystalForge-$version-windows-x64.zip"
     Compress-Archive -Path "$staging/*" -DestinationPath $archive -Force
     Write-Output "Created $archive"
 }

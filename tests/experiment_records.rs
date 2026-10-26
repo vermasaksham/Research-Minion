@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use research_minion::{
+use crystal_forge::{
     cvt::CvtConditions,
     model::{EntryDraft, ExperimentDetails, HeatEffect, Material},
     store::{Store, StoreError},
@@ -143,7 +143,7 @@ fn invalid_elements_and_database_failures_never_create_partial_experiments_or_lo
 #[test]
 fn schema_two_upgrade_preserves_experiments_and_unlinked_project_notes() {
     let folder = tempfile::tempdir().unwrap();
-    let path = folder.path().join("research-minion.sqlite3");
+    let path = folder.path().join("crystal-forge.sqlite3");
     let connection = rusqlite::Connection::open(&path).unwrap();
     connection
         .execute_batch(include_str!("fixtures/schema-v1.sql"))

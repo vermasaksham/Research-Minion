@@ -1,7 +1,9 @@
-# Research Minion
+# CrystalForge
+
+**Crystal-growth experiments and scientific utilities.**
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.7** adds the interactive Sb₂Se₃ Peak Explorer: separate EDX energy
+Version **0.8** introduces the CrystalForge name and keeps the interactive Sb₂Se₃ Peak Explorer: separate EDX energy
 and XRD diffraction views, source inspection, crystal-setting mapping and local
 reference snapshots. Markdown notes and separate offline user profiles remain available.
 
@@ -9,12 +11,12 @@ reference snapshots. Markdown notes and separate offline user profiles remain av
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.7.0-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.7.0-windows-x64-preview.zip)
+- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.8.0-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.8.0-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
-first and open `research-minion.exe`. Using the app does not require installing
+first and open `crystal-forge.exe`. Using the app does not require installing
 Rust, .NET, Python, SQLite, or a web runtime.
 
 On first launch, enter your **Full name** and choose a **User picture** (optional).
@@ -146,15 +148,17 @@ selection until you choose them. See [chemistry conventions](docs/CHEMISTRY.md).
 
 ## Where your work lives
 
-The default Windows folder is `%LOCALAPPDATA%\ResearchMinion`. On Linux it uses
-`$XDG_DATA_HOME/ResearchMinion`, normally `~/.local/share/ResearchMinion`.
+The default Windows folder is `%LOCALAPPDATA%\CrystalForge`. On Linux it uses
+`$XDG_DATA_HOME/CrystalForge`, normally `~/.local/share/CrystalForge`.
 
 - `profiles.sqlite3` contains profile identities, copied pictures and the last
   active profile.
-- New profiles use `profiles/<profile UUID>/research-minion.sqlite3` for their
+- New profiles use `profiles/<profile UUID>/crystal-forge.sqlite3` for their
   research records.
-- If an older `research-minion.sqlite3` already exists in the data-folder root,
-  the first profile owns it in its original location. It is not moved or copied;
+- If an earlier installation already has a `research-minion.sqlite3` database or
+  `%LOCALAPPDATA%\ResearchMinion` data folder, CrystalForge opens it in place so
+  existing profiles, experiments and notes remain available. The first profile
+  owns it in its original location. It is not moved or copied;
   existing notes, IDs, timestamps and deletion states are preserved. Later users
   receive independent databases.
 
@@ -162,7 +166,7 @@ The active database path appears in the status bar. To choose another complete
 local data folder:
 
 ```powershell
-.\research-minion.exe --data-dir "C:\Research\My logbook"
+.\crystal-forge.exe --data-dir "C:\Research\My logbook"
 ```
 
 Replacing the executable does not require deleting the data folder. Version 0.5
