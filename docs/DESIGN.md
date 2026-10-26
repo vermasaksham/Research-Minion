@@ -299,3 +299,25 @@ It renders the current immutable draft, including tables, task markers and code,
 without modifying it or making Save implicit. Image/file/HTTP loader features are
 disabled. Raw HTML has no renderer. Links open through the operating system only
 when clicked; no hosted renderer, JavaScript, or runtime network service is used.
+
+## Version 0.7 EDX/XRD reference explorer
+
+`peak_reference.rs` has separate EmissionLine and DiffractionPosition structures
+and explicit eV, keV, angstrom and degree_2theta field/unit names. No emission
+energy is cast to a diffraction angle. General cell spacings use the inverse
+normalised Gram metric; Bragg positions use the existing tested n=1 engine.
+Sb2Se3 Pbnm/Pnma conversion permutes both axes and indices. Immutable source CIFs,
+NIST direct experimental tables, source hashes and the original website's data
+are retained under data/peak. A Gemmi script independently checks metrics and
+systematic absences, source values and hashes; the resulting catalog is embedded
+in the executable and validated on load. JSON uses float_roundtrip parsing.
+
+`peak_view.rs` supplies the comparison, EDX, XRD and source-guide views;
+`peak_plot.rs` draws independent labelled axes and clickable/hoverable reference
+sticks. The original manual tool is retained in manual_peak_view.rs. The parent
+PeakWorkspace remains cached per profile in memory, including its selected
+references and unsaved interpretation. Export files use UUID names and create_new
+inside the active profile's exports directory. Saved analyses are ordinary dated
+log entries with a human-readable Markdown summary and self-contained JSON.
+No user measurements or interpretations are sent to a server. Source links open
+only on explicit user activation. Research/profile database schemas are unchanged.

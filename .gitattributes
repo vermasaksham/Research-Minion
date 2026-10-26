@@ -1,0 +1,3 @@
+data/peak/sources/* -text
+data/peak/*.json text eol=lf
+scripts/build-peak-catalog.py text eol=lf

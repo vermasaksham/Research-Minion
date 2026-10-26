@@ -1,4 +1,4 @@
-Research Minion 0.6 - Markdown research notes and revised header
+Research Minion 0.7 - offline EDX / XRD Peak Explorer
 
 Run the standalone EXE, or extract the ZIP and open research-minion.exe.
 Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
@@ -22,12 +22,16 @@ Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
    the exact source locally. See docs/MARKDOWN.md for supported syntax.
 6. Each note card has Delete note. Delete all notes clears only this profile's log.
    Recently deleted restores saved records. Discarded unsaved edits cannot be restored.
-7. Scientific Utilities > Peak Explorer provides the initial orthorhombic XRD
-   and Bragg calculators. Save analyses into an experiment in the active profile.
-   No original Sb/Se EDX catalog, CIF catalog or setting conversion is included.
+7. Scientific Utilities > Peak Explorer separates EDX characteristic energies
+   from XRD reflections. Select elements/phases, inspect sources and change the
+   XRD radiation or Sb2Se3 setting. Save / export reference snapshot saves to this
+   profile's experiment log or exports folder. Manual XRD keeps the earlier calculator.
+   EDX covers Sb, Bi, Se, I, Cl, Br and S. XRD covers Sb2Se3, Sb and trigonal Se.
+   No SbSeI or SbI3 diffraction references are bundled. See docs/PEAK-EXPLORER.md.
 
 Default complete data folder: %LOCALAPPDATA%\ResearchMinion
 It contains profiles.sqlite3, profile subfolders and any earlier root database.
+JSON reference exports are stored in the owning profile's exports subfolder.
 Keep the WHOLE folder when replacing the executable or making a backup. Save and
 close ALL app instances before copying it, including all WAL/SHM files if present.
 Copying only one research database does not preserve all users or their pictures.
@@ -41,6 +45,6 @@ Save is explicit. Unsaved notes/tool inputs do not survive forced shutdown.
 Tool drafts stay in memory under their profile while the app remains open.
 Attachments, automatic backups, autosave/crash recovery and edit history are pending.
 
-58 automated tests and Linux desktop checks pass. This executable was cross-built
+71 automated tests and Linux desktop checks pass. This executable was cross-built
 for Windows. Native Windows execution, the native picture picker, MSVC packaging
 and Windows accessibility/DPI checks remain unverified here. See docs/VALIDATION.md.

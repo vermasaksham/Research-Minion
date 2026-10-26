@@ -1,17 +1,16 @@
 # Research Minion
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.6** adds Markdown editing and rendered previews for research notes.
-Experiment details sit on the left of the header, with navigation controls at the
-upper right and the notes list/editor below. Offline profiles keep each user’s
-research data separate.
+Version **0.7** adds the interactive Sb₂Se₃ Peak Explorer: separate EDX energy
+and XRD diffraction views, source inspection, crystal-setting mapping and local
+reference snapshots. Markdown notes and separate offline user profiles remain available.
 
 ## Download and try it
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.6.0-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.6.0-windows-x64-preview.zip)
+- **[Download Research Minion.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.7.0-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.7.0-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
@@ -51,17 +50,18 @@ create or switch users, or edit your name/picture. Switching protects unsaved no
    confirmation names the chosen note, and other notes remain. **Delete all notes…** clears the whole log.
    **Delete experiment…** hides an experiment together with its log.
    **Recently deleted** on the overview lets you restore saved records.
-10. Open **Scientific Utilities → Peak Explorer** to calculate XRD positions from an explicitly
-    entered orthorhombic cell, wavelength, and list of `h k l` reflections. Enter
-    the source and axis convention for your parameters. Add an interpretation,
-    choose an experiment and event date, then click **Save analysis to log**.
+10. Open **Scientific Utilities → Peak Explorer**. Select EDX elements and XRD
+    phases independently. Click a marker or table row to inspect its cited reference.
+    Compare Cu/Co radiation, custom wavelength and Pbnm/Pnma settings. Expand
+    **Save / export reference snapshot** to save an analysis to an experiment log
+    or export JSON into the active profile. **Manual XRD** retains the earlier calculator.
 11. Close and reopen the app to return to your saved experiments and logs.
 
 The sidebar contains **CVT Experiments** and **Scientific Utilities**. There is no separate
 Logbook tab. Earlier, unlinked project notes remain accessible through
 **Previous project logs** on the Experiments page when such notes exist.
 
-This is an early preview. Fifty-eight automated tests and Linux interface checks pass.
+This is an early preview. Seventy-one automated tests and Linux interface checks pass.
 The executable was cross-compiled for Windows; Windows execution remains
 unverified. Preview binaries are hosted directly in this repository, rather than
 as GitHub Release assets, because release-API access is unavailable here.
@@ -74,7 +74,7 @@ as GitHub Release assets, because release-API access is unavailable here.
 
 ![Rendered Markdown research notes](docs/images/markdown-preview.png)
 
-![Scientific Utilities](docs/images/tools.png)
+![Peak Explorer: independent energy and diffraction axes](docs/images/peak-explorer.png)
 
 Screenshots use synthetic profiles, a synthetic picture, and disposable records.
 New profiles start empty unless the first profile adopts an earlier workspace.
@@ -110,9 +110,18 @@ New profiles start empty unless the first profile adopts an earlier workspace.
   show Not specified; recording time stays separate and is available on hover.
 - Experiments, whole logs, and individual log entries have confirmed, recoverable
   deletion. Restore experiments with their logs, or restore deleted entries.
-- The initial Peak Explorer calculates orthorhombic d-spacings and first-order
-  Bragg positions for entered reflections, plots position markers, and includes
-  forward/inverse Bragg calculators. Analysis snapshots save into experiment logs.
+- Peak Explorer separates EDX energies (keV) from XRD angles (degrees 2θ).
+  Its 46 selected direct experimental NIST markers cover **Sb, Bi, Se, I, Cl, Br
+  and S**, with uncertainties, blends and source links. Beam/edge checks show only
+  a necessary excitation condition, not useful-count predictions.
+- XRD includes **Sb₂Se₃, elemental Sb and trigonal Se**: three cited CIFs and 48
+  selected symmetry-allowed reflections. Cu/Co/custom wavelengths and explicit
+  Sb₂Se₃ Pbnm/Pnma mapping work offline. This is not a complete powder pattern or
+  automatic phase identification. **SbSeI and SbI₃ XRD references are not bundled**;
+  iodine EDX lines cannot substitute for their diffraction patterns.
+- Local JSON exports and dated analysis notes retain units, sources, uncertainties,
+  cell/settings, inputs and interpretation. The manual orthorhombic and Bragg
+  calculators remain available. See the [Peak Explorer guide](docs/PEAK-EXPLORER.md).
 - Event dates are separate from UTC creation/edit timestamps. Stable IDs and
   revision checks protect against stale entry overwrites from another instance.
 - Normal navigation/close requests protect unsaved forms and notes. Deleting a

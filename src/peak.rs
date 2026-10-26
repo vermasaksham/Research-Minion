@@ -183,7 +183,7 @@ impl Analysis {
                 row.hkl[0], row.hkl[1], row.hkl[2], row.d_a, angle
             ));
         }
-        text.push_str("\nLimitations: positions only for entered reflections; no symmetry-absence filtering, intensities, phase identification or phase fractions. Orthorhombic axes are used exactly as entered; no Pbnm/Pnma conversion. No bundled Sb/Se EDX reference markers or original Peak Explorer reference catalog.\n\nResearcher interpretation:\n");
+        text.push_str("\nLimitations: positions only for entered reflections; no symmetry-absence filtering, intensities, phase identification or phase fractions. Orthorhombic axes are used exactly as entered; no Pbnm/Pnma conversion. This manual calculation does not use the bundled reference catalog.\n\nResearcher interpretation:\n");
         text.push_str(&self.interpretation);
         text
     }

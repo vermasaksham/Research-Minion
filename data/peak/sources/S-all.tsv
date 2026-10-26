@@ -1,0 +1,24 @@
+Element: Sulfur
+Transitions: All
+Sorted by Transition
+
+Ele.	A	Trans.	Theory (eV)	Unc. (eV)	Direct (eV)	Unc. (eV)	Combined (eV)	Unc. (eV)	Vapor (eV)	Unc. (eV)	Blend	Ref.
+S		KL1	2242.56	0.23								
+S		KL2	2307.01	0.45	2306.700	0.038						3d
+S		KL3	2308.80	0.44	2307.885	0.034						3d
+S		KM1	2460.1	1.1								
+S		KM2	2469.73	0.60								
+S		KM3	2467.53	0.72	2464.07	0.14						1d
+S		K edge	2481.71	0.12	2470.506	0.073	2471.63	0.70				1d
+S		L1M1	217.5	1.1								
+S		L1M2	227.17	0.60								
+S		L1M3	224.96	0.72								
+S		L1 edge	239.15	0.11								
+S		L2M1	153.1	1.4	148.66	0.79					L2,3M1	1d
+S		L2M2	162.72	0.81								
+S		L2M3	160.52	0.93								
+S		L2 edge	174.70	0.33			163.60	0.30				
+S		L3M1	151.29	0.80	148.66	0.79					L2,3M1	1d
+S		L3M2	160.93	0.80								
+S		L3M3	158.73	0.92								
+S		L3 edge	172.91	0.32			163.820	0.061				

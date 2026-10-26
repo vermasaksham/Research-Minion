@@ -1,0 +1,1885 @@
+{
+  "schema": 1,
+  "version": "2026-10-26.1",
+  "checked": "2026-10-26",
+  "hc_ev_a": 12398.419843320025,
+  "elements": [
+    {
+      "symbol": "Sb",
+      "name": "Antimony",
+      "atomic_number": 51,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "symbol": "Bi",
+      "name": "Bismuth",
+      "atomic_number": 83,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV"
+    },
+    {
+      "symbol": "Se",
+      "name": "Selenium",
+      "atomic_number": 34,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV"
+    },
+    {
+      "symbol": "I",
+      "name": "Iodine",
+      "atomic_number": 53,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV"
+    },
+    {
+      "symbol": "Cl",
+      "name": "Chlorine",
+      "atomic_number": 17,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Cl&trans=All&units=eV"
+    },
+    {
+      "symbol": "Br",
+      "name": "Bromine",
+      "atomic_number": 35,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Br&trans=All&units=eV"
+    },
+    {
+      "symbol": "S",
+      "name": "Sulfur",
+      "atomic_number": 16,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=S&trans=All&units=eV"
+    }
+  ],
+  "edx": [
+    {
+      "id": "Sb-KL3",
+      "element": "Sb",
+      "label": "Kα₁",
+      "transition": "KL3",
+      "source_transitions": [
+        "KL3"
+      ],
+      "family": "K",
+      "energy_ev": 26358.86,
+      "uncertainty_ev": 0.25,
+      "reported_energy_ev": "26358.86",
+      "reported_uncertainty_ev": "0.25",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 30490.49,
+      "edge_uncertainty_ev": 0.2,
+      "edge_reported_ev": "30490.49",
+      "edge_reported_uncertainty_ev": "0.20",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1,5d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Sb-KL2",
+      "element": "Sb",
+      "label": "Kα₂",
+      "transition": "KL2",
+      "source_transitions": [
+        "KL2"
+      ],
+      "family": "K",
+      "energy_ev": 26110.78,
+      "uncertainty_ev": 0.25,
+      "reported_energy_ev": "26110.78",
+      "reported_uncertainty_ev": "0.25",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 30490.49,
+      "edge_uncertainty_ev": 0.2,
+      "edge_reported_ev": "30490.49",
+      "edge_reported_uncertainty_ev": "0.20",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1,5d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Sb-KM3",
+      "element": "Sb",
+      "label": "Kβ₁",
+      "transition": "KM3",
+      "source_transitions": [
+        "KM3"
+      ],
+      "family": "K",
+      "energy_ev": 29725.53,
+      "uncertainty_ev": 0.22,
+      "reported_energy_ev": "29725.53",
+      "reported_uncertainty_ev": "0.22",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 30490.49,
+      "edge_uncertainty_ev": 0.2,
+      "edge_reported_ev": "30490.49",
+      "edge_reported_uncertainty_ev": "0.20",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1,5d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Sb-KM2",
+      "element": "Sb",
+      "label": "Kβ₃",
+      "transition": "KM2",
+      "source_transitions": [
+        "KM2"
+      ],
+      "family": "K",
+      "energy_ev": 29679.2,
+      "uncertainty_ev": 0.29,
+      "reported_energy_ev": "29679.20",
+      "reported_uncertainty_ev": "0.29",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 30490.49,
+      "edge_uncertainty_ev": 0.2,
+      "edge_reported_ev": "30490.49",
+      "edge_reported_uncertainty_ev": "0.20",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1,5d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Sb-L3M5",
+      "element": "Sb",
+      "label": "Lα₁",
+      "transition": "L3M5",
+      "source_transitions": [
+        "L3M5"
+      ],
+      "family": "L",
+      "energy_ev": 3604.756,
+      "uncertainty_ev": 0.062,
+      "reported_energy_ev": "3604.756",
+      "reported_uncertainty_ev": "0.062",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L3",
+      "edge_ev": 4132.33,
+      "edge_uncertainty_ev": 0.2,
+      "edge_reported_ev": "4132.33",
+      "edge_reported_uncertainty_ev": "0.20",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Sb-L3M4",
+      "element": "Sb",
+      "label": "Lα₂",
+      "transition": "L3M4",
+      "source_transitions": [
+        "L3M4"
+      ],
+      "family": "L",
+      "energy_ev": 3595.358,
+      "uncertainty_ev": 0.093,
+      "reported_energy_ev": "3595.358",
+      "reported_uncertainty_ev": "0.093",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L3",
+      "edge_ev": 4132.33,
+      "edge_uncertainty_ev": 0.2,
+      "edge_reported_ev": "4132.33",
+      "edge_reported_uncertainty_ev": "0.20",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Sb-L2M4",
+      "element": "Sb",
+      "label": "Lβ₁",
+      "transition": "L2M4",
+      "source_transitions": [
+        "L2M4"
+      ],
+      "family": "L",
+      "energy_ev": 3843.615,
+      "uncertainty_ev": 0.071,
+      "reported_energy_ev": "3843.615",
+      "reported_uncertainty_ev": "0.071",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L2",
+      "edge_ev": 4381.9,
+      "edge_uncertainty_ev": 1.1,
+      "edge_reported_ev": "4381.9",
+      "edge_reported_uncertainty_ev": "1.1",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Sb-L3N45",
+      "element": "Sb",
+      "label": "Lβ₂,₁₅ (blend)",
+      "transition": "L3N4,5",
+      "source_transitions": [
+        "L3N4",
+        "L3N5"
+      ],
+      "family": "L",
+      "energy_ev": 4100.826,
+      "uncertainty_ev": 0.06,
+      "reported_energy_ev": "4100.826",
+      "reported_uncertainty_ev": "0.060",
+      "mass_number": "",
+      "blend": true,
+      "shell": "L3",
+      "edge_ev": 4132.33,
+      "edge_uncertainty_ev": 0.2,
+      "edge_reported_ev": "4132.33",
+      "edge_reported_uncertainty_ev": "0.20",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": "One shared experimental marker; these transitions are not separately resolved in this reference."
+    },
+    {
+      "id": "Sb-L2N4",
+      "element": "Sb",
+      "label": "Lγ₁",
+      "transition": "L2N4",
+      "source_transitions": [
+        "L2N4"
+      ],
+      "family": "L",
+      "energy_ev": 4347.831,
+      "uncertainty_ev": 0.068,
+      "reported_energy_ev": "4347.831",
+      "reported_uncertainty_ev": "0.068",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L2",
+      "edge_ev": 4381.9,
+      "edge_uncertainty_ev": 1.1,
+      "edge_reported_ev": "4381.9",
+      "edge_reported_uncertainty_ev": "1.1",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV",
+      "source_file": "sources/Sb-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-KL3",
+      "element": "Bi",
+      "label": "Kα₁",
+      "transition": "KL3",
+      "source_transitions": [
+        "KL3"
+      ],
+      "family": "K",
+      "energy_ev": 77109.2,
+      "uncertainty_ev": 2.2,
+      "reported_energy_ev": "77109.2",
+      "reported_uncertainty_ev": "2.2",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 90537.7,
+      "edge_uncertainty_ev": 9.8,
+      "edge_reported_ev": "90537.7",
+      "edge_reported_uncertainty_ev": "9.8",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "8d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-KL2",
+      "element": "Bi",
+      "label": "Kα₂",
+      "transition": "KL2",
+      "source_transitions": [
+        "KL2"
+      ],
+      "family": "K",
+      "energy_ev": 74816.21,
+      "uncertainty_ev": 0.92,
+      "reported_energy_ev": "74816.21",
+      "reported_uncertainty_ev": "0.92",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 90537.7,
+      "edge_uncertainty_ev": 9.8,
+      "edge_reported_ev": "90537.7",
+      "edge_reported_uncertainty_ev": "9.8",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "8d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-KM3",
+      "element": "Bi",
+      "label": "Kβ₁",
+      "transition": "KM3",
+      "source_transitions": [
+        "KM3"
+      ],
+      "family": "K",
+      "energy_ev": 87344.1,
+      "uncertainty_ev": 3.3,
+      "reported_energy_ev": "87344.1",
+      "reported_uncertainty_ev": "3.3",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 90537.7,
+      "edge_uncertainty_ev": 9.8,
+      "edge_reported_ev": "90537.7",
+      "edge_reported_uncertainty_ev": "9.8",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "8d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-KM2",
+      "element": "Bi",
+      "label": "Kβ₃",
+      "transition": "KM2",
+      "source_transitions": [
+        "KM2"
+      ],
+      "family": "K",
+      "energy_ev": 86835.7,
+      "uncertainty_ev": 6.7,
+      "reported_energy_ev": "86835.7",
+      "reported_uncertainty_ev": "6.7",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 90537.7,
+      "edge_uncertainty_ev": 9.8,
+      "edge_reported_ev": "90537.7",
+      "edge_reported_uncertainty_ev": "9.8",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "8d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-L3M5",
+      "element": "Bi",
+      "label": "Lα₁",
+      "transition": "L3M5",
+      "source_transitions": [
+        "L3M5"
+      ],
+      "family": "L",
+      "energy_ev": 10838.94,
+      "uncertainty_ev": 0.28,
+      "reported_energy_ev": "10838.94",
+      "reported_uncertainty_ev": "0.28",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "L3",
+      "edge_ev": 13426.7,
+      "edge_uncertainty_ev": 2.2,
+      "edge_reported_ev": "13426.7",
+      "edge_reported_uncertainty_ev": "2.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-L3M4",
+      "element": "Bi",
+      "label": "Lα₂",
+      "transition": "L3M4",
+      "source_transitions": [
+        "L3M4"
+      ],
+      "family": "L",
+      "energy_ev": 10731.06,
+      "uncertainty_ev": 0.14,
+      "reported_energy_ev": "10731.06",
+      "reported_uncertainty_ev": "0.14",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "L3",
+      "edge_ev": 13426.7,
+      "edge_uncertainty_ev": 2.2,
+      "edge_reported_ev": "13426.7",
+      "edge_reported_uncertainty_ev": "2.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-L2M4",
+      "element": "Bi",
+      "label": "Lβ₁",
+      "transition": "L2M4",
+      "source_transitions": [
+        "L2M4"
+      ],
+      "family": "L",
+      "energy_ev": 13023.65,
+      "uncertainty_ev": 0.18,
+      "reported_energy_ev": "13023.65",
+      "reported_uncertainty_ev": "0.18",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "L2",
+      "edge_ev": 15719.8,
+      "edge_uncertainty_ev": 2.9,
+      "edge_reported_ev": "15719.8",
+      "edge_reported_uncertainty_ev": "2.9",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-L3N4",
+      "element": "Bi",
+      "label": "Lβ₁₅",
+      "transition": "L3N4",
+      "source_transitions": [
+        "L3N4"
+      ],
+      "family": "L",
+      "energy_ev": 12955.0,
+      "uncertainty_ev": 1.0,
+      "reported_energy_ev": "12955.0",
+      "reported_uncertainty_ev": "1.0",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "L3",
+      "edge_ev": 13426.7,
+      "edge_uncertainty_ev": 2.2,
+      "edge_reported_ev": "13426.7",
+      "edge_reported_uncertainty_ev": "2.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-L3N5",
+      "element": "Bi",
+      "label": "Lβ₂",
+      "transition": "L3N5",
+      "source_transitions": [
+        "L3N5"
+      ],
+      "family": "L",
+      "energy_ev": 12980.0,
+      "uncertainty_ev": 0.8,
+      "reported_energy_ev": "12980.00",
+      "reported_uncertainty_ev": "0.80",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "L3",
+      "edge_ev": 13426.7,
+      "edge_uncertainty_ev": 2.2,
+      "edge_reported_ev": "13426.7",
+      "edge_reported_uncertainty_ev": "2.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Bi-L2N4",
+      "element": "Bi",
+      "label": "Lγ₁",
+      "transition": "L2N4",
+      "source_transitions": [
+        "L2N4"
+      ],
+      "family": "L",
+      "energy_ev": 15247.92,
+      "uncertainty_ev": 0.56,
+      "reported_energy_ev": "15247.92",
+      "reported_uncertainty_ev": "0.56",
+      "mass_number": "209",
+      "blend": false,
+      "shell": "L2",
+      "edge_ev": 15719.8,
+      "edge_uncertainty_ev": 2.9,
+      "edge_reported_ev": "15719.8",
+      "edge_reported_uncertainty_ev": "2.9",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Bi&trans=All&units=eV",
+      "source_file": "sources/Bi-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Se-KL3",
+      "element": "Se",
+      "label": "Kα₁",
+      "transition": "KL3",
+      "source_transitions": [
+        "KL3"
+      ],
+      "family": "K",
+      "energy_ev": 11222.52,
+      "uncertainty_ev": 0.12,
+      "reported_energy_ev": "11222.52",
+      "reported_uncertainty_ev": "0.12",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 12654.61,
+      "edge_uncertainty_ev": 0.19,
+      "edge_reported_ev": "12654.61",
+      "edge_reported_uncertainty_ev": "0.19",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "3d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV",
+      "source_file": "sources/Se-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Se-KL2",
+      "element": "Se",
+      "label": "Kα₂",
+      "transition": "KL2",
+      "source_transitions": [
+        "KL2"
+      ],
+      "family": "K",
+      "energy_ev": 11181.53,
+      "uncertainty_ev": 0.31,
+      "reported_energy_ev": "11181.53",
+      "reported_uncertainty_ev": "0.31",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 12654.61,
+      "edge_uncertainty_ev": 0.19,
+      "edge_reported_ev": "12654.61",
+      "edge_reported_uncertainty_ev": "0.19",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "3d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV",
+      "source_file": "sources/Se-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Se-KM3",
+      "element": "Se",
+      "label": "Kβ₁",
+      "transition": "KM3",
+      "source_transitions": [
+        "KM3"
+      ],
+      "family": "K",
+      "energy_ev": 12496.03,
+      "uncertainty_ev": 0.67,
+      "reported_energy_ev": "12496.03",
+      "reported_uncertainty_ev": "0.67",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 12654.61,
+      "edge_uncertainty_ev": 0.19,
+      "edge_reported_ev": "12654.61",
+      "edge_reported_uncertainty_ev": "0.19",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1,3d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV",
+      "source_file": "sources/Se-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Se-KM2",
+      "element": "Se",
+      "label": "Kβ₃",
+      "transition": "KM2",
+      "source_transitions": [
+        "KM2"
+      ],
+      "family": "K",
+      "energy_ev": 12489.73,
+      "uncertainty_ev": 1.0,
+      "reported_energy_ev": "12489.73",
+      "reported_uncertainty_ev": "1.00",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 12654.61,
+      "edge_uncertainty_ev": 0.19,
+      "edge_reported_ev": "12654.61",
+      "edge_reported_uncertainty_ev": "0.19",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1,3d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV",
+      "source_file": "sources/Se-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Se-L3M45",
+      "element": "Se",
+      "label": "Lα₁,₂ (blend)",
+      "transition": "L3M4,5",
+      "source_transitions": [
+        "L3M4",
+        "L3M5"
+      ],
+      "family": "L",
+      "energy_ev": 1379.11,
+      "uncertainty_ev": 0.11,
+      "reported_energy_ev": "1379.11",
+      "reported_uncertainty_ev": "0.11",
+      "mass_number": "",
+      "blend": true,
+      "shell": "L3",
+      "edge_ev": 1433.98,
+      "edge_uncertainty_ev": 0.25,
+      "edge_reported_ev": "1433.98",
+      "edge_reported_uncertainty_ev": "0.25",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV",
+      "source_file": "sources/Se-all.tsv",
+      "note": "One shared experimental marker; these transitions are not separately resolved in this reference."
+    },
+    {
+      "id": "Se-L2M4",
+      "element": "Se",
+      "label": "Lβ₁",
+      "transition": "L2M4",
+      "source_transitions": [
+        "L2M4"
+      ],
+      "family": "L",
+      "energy_ev": 1419.24,
+      "uncertainty_ev": 0.12,
+      "reported_energy_ev": "1419.24",
+      "reported_uncertainty_ev": "0.12",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L2",
+      "edge_ev": 1474.75,
+      "edge_uncertainty_ev": 0.26,
+      "edge_reported_ev": "1474.75",
+      "edge_reported_uncertainty_ev": "0.26",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV",
+      "source_file": "sources/Se-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "I-KL3",
+      "element": "I",
+      "label": "Kα₁",
+      "transition": "KL3",
+      "source_transitions": [
+        "KL3"
+      ],
+      "family": "K",
+      "energy_ev": 28612.32,
+      "uncertainty_ev": 0.49,
+      "reported_energy_ev": "28612.32",
+      "reported_uncertainty_ev": "0.49",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 33167.2,
+      "edge_uncertainty_ev": 1.3,
+      "edge_reported_ev": "33167.2",
+      "edge_reported_uncertainty_ev": "1.3",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "I-KL2",
+      "element": "I",
+      "label": "Kα₂",
+      "transition": "KL2",
+      "source_transitions": [
+        "KL2"
+      ],
+      "family": "K",
+      "energy_ev": 28317.52,
+      "uncertainty_ev": 0.67,
+      "reported_energy_ev": "28317.52",
+      "reported_uncertainty_ev": "0.67",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 33167.2,
+      "edge_uncertainty_ev": 1.3,
+      "edge_reported_ev": "33167.2",
+      "edge_reported_uncertainty_ev": "1.3",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "I-KM3",
+      "element": "I",
+      "label": "Kβ₁",
+      "transition": "KM3",
+      "source_transitions": [
+        "KM3"
+      ],
+      "family": "K",
+      "energy_ev": 32295.05,
+      "uncertainty_ev": 0.5,
+      "reported_energy_ev": "32295.05",
+      "reported_uncertainty_ev": "0.50",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 33167.2,
+      "edge_uncertainty_ev": 1.3,
+      "edge_reported_ev": "33167.2",
+      "edge_reported_uncertainty_ev": "1.3",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "I-KM2",
+      "element": "I",
+      "label": "Kβ₃",
+      "transition": "KM2",
+      "source_transitions": [
+        "KM2"
+      ],
+      "family": "K",
+      "energy_ev": 32239.71,
+      "uncertainty_ev": 0.5,
+      "reported_energy_ev": "32239.71",
+      "reported_uncertainty_ev": "0.50",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 33167.2,
+      "edge_uncertainty_ev": 1.3,
+      "edge_reported_ev": "33167.2",
+      "edge_reported_uncertainty_ev": "1.3",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "I-L3M5",
+      "element": "I",
+      "label": "Lα₁",
+      "transition": "L3M5",
+      "source_transitions": [
+        "L3M5"
+      ],
+      "family": "L",
+      "energy_ev": 3937.7,
+      "uncertainty_ev": 0.11,
+      "reported_energy_ev": "3937.70",
+      "reported_uncertainty_ev": "0.11",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L3",
+      "edge_ev": 4558.8,
+      "edge_uncertainty_ev": 1.2,
+      "edge_reported_ev": "4558.8",
+      "edge_reported_uncertainty_ev": "1.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "I-L3M4",
+      "element": "I",
+      "label": "Lα₂",
+      "transition": "L3M4",
+      "source_transitions": [
+        "L3M4"
+      ],
+      "family": "L",
+      "energy_ev": 3926.09,
+      "uncertainty_ev": 0.11,
+      "reported_energy_ev": "3926.09",
+      "reported_uncertainty_ev": "0.11",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L3",
+      "edge_ev": 4558.8,
+      "edge_uncertainty_ev": 1.2,
+      "edge_reported_ev": "4558.8",
+      "edge_reported_uncertainty_ev": "1.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "I-L2M4",
+      "element": "I",
+      "label": "Lβ₁",
+      "transition": "L2M4",
+      "source_transitions": [
+        "L2M4"
+      ],
+      "family": "L",
+      "energy_ev": 4220.76,
+      "uncertainty_ev": 0.13,
+      "reported_energy_ev": "4220.76",
+      "reported_uncertainty_ev": "0.13",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L2",
+      "edge_ev": 4854.1,
+      "edge_uncertainty_ev": 1.4,
+      "edge_reported_ev": "4854.1",
+      "edge_reported_uncertainty_ev": "1.4",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "I-L3N45",
+      "element": "I",
+      "label": "Lβ₂,₁₅ (blend)",
+      "transition": "L3N4,5",
+      "source_transitions": [
+        "L3N4",
+        "L3N5"
+      ],
+      "family": "L",
+      "energy_ev": 4507.58,
+      "uncertainty_ev": 0.19,
+      "reported_energy_ev": "4507.58",
+      "reported_uncertainty_ev": "0.19",
+      "mass_number": "",
+      "blend": true,
+      "shell": "L3",
+      "edge_ev": 4558.8,
+      "edge_uncertainty_ev": 1.2,
+      "edge_reported_ev": "4558.8",
+      "edge_reported_uncertainty_ev": "1.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": "One shared experimental marker; these transitions are not separately resolved in this reference."
+    },
+    {
+      "id": "I-L2N4",
+      "element": "I",
+      "label": "Lγ₁",
+      "transition": "L2N4",
+      "source_transitions": [
+        "L2N4"
+      ],
+      "family": "L",
+      "energy_ev": 4800.98,
+      "uncertainty_ev": 0.22,
+      "reported_energy_ev": "4800.98",
+      "reported_uncertainty_ev": "0.22",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L2",
+      "edge_ev": 4854.1,
+      "edge_uncertainty_ev": 1.4,
+      "edge_reported_ev": "4854.1",
+      "edge_reported_uncertainty_ev": "1.4",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=I&trans=All&units=eV",
+      "source_file": "sources/I-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Cl-KL3",
+      "element": "Cl",
+      "label": "Kα₁",
+      "transition": "KL3",
+      "source_transitions": [
+        "KL3"
+      ],
+      "family": "K",
+      "energy_ev": 2622.44,
+      "uncertainty_ev": 0.039,
+      "reported_energy_ev": "2622.440",
+      "reported_uncertainty_ev": "0.039",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 2819.639,
+      "edge_uncertainty_ev": 0.095,
+      "edge_reported_ev": "2819.639",
+      "edge_reported_uncertainty_ev": "0.095",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "3d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Cl&trans=All&units=eV",
+      "source_file": "sources/Cl-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Cl-KL2",
+      "element": "Cl",
+      "label": "Kα₂",
+      "transition": "KL2",
+      "source_transitions": [
+        "KL2"
+      ],
+      "family": "K",
+      "energy_ev": 2620.846,
+      "uncertainty_ev": 0.039,
+      "reported_energy_ev": "2620.846",
+      "reported_uncertainty_ev": "0.039",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 2819.639,
+      "edge_uncertainty_ev": 0.095,
+      "edge_reported_ev": "2819.639",
+      "edge_reported_uncertainty_ev": "0.095",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "3d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Cl&trans=All&units=eV",
+      "source_file": "sources/Cl-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Cl-KM",
+      "element": "Cl",
+      "label": "Kβ (blend)",
+      "transition": "KM",
+      "source_transitions": [
+        "KM2",
+        "KM3"
+      ],
+      "family": "K",
+      "energy_ev": 2815.6,
+      "uncertainty_ev": 0.28,
+      "reported_energy_ev": "2815.60",
+      "reported_uncertainty_ev": "0.28",
+      "mass_number": "",
+      "blend": true,
+      "shell": "K",
+      "edge_ev": 2819.639,
+      "edge_uncertainty_ev": 0.095,
+      "edge_reported_ev": "2819.639",
+      "edge_reported_uncertainty_ev": "0.095",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Cl&trans=All&units=eV",
+      "source_file": "sources/Cl-all.tsv",
+      "note": "One shared experimental marker; these transitions are not separately resolved in this reference."
+    },
+    {
+      "id": "Br-KL3",
+      "element": "Br",
+      "label": "Kα₁",
+      "transition": "KL3",
+      "source_transitions": [
+        "KL3"
+      ],
+      "family": "K",
+      "energy_ev": 11924.36,
+      "uncertainty_ev": 0.34,
+      "reported_energy_ev": "11924.36",
+      "reported_uncertainty_ev": "0.34",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 13470.5,
+      "edge_uncertainty_ev": 2.2,
+      "edge_reported_ev": "13470.5",
+      "edge_reported_uncertainty_ev": "2.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Br&trans=All&units=eV",
+      "source_file": "sources/Br-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Br-KL2",
+      "element": "Br",
+      "label": "Kα₂",
+      "transition": "KL2",
+      "source_transitions": [
+        "KL2"
+      ],
+      "family": "K",
+      "energy_ev": 11877.75,
+      "uncertainty_ev": 0.34,
+      "reported_energy_ev": "11877.75",
+      "reported_uncertainty_ev": "0.34",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 13470.5,
+      "edge_uncertainty_ev": 2.2,
+      "edge_reported_ev": "13470.5",
+      "edge_reported_uncertainty_ev": "2.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Br&trans=All&units=eV",
+      "source_file": "sources/Br-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Br-KM3",
+      "element": "Br",
+      "label": "Kβ₁",
+      "transition": "KM3",
+      "source_transitions": [
+        "KM3"
+      ],
+      "family": "K",
+      "energy_ev": 13291.56,
+      "uncertainty_ev": 0.42,
+      "reported_energy_ev": "13291.56",
+      "reported_uncertainty_ev": "0.42",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 13470.5,
+      "edge_uncertainty_ev": 2.2,
+      "edge_reported_ev": "13470.5",
+      "edge_reported_uncertainty_ev": "2.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Br&trans=All&units=eV",
+      "source_file": "sources/Br-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Br-KM2",
+      "element": "Br",
+      "label": "Kβ₃",
+      "transition": "KM2",
+      "source_transitions": [
+        "KM2"
+      ],
+      "family": "K",
+      "energy_ev": 13284.7,
+      "uncertainty_ev": 1.1,
+      "reported_energy_ev": "13284.7",
+      "reported_uncertainty_ev": "1.1",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 13470.5,
+      "edge_uncertainty_ev": 2.2,
+      "edge_reported_ev": "13470.5",
+      "edge_reported_uncertainty_ev": "2.2",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Br&trans=All&units=eV",
+      "source_file": "sources/Br-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "Br-L3M45",
+      "element": "Br",
+      "label": "Lα₁,₂ (blend)",
+      "transition": "L3M4,5",
+      "source_transitions": [
+        "L3M4",
+        "L3M5"
+      ],
+      "family": "L",
+      "energy_ev": 1480.46,
+      "uncertainty_ev": 0.13,
+      "reported_energy_ev": "1480.46",
+      "reported_uncertainty_ev": "0.13",
+      "mass_number": "",
+      "blend": true,
+      "shell": "L3",
+      "edge_ev": 1552.9,
+      "edge_uncertainty_ev": 1.4,
+      "edge_reported_ev": "1552.9",
+      "edge_reported_uncertainty_ev": "1.4",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Br&trans=All&units=eV",
+      "source_file": "sources/Br-all.tsv",
+      "note": "One shared experimental marker; these transitions are not separately resolved in this reference."
+    },
+    {
+      "id": "Br-L2M4",
+      "element": "Br",
+      "label": "Lβ₁",
+      "transition": "L2M4",
+      "source_transitions": [
+        "L2M4"
+      ],
+      "family": "L",
+      "energy_ev": 1525.92,
+      "uncertainty_ev": 0.14,
+      "reported_energy_ev": "1525.92",
+      "reported_uncertainty_ev": "0.14",
+      "mass_number": "",
+      "blend": false,
+      "shell": "L2",
+      "edge_ev": 1599.2,
+      "edge_uncertainty_ev": 1.5,
+      "edge_reported_ev": "1599.2",
+      "edge_reported_uncertainty_ev": "1.5",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Br&trans=All&units=eV",
+      "source_file": "sources/Br-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "S-KL3",
+      "element": "S",
+      "label": "Kα₁",
+      "transition": "KL3",
+      "source_transitions": [
+        "KL3"
+      ],
+      "family": "K",
+      "energy_ev": 2307.885,
+      "uncertainty_ev": 0.034,
+      "reported_energy_ev": "2307.885",
+      "reported_uncertainty_ev": "0.034",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 2470.506,
+      "edge_uncertainty_ev": 0.073,
+      "edge_reported_ev": "2470.506",
+      "edge_reported_uncertainty_ev": "0.073",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "3d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=S&trans=All&units=eV",
+      "source_file": "sources/S-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "S-KL2",
+      "element": "S",
+      "label": "Kα₂",
+      "transition": "KL2",
+      "source_transitions": [
+        "KL2"
+      ],
+      "family": "K",
+      "energy_ev": 2306.7,
+      "uncertainty_ev": 0.038,
+      "reported_energy_ev": "2306.700",
+      "reported_uncertainty_ev": "0.038",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 2470.506,
+      "edge_uncertainty_ev": 0.073,
+      "edge_reported_ev": "2470.506",
+      "edge_reported_uncertainty_ev": "0.073",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "3d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=S&trans=All&units=eV",
+      "source_file": "sources/S-all.tsv",
+      "note": ""
+    },
+    {
+      "id": "S-KM3",
+      "element": "S",
+      "label": "Kβ₁",
+      "transition": "KM3",
+      "source_transitions": [
+        "KM3"
+      ],
+      "family": "K",
+      "energy_ev": 2464.07,
+      "uncertainty_ev": 0.14,
+      "reported_energy_ev": "2464.07",
+      "reported_uncertainty_ev": "0.14",
+      "mass_number": "",
+      "blend": false,
+      "shell": "K",
+      "edge_ev": 2470.506,
+      "edge_uncertainty_ev": 0.073,
+      "edge_reported_ev": "2470.506",
+      "edge_reported_uncertainty_ev": "0.073",
+      "measurement": "NIST direct experimental",
+      "reference_codes": "1d",
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=S&trans=All&units=eV",
+      "source_file": "sources/S-all.tsv",
+      "note": ""
+    }
+  ],
+  "phases": [
+    {
+      "id": "sb2se3",
+      "label": "Sb₂Se₃",
+      "name": "Antimonselite",
+      "cod": "9007437",
+      "space_group": "Pbnm (no. 62)",
+      "system": "Orthorhombic",
+      "lengths_a": [
+        11.62,
+        11.77,
+        3.962
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        90.0
+      ],
+      "cell_reported": [
+        "11.62",
+        "11.77",
+        "3.962"
+      ],
+      "citation": "Tideswell, Kruse & McCullough (1957), Acta Crystallographica 10, 99–102.",
+      "doi": "10.1107/S0365110X57000298",
+      "source": "https://www.crystallography.net/cod/9007437.html",
+      "source_file": "sources/9007437.cif",
+      "sha256": "6f1cf414977c0f9cbf479dd547e3feb77567c32ccf5598c6113d9172d529a991",
+      "cif_text": "#------------------------------------------------------------------------------\n#$Date: 2024-05-02 12:48:35 +0200 (Thu 02 de May de 2024) $\n#$Revision: 291455 $\n#$URL: svn://www.crystallography.net/cod/cif/9/00/74/9007437.cif $\n#------------------------------------------------------------------------------\n#\n# This file is available in the Crystallography Open Database (COD),\n# http://www.crystallography.net/. The original data for this entry\n# were provided the American Mineralogist Crystal Structure Database,\n# http://rruff.geo.arizona.edu/AMS/amcsd.php\n#\n# The file may be used within the scientific community so long as\n# proper attribution is given to the journal article from which the\n# data were obtained.\n#\ndata_9007437\nloop_\n_publ_author_name\n'Tideswell, N. W.'\n'Kruse, F. H.'\n'McCullough, J. D.'\n_publ_section_title\n;\n The crystal structure of antimony selenide, Sb2Se3\n;\n_journal_name_full               'Acta Crystallographica'\n_journal_page_first              99\n_journal_page_last               102\n_journal_paper_doi               10.1107/S0365110X57000298\n_journal_volume                  10\n_journal_year                    1957\n_chemical_compound_source        Synthetic\n_chemical_formula_sum            'Sb2 Se3'\n_chemical_name_mineral           Antimonselite\n_space_group_IT_number           62\n_symmetry_space_group_name_Hall  '-P 2c 2ab'\n_symmetry_space_group_name_H-M   'P b n m'\n_cell_angle_alpha                90\n_cell_angle_beta                 90\n_cell_angle_gamma                90\n_cell_length_a                   11.62\n_cell_length_b                   11.77\n_cell_length_c                   3.962\n_cell_formula_units_Z            4\n_cell_volume                     541.872\n_database_code_amcsd             0009196\n_exptl_crystal_density_diffrn    5.888\n_cod_database_code               9007437\nloop_\n_space_group_symop_operation_xyz\nx,y,z\nx,y,1/2-z\n-x,-y,1/2+z\n1/2+x,1/2-y,1/2+z\n1/2-x,1/2+y,1/2-z\n1/2-x,1/2+y,z\n1/2+x,1/2-y,-z\n-x,-y,-z\nloop_\n_atom_site_label\n_atom_site_fract_x\n_atom_site_fract_y\n_atom_site_fract_z\n_atom_site_U_iso_or_equiv\nSb1 0.32800 0.03050 0.25000 0.01393\nSb2 0.03970 0.14780 0.75000 0.01393\nSe1 0.87320 0.05340 0.25000 0.01393\nSe2 0.44340 0.13020 0.75000 0.01393\nSe3 0.19350 0.21320 0.25000 0.01393\nloop_\n_cod_related_entry_id\n_cod_related_entry_database\n_cod_related_entry_code\n1 AMCSD 0009196\n",
+      "reflections": [
+        {
+          "id": "sb2se3-110",
+          "hkl": [
+            1,
+            1,
+            0
+          ],
+          "d_a": 8.269103667426986
+        },
+        {
+          "id": "sb2se3-020",
+          "hkl": [
+            0,
+            2,
+            0
+          ],
+          "d_a": 5.884999999999999
+        },
+        {
+          "id": "sb2se3-120",
+          "hkl": [
+            1,
+            2,
+            0
+          ],
+          "d_a": 5.250079788449251
+        },
+        {
+          "id": "sb2se3-130",
+          "hkl": [
+            1,
+            3,
+            0
+          ],
+          "d_a": 3.7171745501922775
+        },
+        {
+          "id": "sb2se3-211",
+          "hkl": [
+            2,
+            1,
+            1
+          ],
+          "d_a": 3.1536576277679855
+        },
+        {
+          "id": "sb2se3-221",
+          "hkl": [
+            2,
+            2,
+            1
+          ],
+          "d_a": 2.8606136417325185
+        },
+        {
+          "id": "sb2se3-301",
+          "hkl": [
+            3,
+            0,
+            1
+          ],
+          "d_a": 2.7696765862109523
+        },
+        {
+          "id": "sb2se3-311",
+          "hkl": [
+            3,
+            1,
+            1
+          ],
+          "d_a": 2.696037214931654
+        },
+        {
+          "id": "sb2se3-240",
+          "hkl": [
+            2,
+            4,
+            0
+          ],
+          "d_a": 2.6250398942246256
+        },
+        {
+          "id": "sb2se3-420",
+          "hkl": [
+            4,
+            2,
+            0
+          ],
+          "d_a": 2.6049166066641036
+        },
+        {
+          "id": "sb2se3-231",
+          "hkl": [
+            2,
+            3,
+            1
+          ],
+          "d_a": 2.513424302776223
+        },
+        {
+          "id": "sb2se3-321",
+          "hkl": [
+            3,
+            2,
+            1
+          ],
+          "d_a": 2.506011726122473
+        },
+        {
+          "id": "sb2se3-041",
+          "hkl": [
+            0,
+            4,
+            1
+          ],
+          "d_a": 2.3622735469653326
+        },
+        {
+          "id": "sb2se3-141",
+          "hkl": [
+            1,
+            4,
+            1
+          ],
+          "d_a": 2.3149218791568753
+        },
+        {
+          "id": "sb2se3-250",
+          "hkl": [
+            2,
+            5,
+            0
+          ],
+          "d_a": 2.1817279417504833
+        },
+        {
+          "id": "sb2se3-440",
+          "hkl": [
+            4,
+            4,
+            0
+          ],
+          "d_a": 2.0672759168567465
+        },
+        {
+          "id": "sb2se3-431",
+          "hkl": [
+            4,
+            3,
+            1
+          ],
+          "d_a": 2.011424114448603
+        },
+        {
+          "id": "sb2se3-151",
+          "hkl": [
+            1,
+            5,
+            1
+          ],
+          "d_a": 1.9937365275144696
+        },
+        {
+          "id": "sb2se3-002",
+          "hkl": [
+            0,
+            0,
+            2
+          ],
+          "d_a": 1.981
+        },
+        {
+          "id": "sb2se3-132",
+          "hkl": [
+            1,
+            3,
+            2
+          ],
+          "d_a": 1.7482326702567186
+        }
+      ]
+    },
+    {
+      "id": "sb",
+      "label": "Sb",
+      "name": "Elemental antimony",
+      "cod": "5000214",
+      "space_group": "R−3m (no. 166), hexagonal axes",
+      "system": "Rhombohedral",
+      "lengths_a": [
+        4.3084,
+        4.3084,
+        11.274
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        120.0
+      ],
+      "cell_reported": [
+        "4.3084(2)",
+        "4.3084(2)",
+        "11.274(6)"
+      ],
+      "citation": "Barrett, Cucka & Haefner (1963), Acta Crystallographica 16, 451–453.",
+      "doi": "10.1107/S0365110X63001262",
+      "source": "https://www.crystallography.net/cod/5000214.html",
+      "source_file": "sources/5000214.cif",
+      "sha256": "27ba7fadbd75b21d55c32d4b883c2ef1425314525d1489435c487ea47d6a6ff4",
+      "cif_text": "#------------------------------------------------------------------------------\n#$Date: 2017-10-15 02:23:08 +0200 (Sun 15 de Oct de 2017) $\n#$Revision: 202022 $\n#$URL: svn://www.crystallography.net/cod/cif/5/00/02/5000214.cif $\n#------------------------------------------------------------------------------\n#\n# This file is available in the Crystallography Open Database (COD),\n# http://www.crystallography.net/\n#\n# All data on this site have been placed in the public domain by the\n# contributors.\n#\ndata_5000214\nloop_\n_publ_author_name\n'Barrett, C S'\n'Cucka, P'\n'Haefner, K'\n_publ_section_title\n;\nThe Crystal Structure of Antimony at 4.2, 78 and 298 K\n;\n_journal_name_full               'Acta Crystallographica (1,1948-23,1967)'\n_journal_page_first              451\n_journal_page_last               453\n_journal_paper_doi               10.1107/S0365110X63001262\n_journal_volume                  16\n_journal_year                    1963\n_chemical_formula_structural     Sb\n_chemical_formula_sum            Sb\n_chemical_name_common            Antimony\n_chemical_name_mineral           Antimony\n_chemical_name_systematic        Antimony\n_space_group_IT_number           166\n_symmetry_cell_setting           trigonal\n_symmetry_space_group_name_Hall  '-R 3 2\"'\n_symmetry_space_group_name_H-M   'R -3 m :H'\n_cell_angle_alpha                90\n_cell_angle_beta                 90\n_cell_angle_gamma                120\n_cell_formula_units_Z            6\n_cell_length_a                   4.3084(2)\n_cell_length_b                   4.3084(2)\n_cell_length_c                   11.274(6)\n_cell_volume                     181.2\n_exptl_crystal_density_meas      6.69\n_refine_ls_R_factor_all          0.0225\n_cod_original_sg_symbol_H-M      'R -3 m H'\n_cod_database_code               5000214\nloop_\n_symmetry_equiv_pos_as_xyz\nx,y,z\n-y,x-y,z\ny-x,-x,z\n-y,-x,z\nx,x-y,z\ny-x,y,z\n-x,-y,-z\ny,y-x,-z\nx-y,x,-z\ny,x,-z\n-x,y-x,-z\nx-y,-y,-z\n1/3+x,2/3+y,2/3+z\n2/3+x,1/3+y,1/3+z\n1/3-y,2/3+x-y,2/3+z\n2/3-y,1/3+x-y,1/3+z\n1/3-x+y,2/3-x,2/3+z\n2/3-x+y,1/3-x,1/3+z\n1/3-y,2/3-x,2/3+z\n2/3-y,1/3-x,1/3+z\n1/3+x,2/3+x-y,2/3+z\n2/3+x,1/3+x-y,1/3+z\n1/3-x+y,2/3+y,2/3+z\n2/3-x+y,1/3+y,1/3+z\n1/3-x,2/3-y,2/3-z\n2/3-x,1/3-y,1/3-z\n1/3+y,2/3-x+y,2/3-z\n2/3+y,1/3-x+y,1/3-z\n1/3+x-y,2/3+x,2/3-z\n2/3+x-y,1/3+x,1/3-z\n1/3+y,2/3+x,2/3-z\n2/3+y,1/3+x,1/3-z\n1/3-x,2/3-x+y,2/3-z\n2/3-x,1/3-x+y,1/3-z\n1/3+x-y,2/3-y,2/3-z\n2/3+x-y,1/3-y,1/3-z\nloop_\n_atom_site_label\n_atom_site_type_symbol\n_atom_site_symmetry_multiplicity\n_atom_site_Wyckoff_symbol\n_atom_site_fract_x\n_atom_site_fract_y\n_atom_site_fract_z\n_atom_site_occupancy\n_atom_site_attached_hydrogens\n_atom_site_calc_flag\nSb1 Sb0 6 c 0. 0. 0.23349(2) 1. 0 d\nloop_\n_atom_type_symbol\n_atom_type_oxidation_number\nSb0 0.000\nloop_\n_cod_related_entry_id\n_cod_related_entry_database\n_cod_related_entry_code\n1 MPOD 1000154\n",
+      "reflections": [
+        {
+          "id": "sb-003",
+          "hkl": [
+            0,
+            0,
+            3
+          ],
+          "d_a": 3.758
+        },
+        {
+          "id": "sb-012",
+          "hkl": [
+            0,
+            1,
+            2
+          ],
+          "d_a": 3.11134703130869
+        },
+        {
+          "id": "sb-104",
+          "hkl": [
+            1,
+            0,
+            4
+          ],
+          "d_a": 2.248967824060707
+        },
+        {
+          "id": "sb-110",
+          "hkl": [
+            1,
+            1,
+            0
+          ],
+          "d_a": 2.1542000000000003
+        },
+        {
+          "id": "sb-015",
+          "hkl": [
+            0,
+            1,
+            5
+          ],
+          "d_a": 1.929794028897739
+        },
+        {
+          "id": "sb-006",
+          "hkl": [
+            0,
+            0,
+            6
+          ],
+          "d_a": 1.879
+        },
+        {
+          "id": "sb-113",
+          "hkl": [
+            1,
+            1,
+            3
+          ],
+          "d_a": 1.868917018736151
+        },
+        {
+          "id": "sb-202",
+          "hkl": [
+            2,
+            0,
+            2
+          ],
+          "d_a": 1.7711156628692373
+        },
+        {
+          "id": "sb-024",
+          "hkl": [
+            0,
+            2,
+            4
+          ],
+          "d_a": 1.555673515654345
+        },
+        {
+          "id": "sb-116",
+          "hkl": [
+            1,
+            1,
+            6
+          ],
+          "d_a": 1.4160199955460921
+        },
+        {
+          "id": "sb-122",
+          "hkl": [
+            1,
+            2,
+            2
+          ],
+          "d_a": 1.3680908441330903
+        },
+        {
+          "id": "sb-018",
+          "hkl": [
+            0,
+            1,
+            8
+          ],
+          "d_a": 1.3183500623008415
+        },
+        {
+          "id": "sb-214",
+          "hkl": [
+            2,
+            1,
+            4
+          ],
+          "d_a": 1.261190439781444
+        },
+        {
+          "id": "sb-300",
+          "hkl": [
+            3,
+            0,
+            0
+          ],
+          "d_a": 1.2437279498882918
+        }
+      ]
+    },
+    {
+      "id": "se",
+      "label": "Se",
+      "name": "Trigonal selenium",
+      "cod": "9012501",
+      "space_group": "P3₁21 (no. 152), hexagonal axes",
+      "system": "Trigonal",
+      "lengths_a": [
+        4.3662,
+        4.3662,
+        4.9536
+      ],
+      "angles_deg": [
+        90.0,
+        90.0,
+        120.0
+      ],
+      "cell_reported": [
+        "4.3662",
+        "4.3662",
+        "4.9536"
+      ],
+      "citation": "Cherin & Unger (1967), Inorganic Chemistry 6, 1589–1591.",
+      "doi": "10.1021/ic50054a037",
+      "source": "https://www.crystallography.net/cod/9012501.html",
+      "source_file": "sources/9012501.cif",
+      "sha256": "10d6424ec1e907071b81ce7d6ac8e609a81385961b37224bddd449e806839fab",
+      "cif_text": "#------------------------------------------------------------------------------\n#$Date: 2024-05-16 08:36:09 +0200 (Thu 16 de May de 2024) $\n#$Revision: 291877 $\n#$URL: svn://www.crystallography.net/cod/cif/9/01/25/9012501.cif $\n#------------------------------------------------------------------------------\n#\n# This file is available in the Crystallography Open Database (COD),\n# http://www.crystallography.net/. The original data for this entry\n# were provided the American Mineralogist Crystal Structure Database,\n# http://rruff.geo.arizona.edu/AMS/amcsd.php\n#\n# The file may be used within the scientific community so long as\n# proper attribution is given to the journal article from which the\n# data were obtained.\n#\ndata_9012501\nloop_\n_publ_author_name\n'Cherin, P.'\n'Unger, P.'\n_publ_section_title\n;\n The crystal structure of trigonal selenium\n;\n_journal_name_full               'Inorganic Chemistry'\n_journal_page_first              1589\n_journal_page_last               1591\n_journal_paper_doi               10.1021/ic50054a037\n_journal_volume                  6\n_journal_year                    1967\n_chemical_compound_source        Synthetic\n_chemical_formula_sum            Se\n_chemical_name_common            Selenium\n_chemical_name_mineral           Selenium\n_space_group_IT_number           152\n_symmetry_space_group_name_Hall  'P 31 2\"'\n_symmetry_space_group_name_H-M   'P 31 2 1'\n_cell_angle_alpha                90\n_cell_angle_beta                 90\n_cell_angle_gamma                120\n_cell_length_a                   4.3662\n_cell_length_b                   4.3662\n_cell_length_c                   4.9536\n_cell_formula_units_Z            3\n_cell_volume                     81.782\n_database_code_amcsd             0012674\n_exptl_crystal_density_diffrn    4.810\n_cod_database_code               9012501\nloop_\n_space_group_symop_operation_xyz\nx,y,z\ny,x,-z\n-y,x-y,1/3+z\n-x,-x+y,1/3-z\n-x+y,-x,2/3+z\nx-y,-y,2/3-z\nloop_\n_atom_site_aniso_label\n_atom_site_aniso_U_11\n_atom_site_aniso_U_22\n_atom_site_aniso_U_33\n_atom_site_aniso_U_12\n_atom_site_aniso_U_13\n_atom_site_aniso_U_23\nSe 0.02448 0.03020 0.04693 0.01510 0.00000 0.00000\nloop_\n_atom_site_label\n_atom_site_fract_x\n_atom_site_fract_y\n_atom_site_fract_z\nSe 0.22540 0.00000 0.33333\nloop_\n_cod_related_entry_id\n_cod_related_entry_database\n_cod_related_entry_code\n1 AMCSD 0012674\n",
+      "reflections": [
+        {
+          "id": "se-100",
+          "hkl": [
+            1,
+            0,
+            0
+          ],
+          "d_a": 3.7812401180036166
+        },
+        {
+          "id": "se-101",
+          "hkl": [
+            1,
+            0,
+            1
+          ],
+          "d_a": 3.0056495244152064
+        },
+        {
+          "id": "se-110",
+          "hkl": [
+            1,
+            1,
+            0
+          ],
+          "d_a": 2.1831000000000005
+        },
+        {
+          "id": "se-102",
+          "hkl": [
+            1,
+            0,
+            2
+          ],
+          "d_a": 2.0718886321517918
+        },
+        {
+          "id": "se-111",
+          "hkl": [
+            1,
+            1,
+            1
+          ],
+          "d_a": 1.997701194367764
+        },
+        {
+          "id": "se-201",
+          "hkl": [
+            2,
+            0,
+            1
+          ],
+          "d_a": 1.7663416565165952
+        },
+        {
+          "id": "se-003",
+          "hkl": [
+            0,
+            0,
+            3
+          ],
+          "d_a": 1.6512
+        },
+        {
+          "id": "se-112",
+          "hkl": [
+            1,
+            1,
+            2
+          ],
+          "d_a": 1.6377291501580262
+        },
+        {
+          "id": "se-103",
+          "hkl": [
+            1,
+            0,
+            3
+          ],
+          "d_a": 1.5132131002970381
+        },
+        {
+          "id": "se-202",
+          "hkl": [
+            2,
+            0,
+            2
+          ],
+          "d_a": 1.5028247622076032
+        },
+        {
+          "id": "se-210",
+          "hkl": [
+            2,
+            1,
+            0
+          ],
+          "d_a": 1.4291744285225851
+        },
+        {
+          "id": "se-211",
+          "hkl": [
+            2,
+            1,
+            1
+          ],
+          "d_a": 1.3731659504151523
+        },
+        {
+          "id": "se-113",
+          "hkl": [
+            1,
+            1,
+            3
+          ],
+          "d_a": 1.316931565286209
+        },
+        {
+          "id": "se-212",
+          "hkl": [
+            2,
+            1,
+            2
+          ],
+          "d_a": 1.2378759102993209
+        }
+      ]
+    }
+  ],
+  "radiation": [
+    {
+      "id": "cu",
+      "label": "Cu Kα₁",
+      "energy_ev": 8047.8227,
+      "uncertainty_ev": 0.0026,
+      "wavelength_a": 1.5405930654163176,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Cu&trans=All&units=eV",
+      "reported_energy_ev": "8047.8227",
+      "reported_uncertainty_ev": "0.0026"
+    },
+    {
+      "id": "co",
+      "label": "Co Kα₁",
+      "energy_ev": 6930.378,
+      "uncertainty_ev": 0.0039,
+      "wavelength_a": 1.788996190874441,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Co&trans=All&units=eV",
+      "reported_energy_ev": "6930.3780",
+      "reported_uncertainty_ev": "0.0039"
+    }
+  ],
+  "sources": [
+    {
+      "file": "sources/Sb-all.tsv",
+      "retrieved_utc": "2026-10-26T06:44:03.264307+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Sb&trans=All&units=eV",
+      "sha256": "b952b2b2da8f74e8338e5664aa3c01443efd9f3499ff659bc7bfcc628f2cc059"
+    },
+    {
+      "file": "sources/Bi-all.tsv",
+      "retrieved_utc": "2026-10-26T06:44:26.732792+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Bi&trans=All&units=eV",
+      "sha256": "4422d5c5ac355b02e863ba1c3eef0523530a30cc5472bc113bdc79b7c0ee3230"
+    },
+    {
+      "file": "sources/Se-all.tsv",
+      "retrieved_utc": "2026-10-26T06:44:26.990720+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Se&trans=All&units=eV",
+      "sha256": "75556a058c0ccc81e2723fbe864004a8b5fb3c6ac66c7ae6498ff1ed2467bd1b"
+    },
+    {
+      "file": "sources/I-all.tsv",
+      "retrieved_utc": "2026-10-26T06:44:26.762744+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=I&trans=All&units=eV",
+      "sha256": "541061f535d62c5f7d7ad53054d86aaf95e91c7e97ae21a5bb7d708889ddcdf8"
+    },
+    {
+      "file": "sources/Cl-all.tsv",
+      "retrieved_utc": "2026-10-26T06:44:27.061501+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Cl&trans=All&units=eV",
+      "sha256": "5622b9a04b1a0da3ccf48e382d29bdb65948ab17f70e9c0d10bc9636011dfbaa"
+    },
+    {
+      "file": "sources/Br-all.tsv",
+      "retrieved_utc": "2026-10-26T06:44:26.971079+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Br&trans=All&units=eV",
+      "sha256": "b9b1cff923c74ca9d42f7d0e88fe2f3d0991defc8d2fa1537092c157621560f4"
+    },
+    {
+      "file": "sources/S-all.tsv",
+      "retrieved_utc": "2026-10-26T06:44:27.175894+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=S&trans=All&units=eV",
+      "sha256": "a16e1ad5eda86b688f166db4fd3360a900c85b26dd979beea647c9871c3d8f52"
+    },
+    {
+      "file": "sources/Cu-all.tsv",
+      "retrieved_utc": "2026-10-26T06:48:24.723807+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Cu&trans=All&units=eV",
+      "sha256": "38282269b3421c2f75fd436f98fd85cc43d7e4fd41a8d004a5399e091b783972"
+    },
+    {
+      "file": "sources/Co-all.tsv",
+      "retrieved_utc": "2026-10-26T06:48:24.748072+00:00",
+      "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Co&trans=All&units=eV",
+      "sha256": "2d3c5aac57e748369dd08c8d0ad45ccb52735d2f3396ed610cc35112dc70c969"
+    },
+    {
+      "file": "sources/9007437.cif",
+      "retrieved_utc": "2026-10-26T06:45:31.400845+00:00",
+      "url": "https://sb2se3-peak-explorer.clevermyna6.chatgpt.site/references/9007437.cif",
+      "canonical_url": "https://www.crystallography.net/cod/9007437.html",
+      "sha256": "6f1cf414977c0f9cbf479dd547e3feb77567c32ccf5598c6113d9172d529a991"
+    },
+    {
+      "file": "sources/5000214.cif",
+      "retrieved_utc": "2026-10-26T06:45:31.265822+00:00",
+      "url": "https://sb2se3-peak-explorer.clevermyna6.chatgpt.site/references/5000214.cif",
+      "canonical_url": "https://www.crystallography.net/cod/5000214.html",
+      "sha256": "27ba7fadbd75b21d55c32d4b883c2ef1425314525d1489435c487ea47d6a6ff4"
+    },
+    {
+      "file": "sources/9012501.cif",
+      "retrieved_utc": "2026-10-26T06:45:31.666415+00:00",
+      "url": "https://sb2se3-peak-explorer.clevermyna6.chatgpt.site/references/9012501.cif",
+      "canonical_url": "https://www.crystallography.net/cod/9012501.html",
+      "sha256": "10d6424ec1e907071b81ce7d6ac8e609a81385961b37224bddd449e806839fab"
+    },
+    {
+      "file": "sources/website-data.json",
+      "retrieved_utc": "2026-10-26T06:44:26.737223+00:00",
+      "url": "https://sb2se3-peak-explorer.clevermyna6.chatgpt.site/data.json",
+      "sha256": "bdb6ac0fd84dea03f60c941af90d19f3148a4f2b4430d3f5a78faaeaa95f628a"
+    }
+  ]
+}

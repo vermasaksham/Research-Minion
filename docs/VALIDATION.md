@@ -1,6 +1,6 @@
 # Validation record
 
-Version 0.6 Markdown notes and revised header, 25 October 2026. The development host is Debian Linux x64;
+Version 0.7 EDX/XRD reference explorer, 26 October 2026. The development host is Debian Linux x64;
 Windows execution is not claimed.
 
 ## Executed
@@ -10,8 +10,8 @@ Windows execution is not claimed.
 | Pinned Rust 1.95.0 installation and locked dependency restore | Passed |
 | `cargo fmt --all -- --check` | Passed |
 | `cargo clippy --locked --all-targets -- -D warnings` | Passed |
-| `cargo test --locked --offline` | 58 integration tests passed; no ignored/failed tests |
-| `cargo test --locked --offline --no-default-features` | 58 integration tests passed without desktop features |
+| `cargo test --locked --offline` | 71 integration tests passed; no ignored/failed tests |
+| `cargo test --locked --offline --no-default-features` | 71 integration tests passed without desktop features |
 | `cargo build --locked` | Linux desktop build passed |
 | `bash scripts/setup-cloud.sh` | Executed in 0.1; unchanged script, with its core-test and desktop-build steps rechecked in 0.4 |
 | Windows GNU x64 cross-build | Passed; Windows UI subsystem confirmed in the executable |
@@ -20,7 +20,8 @@ Library, executable, and documentation test runners also report zero tests;
 the meaningful assertions are 11 tests in `tests/logbook.rs` and 9 in
 `tests/cvt.rs`, plus 5 each in `tests/chemistry.rs` and
 `tests/experiment_records.rs`, 6 in `tests/deletion.rs`, and 7 in
-`tests/peak.rs`, plus 9 in `tests/profiles.rs` and 6 in `tests/markdown.rs`. The logbook tests cover
+`tests/peak.rs`, plus 9 in `tests/profiles.rs`, 6 in `tests/markdown.rs`,
+and 13 in `tests/peak_reference.rs`. The logbook tests cover
 on-disk close/reopen, exact notes persistence, stable identity, retrospective
 dates, ordering, scoped/literal/Unicode search, invalid records and dates,
 retained drafts, two-instance conflict detection, and refusal to alter newer or
@@ -38,6 +39,54 @@ name parts, rejection of unknown matches, exact metadata round-trips, different
 precursor/product sets, optional agent/manual-only input, independent persistent
 logs, rollback of partially written records, and migration from schema 2 without
 reassigning old project notes or inventing a thermal assignment.
+
+## Reference data checks added in 0.7
+
+`PYTHONPATH=/workspace/.peak-validation python scripts/build-peak-catalog.py --check`
+passed with Gemmi 0.7.5. It verified every retained source SHA-256, extracted only
+NIST Direct experimental line/edge values with uncertainties, grouped explicitly
+reported blends, and compared the original 15 Sb/Se markers with the website's
+retained data. The expanded catalog contains 46 markers across seven elements.
+Two NIST radiation lines were independently re-extracted. Three CIFs match the
+website's hashes; Gemmi confirms their cell metrics and all 48 selected reflections
+are not systematically absent in the CIF's own symmetry operations. Catalog
+regeneration matches the bundled JSON exactly.
+
+Thirteen Rust tests check raw NIST column equality, blend grouping/missing-data
+handling, general reciprocal metrics against analytic cells and Gemmi spacings,
+Pbnm/Pnma invariance, exact SI photon conversion, correct beam/edge thresholds,
+independence of EDX energies from XRD radiation, invalid/empty inputs, no-Bragg
+solutions, explicit JSON units/source preservation, corrupt-catalog rejection,
+and profile-scoped log/export persistence after reopen. JSON floating-point
+round-trip parsing is enabled to preserve scientific numeric values.
+
+CI now includes the same offline source-data validation after installing the pinned
+Gemmi development requirement. This records a workflow change, not an observed
+GitHub Actions result. Python/Gemmi are not runtime app dependencies.
+
+## Interface checks executed on Linux in 0.7
+
+Created a disposable synthetic profile and experiment in the real app under Xvfb.
+The explorer displayed independent EDX keV and XRD degree axes with separate
+selections. Selected all seven elements and three phases; changed Cu to Co and
+mapped Sb2Se3 to Pnma. The Sb Lα1 inspector remained 3.604756 keV while the
+(240) Pbnm / (402) Pnma diffraction marker moved from 34.12825° to 39.84588°.
+Saved a retrospective dated log entry and exported profile-local JSON; independent
+SQLite/JSON reads verified all 46 markers, 48 reflections, units, Co wavelength,
+Pnma indices, interpretation and event date. Marker clicking selected the reported Se L blend. An invalid custom wavelength
+removed the XRD output and showed an error while EDX references remained intact.
+At 1000×650 the comparison stacked vertically without horizontal overflow. The
+source guide and retained Manual XRD view were also opened and inspected. Final
+screenshots use the actual desktop, synthetic identities and disposable records.
+
+## Reference scope and access limitation
+
+Direct COD access remained blocked in this environment. A narrowly scoped
+www.crystallography.net network draft was saved for review, but was not applied
+at validation time. Therefore SbSeI/SbI3 structure data and diffraction positions
+were not invented or bundled. Existing CIFs were recovered from the original
+reference webpage with matching hashes and validated locally. This build's
+three-phase coverage is explicit in the guide and download documentation.
 
 ## Profile and picture checks added in 0.5
 

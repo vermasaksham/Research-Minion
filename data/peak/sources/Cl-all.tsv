@@ -1,0 +1,26 @@
+Element: Chlorine
+Transitions: All
+Sorted by Transition
+
+Ele.	A	Trans.	Theory (eV)	Unc. (eV)	Direct (eV)	Unc. (eV)	Combined (eV)	Unc. (eV)	Vapor (eV)	Unc. (eV)	Blend	Ref.
+Cl		KL1	2550.96	0.26								
+Cl		KL2	2621.27	0.44	2620.846	0.039						3d
+Cl		KL3	2623.67	0.43	2622.440	0.039						3d
+Cl		KM1	2807.0	1.3	2815.60	0.28					KM	1d
+Cl		KM2	2819.04	0.64	2815.60	0.28					KM	1d
+Cl		KM3	2817.58	0.49	2815.60	0.28					KM	1d
+Cl		KM4			2815.60	0.28					KM	1d
+Cl		KM5			2815.60	0.28					KM	1d
+Cl		K edge	2832.76	0.12	2819.639	0.095	2822.64	0.71				1d
+Cl		L1M1	256.0	1.3								
+Cl		L1M2	268.08	0.66								
+Cl		L1M3	266.62	0.52								
+Cl		L1 edge	281.80	0.15			270.0	1.0				
+Cl		L2M1	185.7	1.5	184.14	0.36						1d
+Cl		L2M2	197.77	0.84								
+Cl		L2M3	196.31	0.70								
+Cl		L2 edge	211.49	0.33			202.0	1.0				
+Cl		L3M1	183.31	0.83	182.60	0.36						1d
+Cl		L3M2	195.37	0.83								
+Cl		L3M3	193.91	0.69								
+Cl		L3 edge	209.09	0.31			200.0	1.0				

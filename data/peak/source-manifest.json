@@ -1,0 +1,83 @@
+[
+  {
+    "file": "sources/Sb-all.tsv",
+    "retrieved_utc": "2026-10-26T06:44:03.264307+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Sb&trans=All&units=eV",
+    "sha256": "b952b2b2da8f74e8338e5664aa3c01443efd9f3499ff659bc7bfcc628f2cc059"
+  },
+  {
+    "file": "sources/Bi-all.tsv",
+    "retrieved_utc": "2026-10-26T06:44:26.732792+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Bi&trans=All&units=eV",
+    "sha256": "4422d5c5ac355b02e863ba1c3eef0523530a30cc5472bc113bdc79b7c0ee3230"
+  },
+  {
+    "file": "sources/Se-all.tsv",
+    "retrieved_utc": "2026-10-26T06:44:26.990720+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Se&trans=All&units=eV",
+    "sha256": "75556a058c0ccc81e2723fbe864004a8b5fb3c6ac66c7ae6498ff1ed2467bd1b"
+  },
+  {
+    "file": "sources/I-all.tsv",
+    "retrieved_utc": "2026-10-26T06:44:26.762744+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=I&trans=All&units=eV",
+    "sha256": "541061f535d62c5f7d7ad53054d86aaf95e91c7e97ae21a5bb7d708889ddcdf8"
+  },
+  {
+    "file": "sources/Cl-all.tsv",
+    "retrieved_utc": "2026-10-26T06:44:27.061501+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Cl&trans=All&units=eV",
+    "sha256": "5622b9a04b1a0da3ccf48e382d29bdb65948ab17f70e9c0d10bc9636011dfbaa"
+  },
+  {
+    "file": "sources/Br-all.tsv",
+    "retrieved_utc": "2026-10-26T06:44:26.971079+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Br&trans=All&units=eV",
+    "sha256": "b9b1cff923c74ca9d42f7d0e88fe2f3d0991defc8d2fa1537092c157621560f4"
+  },
+  {
+    "file": "sources/S-all.tsv",
+    "retrieved_utc": "2026-10-26T06:44:27.175894+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=S&trans=All&units=eV",
+    "sha256": "a16e1ad5eda86b688f166db4fd3360a900c85b26dd979beea647c9871c3d8f52"
+  },
+  {
+    "file": "sources/Cu-all.tsv",
+    "retrieved_utc": "2026-10-26T06:48:24.723807+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Cu&trans=All&units=eV",
+    "sha256": "38282269b3421c2f75fd436f98fd85cc43d7e4fd41a8d004a5399e091b783972"
+  },
+  {
+    "file": "sources/Co-all.tsv",
+    "retrieved_utc": "2026-10-26T06:48:24.748072+00:00",
+    "url": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?download=tab&element=Co&trans=All&units=eV",
+    "sha256": "2d3c5aac57e748369dd08c8d0ad45ccb52735d2f3396ed610cc35112dc70c969"
+  },
+  {
+    "file": "sources/9007437.cif",
+    "retrieved_utc": "2026-10-26T06:45:31.400845+00:00",
+    "url": "https://sb2se3-peak-explorer.clevermyna6.chatgpt.site/references/9007437.cif",
+    "canonical_url": "https://www.crystallography.net/cod/9007437.html",
+    "sha256": "6f1cf414977c0f9cbf479dd547e3feb77567c32ccf5598c6113d9172d529a991"
+  },
+  {
+    "file": "sources/5000214.cif",
+    "retrieved_utc": "2026-10-26T06:45:31.265822+00:00",
+    "url": "https://sb2se3-peak-explorer.clevermyna6.chatgpt.site/references/5000214.cif",
+    "canonical_url": "https://www.crystallography.net/cod/5000214.html",
+    "sha256": "27ba7fadbd75b21d55c32d4b883c2ef1425314525d1489435c487ea47d6a6ff4"
+  },
+  {
+    "file": "sources/9012501.cif",
+    "retrieved_utc": "2026-10-26T06:45:31.666415+00:00",
+    "url": "https://sb2se3-peak-explorer.clevermyna6.chatgpt.site/references/9012501.cif",
+    "canonical_url": "https://www.crystallography.net/cod/9012501.html",
+    "sha256": "10d6424ec1e907071b81ce7d6ac8e609a81385961b37224bddd449e806839fab"
+  },
+  {
+    "file": "sources/website-data.json",
+    "retrieved_utc": "2026-10-26T06:44:26.737223+00:00",
+    "url": "https://sb2se3-peak-explorer.clevermyna6.chatgpt.site/data.json",
+    "sha256": "bdb6ac0fd84dea03f60c941af90d19f3148a4f2b4430d3f5a78faaeaa95f628a"
+  }
+]

@@ -1,6 +1,6 @@
 [package]
 name = "research-minion"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2024"
 rust-version = "1.95"
 description = "An offline research logbook for the desktop"
@@ -19,6 +19,8 @@ egui_commonmark = { version = "0.22.0", optional = true, default-features = fals
 rusqlite = { version = "0.41.0", features = ["bundled"] }
 thiserror = "2.0.18"
 uuid = { version = "1.29.0", features = ["v4"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0", features = ["float_roundtrip"] }
 
 [target.'cfg(windows)'.dependencies]
 rfd = { version = "0.15.4", default-features = false, optional = true }

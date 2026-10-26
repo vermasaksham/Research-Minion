@@ -16,6 +16,7 @@ mod cvt_view;
 mod materials_view;
 
 pub mod peak;
+pub mod peak_reference;
 
 #[cfg(feature = "desktop")]
 mod peak_view;
@@ -27,3 +28,9 @@ mod profile_view;
 
 #[cfg(feature = "desktop")]
 mod notes_view;
+
+#[cfg(feature = "desktop")]
+mod manual_peak_view;
+
+#[cfg(feature = "desktop")]
+mod peak_plot;

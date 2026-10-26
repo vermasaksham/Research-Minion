@@ -1,0 +1,747 @@
+{
+  "version": "1.0",
+  "checked": "2026-10-25",
+  "edx": [
+    {
+      "id": "Sb-L3M5",
+      "element": "Sb",
+      "name": "Lα₁",
+      "transition": "L3M5",
+      "energyEV": 3604.756,
+      "uncertaintyEV": 0.062,
+      "reportedEV": "3604.756(62)",
+      "edgeEV": 4132.33,
+      "family": "L",
+      "note": "",
+      "highlight": true,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Sb-L3M4",
+      "element": "Sb",
+      "name": "Lα₂",
+      "transition": "L3M4",
+      "energyEV": 3595.358,
+      "uncertaintyEV": 0.093,
+      "reportedEV": "3595.358(93)",
+      "edgeEV": 4132.33,
+      "family": "L",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Sb-L2M4",
+      "element": "Sb",
+      "name": "Lβ₁",
+      "transition": "L2M4",
+      "energyEV": 3843.615,
+      "uncertaintyEV": 0.071,
+      "reportedEV": "3843.615(71)",
+      "edgeEV": 4381.9,
+      "family": "L",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Sb-L3N45",
+      "element": "Sb",
+      "name": "Lβ₂ / Lβ₁₅",
+      "transition": "L3N4,5",
+      "energyEV": 4100.826,
+      "uncertaintyEV": 0.06,
+      "reportedEV": "4100.826(60)",
+      "edgeEV": 4132.33,
+      "family": "L",
+      "note": "NIST gives the same direct experimental value for L3N4 and L3N5. Shown as one shared marker, not two resolved EDX peaks.",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Sb-L2N4",
+      "element": "Sb",
+      "name": "Lγ₁",
+      "transition": "L2N4",
+      "energyEV": 4347.831,
+      "uncertaintyEV": 0.068,
+      "reportedEV": "4347.831(68)",
+      "edgeEV": 4381.9,
+      "family": "L",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Sb-KL3",
+      "element": "Sb",
+      "name": "Kα₁",
+      "transition": "KL3",
+      "energyEV": 26358.86,
+      "uncertaintyEV": 0.25,
+      "reportedEV": "26358.86(25)",
+      "edgeEV": 30490.49,
+      "family": "K",
+      "note": "",
+      "highlight": true,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Sb-KL2",
+      "element": "Sb",
+      "name": "Kα₂",
+      "transition": "KL2",
+      "energyEV": 26110.78,
+      "uncertaintyEV": 0.25,
+      "reportedEV": "26110.78(25)",
+      "edgeEV": 30490.49,
+      "family": "K",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Sb-KM3",
+      "element": "Sb",
+      "name": "Kβ₁",
+      "transition": "KM3",
+      "energyEV": 29725.53,
+      "uncertaintyEV": 0.22,
+      "reportedEV": "29725.53(22)",
+      "edgeEV": 30490.49,
+      "family": "K",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Sb-KM2",
+      "element": "Sb",
+      "name": "Kβ₃",
+      "transition": "KM2",
+      "energyEV": 29679.2,
+      "uncertaintyEV": 0.29,
+      "reportedEV": "29679.20(29)",
+      "edgeEV": 30490.49,
+      "family": "K",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Sb&trans=All&units=eV"
+    },
+    {
+      "id": "Se-L3M45",
+      "element": "Se",
+      "name": "Lα₁,₂ (blend)",
+      "transition": "L3M4,5",
+      "energyEV": 1379.11,
+      "uncertaintyEV": 0.11,
+      "reportedEV": "1379.11(11)",
+      "edgeEV": 1433.98,
+      "family": "L",
+      "note": "NIST explicitly reports the experimental L3M4,5 blend. This is not a separately resolved Lα₁ energy.",
+      "highlight": true,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV"
+    },
+    {
+      "id": "Se-L2M4",
+      "element": "Se",
+      "name": "Lβ₁",
+      "transition": "L2M4",
+      "energyEV": 1419.24,
+      "uncertaintyEV": 0.12,
+      "reportedEV": "1419.24(12)",
+      "edgeEV": 1474.75,
+      "family": "L",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV"
+    },
+    {
+      "id": "Se-KL3",
+      "element": "Se",
+      "name": "Kα₁",
+      "transition": "KL3",
+      "energyEV": 11222.52,
+      "uncertaintyEV": 0.12,
+      "reportedEV": "11222.52(12)",
+      "edgeEV": 12654.61,
+      "family": "K",
+      "note": "",
+      "highlight": true,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV"
+    },
+    {
+      "id": "Se-KL2",
+      "element": "Se",
+      "name": "Kα₂",
+      "transition": "KL2",
+      "energyEV": 11181.53,
+      "uncertaintyEV": 0.31,
+      "reportedEV": "11181.53(31)",
+      "edgeEV": 12654.61,
+      "family": "K",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV"
+    },
+    {
+      "id": "Se-KM3",
+      "element": "Se",
+      "name": "Kβ₁",
+      "transition": "KM3",
+      "energyEV": 12496.03,
+      "uncertaintyEV": 0.67,
+      "reportedEV": "12496.03(67)",
+      "edgeEV": 12654.61,
+      "family": "K",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV"
+    },
+    {
+      "id": "Se-KM2",
+      "element": "Se",
+      "name": "Kβ₃",
+      "transition": "KM2",
+      "energyEV": 12489.73,
+      "uncertaintyEV": 1.0,
+      "reportedEV": "12489.73(100)",
+      "edgeEV": 12654.61,
+      "family": "K",
+      "note": "",
+      "highlight": false,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Se&trans=All&units=eV"
+    }
+  ],
+  "phases": [
+    {
+      "id": "sb2se3",
+      "label": "Sb₂Se₃",
+      "name": "Antimonselite",
+      "cod": "9007437",
+      "spaceGroup": "Pbnm (no. 62)",
+      "system": "Orthorhombic",
+      "cell": [
+        11.62,
+        11.77,
+        3.962
+      ],
+      "hexagonal": false,
+      "cellReported": [
+        "11.62",
+        "11.77",
+        "3.962"
+      ],
+      "citation": "Tideswell, Kruse & McCullough (1957), Acta Crystallographica 10, 99–102.",
+      "doi": "10.1107/S0365110X57000298",
+      "source": "https://www.crystallography.net/cod/9007437.html",
+      "mirror": "https://qiserver.ugr.es/cod/9007437.html",
+      "cif": "references/9007437.cif",
+      "sha256": "6f1cf414977c0f9cbf479dd547e3feb77567c32ccf5598c6113d9172d529a991",
+      "reflections": [
+        {
+          "id": "sb2se3-110",
+          "hkl": [
+            1,
+            1,
+            0
+          ],
+          "d": 8.269103667426986
+        },
+        {
+          "id": "sb2se3-020",
+          "hkl": [
+            0,
+            2,
+            0
+          ],
+          "d": 5.885
+        },
+        {
+          "id": "sb2se3-120",
+          "hkl": [
+            1,
+            2,
+            0
+          ],
+          "d": 5.250079788449251
+        },
+        {
+          "id": "sb2se3-130",
+          "hkl": [
+            1,
+            3,
+            0
+          ],
+          "d": 3.7171745501922775
+        },
+        {
+          "id": "sb2se3-211",
+          "hkl": [
+            2,
+            1,
+            1
+          ],
+          "d": 3.1536576277679855
+        },
+        {
+          "id": "sb2se3-221",
+          "hkl": [
+            2,
+            2,
+            1
+          ],
+          "d": 2.8606136417325185
+        },
+        {
+          "id": "sb2se3-301",
+          "hkl": [
+            3,
+            0,
+            1
+          ],
+          "d": 2.7696765862109523
+        },
+        {
+          "id": "sb2se3-311",
+          "hkl": [
+            3,
+            1,
+            1
+          ],
+          "d": 2.6960372149316543
+        },
+        {
+          "id": "sb2se3-240",
+          "hkl": [
+            2,
+            4,
+            0
+          ],
+          "d": 2.6250398942246256
+        },
+        {
+          "id": "sb2se3-420",
+          "hkl": [
+            4,
+            2,
+            0
+          ],
+          "d": 2.6049166066641036
+        },
+        {
+          "id": "sb2se3-231",
+          "hkl": [
+            2,
+            3,
+            1
+          ],
+          "d": 2.513424302776223
+        },
+        {
+          "id": "sb2se3-321",
+          "hkl": [
+            3,
+            2,
+            1
+          ],
+          "d": 2.506011726122473
+        },
+        {
+          "id": "sb2se3-041",
+          "hkl": [
+            0,
+            4,
+            1
+          ],
+          "d": 2.3622735469653326
+        },
+        {
+          "id": "sb2se3-141",
+          "hkl": [
+            1,
+            4,
+            1
+          ],
+          "d": 2.3149218791568753
+        },
+        {
+          "id": "sb2se3-250",
+          "hkl": [
+            2,
+            5,
+            0
+          ],
+          "d": 2.1817279417504833
+        },
+        {
+          "id": "sb2se3-440",
+          "hkl": [
+            4,
+            4,
+            0
+          ],
+          "d": 2.0672759168567465
+        },
+        {
+          "id": "sb2se3-431",
+          "hkl": [
+            4,
+            3,
+            1
+          ],
+          "d": 2.011424114448603
+        },
+        {
+          "id": "sb2se3-151",
+          "hkl": [
+            1,
+            5,
+            1
+          ],
+          "d": 1.9937365275144696
+        },
+        {
+          "id": "sb2se3-002",
+          "hkl": [
+            0,
+            0,
+            2
+          ],
+          "d": 1.981
+        },
+        {
+          "id": "sb2se3-132",
+          "hkl": [
+            1,
+            3,
+            2
+          ],
+          "d": 1.7482326702567186
+        }
+      ]
+    },
+    {
+      "id": "sb",
+      "label": "Sb",
+      "name": "Elemental antimony",
+      "cod": "5000214",
+      "spaceGroup": "R−3m (no. 166), hexagonal axes",
+      "system": "Rhombohedral",
+      "cell": [
+        4.3084,
+        4.3084,
+        11.274
+      ],
+      "hexagonal": true,
+      "cellReported": [
+        "4.3084(2)",
+        "4.3084(2)",
+        "11.274(6)"
+      ],
+      "citation": "Barrett, Cucka & Haefner (1963), Acta Crystallographica 16, 451–453.",
+      "doi": "10.1107/S0365110X63001262",
+      "source": "https://www.crystallography.net/cod/5000214.html",
+      "mirror": "https://qiserver.ugr.es/cod/5000214.html",
+      "cif": "references/5000214.cif",
+      "sha256": "27ba7fadbd75b21d55c32d4b883c2ef1425314525d1489435c487ea47d6a6ff4",
+      "reflections": [
+        {
+          "id": "sb-003",
+          "hkl": [
+            0,
+            0,
+            3
+          ],
+          "d": 3.758
+        },
+        {
+          "id": "sb-012",
+          "hkl": [
+            0,
+            1,
+            2
+          ],
+          "d": 3.1113470313086897
+        },
+        {
+          "id": "sb-104",
+          "hkl": [
+            1,
+            0,
+            4
+          ],
+          "d": 2.248967824060707
+        },
+        {
+          "id": "sb-110",
+          "hkl": [
+            1,
+            1,
+            0
+          ],
+          "d": 2.1542
+        },
+        {
+          "id": "sb-015",
+          "hkl": [
+            0,
+            1,
+            5
+          ],
+          "d": 1.929794028897739
+        },
+        {
+          "id": "sb-006",
+          "hkl": [
+            0,
+            0,
+            6
+          ],
+          "d": 1.879
+        },
+        {
+          "id": "sb-113",
+          "hkl": [
+            1,
+            1,
+            3
+          ],
+          "d": 1.8689170187361506
+        },
+        {
+          "id": "sb-202",
+          "hkl": [
+            2,
+            0,
+            2
+          ],
+          "d": 1.7711156628692373
+        },
+        {
+          "id": "sb-024",
+          "hkl": [
+            0,
+            2,
+            4
+          ],
+          "d": 1.5556735156543449
+        },
+        {
+          "id": "sb-116",
+          "hkl": [
+            1,
+            1,
+            6
+          ],
+          "d": 1.416019995546092
+        },
+        {
+          "id": "sb-122",
+          "hkl": [
+            1,
+            2,
+            2
+          ],
+          "d": 1.36809084413309
+        },
+        {
+          "id": "sb-018",
+          "hkl": [
+            0,
+            1,
+            8
+          ],
+          "d": 1.3183500623008415
+        },
+        {
+          "id": "sb-214",
+          "hkl": [
+            2,
+            1,
+            4
+          ],
+          "d": 1.2611904397814437
+        },
+        {
+          "id": "sb-300",
+          "hkl": [
+            3,
+            0,
+            0
+          ],
+          "d": 1.2437279498882918
+        }
+      ]
+    },
+    {
+      "id": "se",
+      "label": "Se",
+      "name": "Trigonal selenium",
+      "cod": "9012501",
+      "spaceGroup": "P3₁21 (no. 152), hexagonal axes",
+      "system": "Trigonal",
+      "cell": [
+        4.3662,
+        4.3662,
+        4.9536
+      ],
+      "hexagonal": true,
+      "cellReported": [
+        "4.3662",
+        "4.3662",
+        "4.9536"
+      ],
+      "citation": "Cherin & Unger (1967), Inorganic Chemistry 6, 1589–1591.",
+      "doi": "10.1021/ic50054a037",
+      "source": "https://www.crystallography.net/cod/9012501.html",
+      "mirror": "https://qiserver.ugr.es/cod/9012501.html",
+      "cif": "references/9012501.cif",
+      "sha256": "10d6424ec1e907071b81ce7d6ac8e609a81385961b37224bddd449e806839fab",
+      "reflections": [
+        {
+          "id": "se-100",
+          "hkl": [
+            1,
+            0,
+            0
+          ],
+          "d": 3.781240118003616
+        },
+        {
+          "id": "se-101",
+          "hkl": [
+            1,
+            0,
+            1
+          ],
+          "d": 3.0056495244152055
+        },
+        {
+          "id": "se-110",
+          "hkl": [
+            1,
+            1,
+            0
+          ],
+          "d": 2.1831
+        },
+        {
+          "id": "se-102",
+          "hkl": [
+            1,
+            0,
+            2
+          ],
+          "d": 2.0718886321517913
+        },
+        {
+          "id": "se-111",
+          "hkl": [
+            1,
+            1,
+            1
+          ],
+          "d": 1.9977011943677636
+        },
+        {
+          "id": "se-201",
+          "hkl": [
+            2,
+            0,
+            1
+          ],
+          "d": 1.766341656516595
+        },
+        {
+          "id": "se-003",
+          "hkl": [
+            0,
+            0,
+            3
+          ],
+          "d": 1.6512
+        },
+        {
+          "id": "se-112",
+          "hkl": [
+            1,
+            1,
+            2
+          ],
+          "d": 1.637729150158026
+        },
+        {
+          "id": "se-103",
+          "hkl": [
+            1,
+            0,
+            3
+          ],
+          "d": 1.513213100297038
+        },
+        {
+          "id": "se-202",
+          "hkl": [
+            2,
+            0,
+            2
+          ],
+          "d": 1.5028247622076027
+        },
+        {
+          "id": "se-210",
+          "hkl": [
+            2,
+            1,
+            0
+          ],
+          "d": 1.429174428522585
+        },
+        {
+          "id": "se-211",
+          "hkl": [
+            2,
+            1,
+            1
+          ],
+          "d": 1.373165950415152
+        },
+        {
+          "id": "se-113",
+          "hkl": [
+            1,
+            1,
+            3
+          ],
+          "d": 1.3169315652862086
+        },
+        {
+          "id": "se-212",
+          "hkl": [
+            2,
+            1,
+            2
+          ],
+          "d": 1.2378759102993206
+        }
+      ]
+    }
+  ],
+  "radiation": [
+    {
+      "id": "cu",
+      "name": "Cu Kα₁",
+      "energyEV": 8047.8227,
+      "wavelength": 1.5405930654163176,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Cu&trans=All&units=eV"
+    },
+    {
+      "id": "co",
+      "name": "Co Kα₁",
+      "energyEV": 6930.378,
+      "wavelength": 1.788996190874441,
+      "source": "https://physics.nist.gov/cgi-bin/XrayTrans/search.pl?element=Co&trans=All&units=eV"
+    }
+  ]
+}

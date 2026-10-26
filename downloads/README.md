@@ -1,9 +1,9 @@
 # Windows preview downloads
 
-Version **0.6.0** for Windows 10/11 x64:
+Version **0.7.0** for Windows 10/11 x64:
 
-- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.6.0-windows-x64.exe)
-- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.6.0-windows-x64-preview.zip)
+- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.7.0-windows-x64.exe)
+- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/Research-Minion-0.7.0-windows-x64-preview.zip)
 - [SHA-256 checksums](SHA256SUMS.txt)
 
 Run the EXE, or extract the ZIP and open `research-minion.exe`. No Rust installation
@@ -21,11 +21,15 @@ making a closed-app backup: profile catalog, pictures, all profile subfolders,
 and any earlier root database. Older binaries do not manage profiles. Earlier
 preview downloads remain for reference.
 
-The initial Peak Explorer still uses entered orthorhombic cells and reflections.
-Its original Sb/Se EDX/CIF catalogs are not included.
+Peak Explorer now provides separate EDX/XRD reference views. Its 46 selected
+NIST experimental EDX markers cover Sb, Bi, Se, I, Cl, Br and S. Three CIFs
+(Sb₂Se₃, Sb and trigonal Se) provide 48 selected XRD reflections. Source inspection,
+Cu/Co/custom wavelengths, Pbnm/Pnma mapping and profile-local JSON snapshots work.
+Iodine-containing XRD phases are not bundled. The ZIP includes retained source
+files and a reproducible Gemmi validation script; Python is not needed to use the app.
 
 Built with Rust 1.95.0, `x86_64-pc-windows-gnu`, bundled SQLite/fonts/image decoding.
-58 automated tests and Linux interface checks passed. Native Windows execution and
+71 automated tests and Linux interface checks passed. Native Windows execution and
 the Windows picture picker remain unverified. These are portable previews, not
 installers. Binaries are committed here because release-API access is unavailable.
 
