@@ -8,6 +8,7 @@ use crate::{
     profile_view::{self, ProfileForm},
     profiles::{Profile, Profiles},
     store::Store,
+    thermo_calculator_view::ThermoCalculatorView,
     thermo_database::ThermoStore,
     thermo_view::ThermoDatabaseView,
 };
@@ -32,6 +33,7 @@ enum Utility {
     #[default]
     PeakExplorer,
     ThermodynamicDatabases,
+    ThermodynamicCalculator,
 }
 
 #[derive(Clone)]
@@ -133,6 +135,7 @@ pub struct CrystalForgeApp {
     thermo_store: Option<ThermoStore>,
     thermo_error: Option<String>,
     thermo_view: ThermoDatabaseView,
+    thermo_calculator: ThermoCalculatorView,
 }
 
 impl CrystalForgeApp {
@@ -186,6 +189,7 @@ impl CrystalForgeApp {
             thermo_store,
             thermo_error,
             thermo_view: ThermoDatabaseView::default(),
+            thermo_calculator: ThermoCalculatorView::default(),
         };
         let initial = app.registry.as_ref().map(|registry| {
             Ok::<_, String>((
@@ -258,6 +262,7 @@ impl CrystalForgeApp {
                 self.deleted_experiments.clear();
                 self.experiment_form = None;
                 self.workbook_form = None;
+                self.thermo_calculator = ThermoCalculatorView::default();
                 self.deletion = None;
                 self.tab = Tab::Experiments;
                 self.error = None;
@@ -1537,6 +1542,11 @@ impl eframe::App for CrystalForgeApp {
                                 Utility::ThermodynamicDatabases,
                                 "Thermodynamic Databases",
                             );
+                            ui.selectable_value(
+                                &mut self.utility,
+                                Utility::ThermodynamicCalculator,
+                                "Thermodynamic Calculator",
+                            );
                         });
                         ui.separator();
                         match self.utility {
@@ -1547,6 +1557,12 @@ impl eframe::App for CrystalForgeApp {
                                 ui,
                                 self.thermo_store.as_ref(),
                                 self.thermo_error.as_deref(),
+                            ),
+                            Utility::ThermodynamicCalculator => self.thermo_calculator.show(
+                                ui,
+                                self.thermo_store.as_ref(),
+                                self.store.as_ref(),
+                                self.active_workbook_id.as_deref(),
                             ),
                         }
                     }

@@ -1,6 +1,6 @@
 # Foundation and decisions
 
-## Thermodynamic reaction engine (Phase 3)
+## Thermodynamic calculation system (research schema 6; reference schema 2)
 
 The pure Rust `thermodynamics` module takes owned species snapshots, an explicit
 reaction with rational coefficients, a selected source and a temperature. It
@@ -8,10 +8,13 @@ checks source identity, verification, phase range, standard pressure, required
 values and exact elemental balance before calculating ΔH°, ΔS°, ΔG° and K.
 Results retain the input snapshots and logarithmic K when ordinary K overflows.
 Database reference-point Cp values are never silently used as constant Cp.
-Phase switching, a calculation UI and validation against real source values are
-later phases.
+Explicit constant or polynomial Cp models permit temperature series. Automatic,
+fixed and explicit phase modes stop on gaps, overlaps and extrapolation. The
+desktop calculator exposes the engine, source/record provenance, a plot, Workbook
+snapshots, CSV export and an Excel export that appends results to a copy of a
+user-selected template. See [validation](THERMODYNAMICS-VALIDATION.md).
 
-## Thermodynamic reference catalog (schema 1)
+## Thermodynamic reference catalog (schema 2)
 
 Version 0.11 introduces `thermodynamics.sqlite3` at the installation data root,
 shared by local profiles and Workbooks. It contains source metadata, source
@@ -20,10 +23,12 @@ record has bibliographic metadata and no numerical values. Manually entered
 species records retain explicit reference pressure, temperature range, units,
 source locator, comments, verification timestamp and edit revision. New records
 are unverified; changing one clears verification. A deliberate source-review
-step is required to mark a record verified. No values are silently imported,
-mixed across sources or used for calculations in this milestone.
+step is required to mark a record verified. Version 0.13 adds an explicit
+spreadsheet-candidate import with cell provenance and discrepancy warnings.
+Unverified records are never used in calculations, and sources are never mixed
+silently.
 
-## Current Workbook layer (research schema 5)
+## Current Workbook layer (research schema 6)
 
 Each profile retains its own research SQLite database. Schema 5 adds `workbooks`,
 `workbook_preference`, and a `workbook_id` reference on CVT experiments. The
@@ -32,7 +37,8 @@ existing experiments to it without changing experiment IDs, notes, or deletion
 state. It also adds a JSON column for starting-material names, exact entered mass
 text, and selected mg/g/kg units. Workbooks have separate names, material systems,
 primary phases, and descriptions. The active Workbook is a profile-local setting.
-See [thermodynamics plan](THERMODYNAMICS-PLAN.md) for the next planned modules.
+Schema 6 adds Workbook-owned thermodynamic calculation snapshots without changing
+existing experiments or notes. See [thermodynamics status](THERMODYNAMICS-PLAN.md).
 
 ## Confirmed scope
 

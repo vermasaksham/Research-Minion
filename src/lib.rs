@@ -1,4 +1,5 @@
 //! Local storage and editing rules, independent of the desktop interface.
+#![recursion_limit = "256"]
 pub mod chemistry;
 pub mod cvt;
 pub mod editor;
@@ -8,9 +9,13 @@ pub mod note_images;
 pub mod store;
 pub mod thermo_database;
 pub mod thermodynamics;
+pub mod xlsx_template;
 
 #[cfg(feature = "desktop")]
 mod thermo_view;
+
+#[cfg(feature = "desktop")]
+mod thermo_calculator_view;
 
 #[cfg(feature = "desktop")]
 pub mod app;

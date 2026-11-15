@@ -407,3 +407,21 @@ that a point Cp stored in the catalog never becomes a temperature model.
 The full 89-test suite, Clippy and the Windows x64 GNU release cross-build pass.
 No calculation UI or real Knacke values are included. Native Windows interaction
 and comparison with the Binnewies workbook remain outstanding.
+# CrystalForge 0.13.0 thermodynamic phases, spreadsheet audit and Excel export
+
+The thermodynamic engine now supports exact rational reaction coefficients,
+polynomial Cp integration, automatic/fixed/explicit phase selection and
+temperature series. Tests cover phase changes, gaps, overlaps, unsupported
+extrapolation, source verification, profile-scoped result storage, schema
+migrations and Excel template copying. Four selected chlorine worksheet cases
+match cached spreadsheet outputs at defined tolerances. The 923 K Sb cached
+reaction output and the BiCl3(g) input anchors disagree with related cells or
+the Binnewies source table; see
+[THERMODYNAMICS-VALIDATION.md](THERMODYNAMICS-VALIDATION.md).
+
+The exported `.xlsx` was opened with `openpyxl` using the user's actual
+`Partial_pressure_Chlorine_Sb-Bi-Te-Se.xlsx` as template. All four original
+worksheet XML parts remained byte-for-byte identical; their formulas were
+retained. A fifth `CrystalForge Results` sheet contained the numeric test row.
+The original template file was unchanged. This validates workbook structure,
+not Excel's recalculation or Windows execution.

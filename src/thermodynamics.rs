@@ -13,6 +13,7 @@ use crate::chemistry::ELEMENTS;
 
 /// Molar gas constant, J/(mol K). CODATA 2018 value from exact SI constants.
 pub const GAS_CONSTANT_J_MOL_K: f64 = 8.314_462_618_153_24;
+pub const FARADAY_C_MOL: f64 = 96_485.332_12;
 
 #[derive(Debug, Error, PartialEq)]
 pub enum EngineError {
@@ -124,6 +125,8 @@ pub enum HeatModel {
     ReferenceOnly,
     /// Cp° is explicitly assumed constant over the record's validated range.
     ConstantCp { joule_per_mol_kelvin: f64 },
+    /// Cp°(T) = a + bT + c/T² + dT², with T in K and Cp in J/(mol K).
+    PolynomialCp { a: f64, b: f64, c: f64, d: f64 },
 }
 
 /// Owned input snapshot. This contains the source and revision actually used.
@@ -186,6 +189,297 @@ pub struct Calculation {
     /// None when the exponential cannot be represented as a positive finite f64.
     pub equilibrium_constant: Option<f64>,
     pub species_used: Vec<UsedSpecies>,
+}
+
+/// A formula-based reaction can select a different phase record at each temperature.
+#[derive(Clone, Debug, PartialEq)]
+pub struct PhaseReactionTerm {
+    pub formula: String,
+    pub phase: Option<String>,
+    pub coefficient: Rational,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PhaseReaction {
+    pub name: String,
+    pub terms: Vec<PhaseReactionTerm>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum PhaseMode {
+    Automatic,
+    /// Formula to forced phase code (s, l or g).
+    Fixed(BTreeMap<String, String>),
+    /// Every term must supply its phase.
+    Explicit,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PhaseChange {
+    pub formula: String,
+    pub from_phase: String,
+    pub to_phase: String,
+    pub from_record_id: String,
+    pub to_record_id: String,
+    pub between_k: (f64, f64),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PhaseSeries {
+    pub points: Vec<Calculation>,
+    pub changes: Vec<PhaseChange>,
+}
+
+/// Parses `2/3 SbCl3(g) -> 2/3 Sb + Cl2(g)`; positive coefficients are products.
+pub fn parse_reaction(name: &str, input: &str) -> Result<PhaseReaction> {
+    let (left, right) = input
+        .split_once("->")
+        .ok_or_else(|| EngineError::Invalid("Use -> between reactants and products.".into()))?;
+    if right.contains("->") || name.trim().is_empty() {
+        return Err(EngineError::Invalid(
+            "Enter one named reaction with one -> arrow.".into(),
+        ));
+    }
+    let mut terms = Vec::new();
+    for (side, sign) in [(left, -1), (right, 1)] {
+        for part in side.split('+') {
+            let part = part.trim();
+            if part.is_empty() {
+                return Err(EngineError::Invalid("A reaction term is empty.".into()));
+            }
+            let (magnitude, species) = match part.split_once(char::is_whitespace) {
+                Some((coefficient, species))
+                    if coefficient.chars().all(|c| c.is_ascii_digit() || c == '/') =>
+                {
+                    let (numerator, denominator) =
+                        coefficient.split_once('/').unwrap_or((coefficient, "1"));
+                    let numerator = numerator
+                        .parse::<i64>()
+                        .map_err(|_| EngineError::Invalid("Invalid coefficient.".into()))?;
+                    let denominator = denominator
+                        .parse::<i64>()
+                        .map_err(|_| EngineError::Invalid("Invalid coefficient.".into()))?;
+                    (
+                        Rational::new(numerator * sign, denominator)?,
+                        species.trim(),
+                    )
+                }
+                _ => (Rational::new(sign, 1)?, part),
+            };
+            let (formula, phase) = if species.ends_with(')') {
+                match species.rsplit_once('(') {
+                    Some((formula, phase_with_close))
+                        if ["s)", "l)", "g)"].contains(&phase_with_close) =>
+                    {
+                        (formula.trim(), Some(phase_with_close[..1].to_string()))
+                    }
+                    _ => (species, None),
+                }
+            } else {
+                (species, None)
+            };
+            parse_formula(formula)?;
+            terms.push(PhaseReactionTerm {
+                formula: formula.into(),
+                phase,
+                coefficient: magnitude,
+            });
+        }
+    }
+    Ok(PhaseReaction {
+        name: name.trim().into(),
+        terms,
+    })
+}
+
+/// For an ideal-gas equilibrium with a specified activity for every *other* gas.
+/// Returns p/p° (dimensionless) and p in bar at the recorded standard pressure.
+pub fn equilibrium_gas_pressure(
+    result: &Calculation,
+    target_species_id: &str,
+    other_gas_activities: &BTreeMap<String, f64>,
+) -> Result<(f64, f64)> {
+    let target = result
+        .species_used
+        .iter()
+        .find(|used| used.record.id == target_species_id && used.record.phase == "g")
+        .ok_or_else(|| EngineError::Invalid("Select a gas species in the reaction.".into()))?;
+    let mut ln_other = 0.0;
+    for used in &result.species_used {
+        if used.record.phase != "g" || used.record.id == target_species_id {
+            continue;
+        }
+        let activity = *other_gas_activities.get(&used.record.id).ok_or_else(|| {
+            EngineError::Invalid(format!(
+                "Enter the activity p/p° of {}.",
+                used.record.formula
+            ))
+        })?;
+        if !activity.is_finite() || activity <= 0.0 {
+            return Err(EngineError::Invalid(format!(
+                "The activity of {} must be positive and finite.",
+                used.record.formula
+            )));
+        }
+        ln_other += used.coefficient.as_f64() * activity.ln();
+    }
+    let ln_p = (result.ln_k - ln_other) / target.coefficient.as_f64();
+    let relative = ln_p.exp();
+    let pressure = relative * result.standard_pressure_bar;
+    if !relative.is_finite() || relative <= 0.0 || !pressure.is_finite() || pressure <= 0.0 {
+        return Err(EngineError::Overflow);
+    }
+    Ok((relative, pressure))
+}
+
+/// Standard potential for the reaction as written, requiring explicit electron count.
+pub fn standard_electrode_potential(result: &Calculation, electron_count: u32) -> Result<f64> {
+    if electron_count == 0 {
+        return Err(EngineError::Invalid(
+            "Enter the positive number of exchanged electrons z.".into(),
+        ));
+    }
+    Ok(-result.delta_g_j_mol / (f64::from(electron_count) * FARADAY_C_MOL))
+}
+
+fn normalized_formula(formula: &str) -> String {
+    formula
+        .chars()
+        .map(|c| match c {
+            '₀' => '0',
+            '₁' => '1',
+            '₂' => '2',
+            '₃' => '3',
+            '₄' => '4',
+            '₅' => '5',
+            '₆' => '6',
+            '₇' => '7',
+            '₈' => '8',
+            '₉' => '9',
+            c => c,
+        })
+        .collect()
+}
+
+pub fn calculate_phase_aware(
+    reaction: &PhaseReaction,
+    temperature_k: f64,
+    source_id: &str,
+    records: &[SpeciesRecord],
+    mode: &PhaseMode,
+) -> Result<Calculation> {
+    if !temperature_k.is_finite() || temperature_k <= 0.0 {
+        return Err(EngineError::Invalid(
+            "Enter a finite, positive temperature in K.".into(),
+        ));
+    }
+    let mut terms = Vec::with_capacity(reaction.terms.len());
+    for term in &reaction.terms {
+        let formula = normalized_formula(term.formula.trim());
+        parse_formula(&formula)?;
+        let requested_phase =
+            match mode {
+                PhaseMode::Automatic => term.phase.as_deref(),
+                PhaseMode::Fixed(forced) => Some(
+                    forced
+                        .get(&formula)
+                        .map(String::as_str)
+                        .or(term.phase.as_deref())
+                        .ok_or_else(|| {
+                            EngineError::Invalid(format!("Choose a fixed phase for {formula}."))
+                        })?,
+                ),
+                PhaseMode::Explicit => Some(term.phase.as_deref().ok_or_else(|| {
+                    EngineError::Invalid(format!("Specify a phase for {formula}."))
+                })?),
+            };
+        if requested_phase.is_some_and(|phase| !["s", "l", "g"].contains(&phase)) {
+            return Err(EngineError::Invalid(format!(
+                "Unsupported phase for {formula}; use s, l or g."
+            )));
+        }
+        let matches: Vec<_> = records
+            .iter()
+            .filter(|record| {
+                record.source_id == source_id
+                    && normalized_formula(&record.formula) == formula
+                    && requested_phase.is_none_or(|phase| phase == record.phase)
+            })
+            .collect();
+        if matches.is_empty() {
+            return Err(EngineError::MissingSpecies(match requested_phase {
+                Some(phase) => format!("{formula}({phase}) in {source_id}"),
+                None => format!("{formula} in {source_id}"),
+            }));
+        }
+        let applicable: Vec<_> = matches
+            .iter()
+            .filter(|record| temperature_k >= record.min_k && temperature_k <= record.max_k)
+            .collect();
+        if applicable.is_empty() {
+            return Err(EngineError::Invalid(format!(
+                "No {} record for {formula} is valid at {temperature_k} K; calculation stopped without extrapolation.",
+                requested_phase.map_or("phase", |phase| phase)
+            )));
+        }
+        if applicable.len() != 1 {
+            return Err(EngineError::Invalid(format!(
+                "Multiple phase records for {formula} apply at {temperature_k} K; resolve the overlapping ranges before calculation."
+            )));
+        }
+        terms.push(ReactionTerm {
+            species_id: applicable[0].id.clone(),
+            coefficient: term.coefficient,
+        });
+    }
+    calculate(
+        &Reaction {
+            name: reaction.name.clone(),
+            terms,
+        },
+        temperature_k,
+        source_id,
+        records,
+    )
+}
+
+pub fn calculate_phase_series(
+    reaction: &PhaseReaction,
+    temperatures_k: &[f64],
+    source_id: &str,
+    records: &[SpeciesRecord],
+    mode: &PhaseMode,
+) -> Result<PhaseSeries> {
+    if temperatures_k.is_empty()
+        || temperatures_k.len() > 10_000
+        || temperatures_k.windows(2).any(|w| w[0] >= w[1])
+    {
+        return Err(EngineError::Invalid(
+            "Enter 1–10,000 strictly increasing temperatures in K.".into(),
+        ));
+    }
+    let mut points: Vec<Calculation> = Vec::with_capacity(temperatures_k.len());
+    let mut changes = Vec::new();
+    for &temperature in temperatures_k {
+        let point = calculate_phase_aware(reaction, temperature, source_id, records, mode)
+            .map_err(|error| EngineError::Invalid(format!("At {temperature} K: {error}")))?;
+        if let Some(previous) = points.last() {
+            for (before, after) in previous.species_used.iter().zip(&point.species_used) {
+                if before.record.id != after.record.id {
+                    changes.push(PhaseChange {
+                        formula: before.record.formula.clone(),
+                        from_phase: before.record.phase.clone(),
+                        to_phase: after.record.phase.clone(),
+                        from_record_id: before.record.id.clone(),
+                        to_record_id: after.record.id.clone(),
+                        between_k: (previous.temperature_k, temperature),
+                    });
+                }
+            }
+        }
+        points.push(point);
+    }
+    Ok(PhaseSeries { points, changes })
 }
 
 pub fn calculate(
@@ -282,6 +576,17 @@ pub fn calculate(
                 h + cp * (temperature_k - item.record.reference_k),
                 s + cp * (temperature_k / item.record.reference_k).ln(),
             ),
+            HeatModel::PolynomialCp { a, b, c, d } => {
+                let t0 = item.record.reference_k;
+                let t = temperature_k;
+                (
+                    h + a * (t - t0) + b / 2.0 * (t * t - t0 * t0) - c * (1.0 / t - 1.0 / t0)
+                        + d / 3.0 * (t.powi(3) - t0.powi(3)),
+                    s + a * (t / t0).ln() + b * (t - t0)
+                        - c / 2.0 * (1.0 / (t * t) - 1.0 / (t0 * t0))
+                        + d / 2.0 * (t * t - t0 * t0),
+                )
+            }
         };
         let coefficient = item.coefficient.as_f64();
         delta_h += coefficient * h;
@@ -380,6 +685,16 @@ fn validate_record(record: &SpeciesRecord, temperature_k: f64, source_id: &str) 
     {
         return Err(EngineError::Invalid(format!(
             "Record '{}' has invalid Cp or a reference temperature outside the model range.",
+            record.id
+        )));
+    }
+    if let HeatModel::PolynomialCp { a, b, c, d } = record.model
+        && (![a, b, c, d].into_iter().all(f64::is_finite)
+            || record.reference_k < record.min_k
+            || record.reference_k > record.max_k)
+    {
+        return Err(EngineError::Invalid(format!(
+            "Record '{}' has invalid polynomial Cp coefficients or reference range.",
             record.id
         )));
     }

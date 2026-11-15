@@ -2,8 +2,8 @@ use chrono::Utc;
 use crystal_forge::{
     thermo_database::{Phase, ThermoEntryDraft, ThermoStore},
     thermodynamics::{
-        EngineError, GAS_CONSTANT_J_MOL_K, HeatModel, Rational, Reaction, ReactionTerm,
-        SpeciesRecord, calculate,
+        EngineError, GAS_CONSTANT_J_MOL_K, HeatModel, PhaseMode, Rational, Reaction, ReactionTerm,
+        SpeciesRecord, calculate, calculate_phase_series, parse_reaction,
     },
 };
 
@@ -58,6 +58,130 @@ fn close(actual: f64, expected: f64, tolerance: f64) {
         (actual - expected).abs() <= tolerance,
         "actual={actual}, expected={expected}"
     );
+}
+
+#[test]
+fn automatic_phase_switch_reports_change_and_rejects_overlap_or_gap() {
+    let mut sb_s = record("sb-s", "Sb", 0.0, 45.0);
+    sb_s.phase = "s".into();
+    sb_s.min_k = 298.0;
+    sb_s.max_k = 500.0;
+    sb_s.model = HeatModel::ConstantCp {
+        joule_per_mol_kelvin: 30.0,
+    };
+    let mut sb_l = record("sb-l", "Sb", 12_000.0, 65.0);
+    sb_l.phase = "l".into();
+    sb_l.min_k = 501.0;
+    sb_l.max_k = 900.0;
+    sb_l.model = HeatModel::ConstantCp {
+        joule_per_mol_kelvin: 32.0,
+    };
+    sb_l.reference_k = 501.0;
+    let mut sbcl3 = record("sbcl3", "SbCl3", -200_000.0, 200.0);
+    sbcl3.model = HeatModel::ConstantCp {
+        joule_per_mol_kelvin: 80.0,
+    };
+    let mut cl2 = record("cl2", "Cl2", 0.0, 220.0);
+    cl2.model = HeatModel::ConstantCp {
+        joule_per_mol_kelvin: 35.0,
+    };
+    let reaction = parse_reaction("Sb chloride", "2 SbCl3(g) -> 2 Sb + 3 Cl2(g)").unwrap();
+    let records = vec![sb_s.clone(), sb_l.clone(), sbcl3, cl2];
+    let series = calculate_phase_series(
+        &reaction,
+        &[400.0, 600.0],
+        "synthetic",
+        &records,
+        &PhaseMode::Automatic,
+    )
+    .unwrap();
+    assert_eq!(series.changes.len(), 1);
+    assert_eq!(series.changes[0].formula, "Sb");
+    assert_eq!(series.changes[0].from_phase, "s");
+    assert_eq!(series.changes[0].to_phase, "l");
+    assert_eq!(series.points[0].species_used[1].record.id, "sb-s");
+    assert_eq!(series.points[1].species_used[1].record.id, "sb-l");
+    assert!(
+        calculate_phase_series(
+            &reaction,
+            &[500.5],
+            "synthetic",
+            &records,
+            &PhaseMode::Automatic
+        )
+        .is_err()
+    );
+    let mut overlap = records.clone();
+    overlap[1].min_k = 500.0;
+    assert!(
+        calculate_phase_series(
+            &reaction,
+            &[500.0],
+            "synthetic",
+            &overlap,
+            &PhaseMode::Automatic
+        )
+        .is_err()
+    );
+    let explicit = parse_reaction("Sb chloride", "2 SbCl3(g) -> 2 Sb(s) + 3 Cl2(g)").unwrap();
+    assert!(
+        calculate_phase_series(
+            &explicit,
+            &[600.0],
+            "synthetic",
+            &records,
+            &PhaseMode::Explicit
+        )
+        .is_err()
+    );
+    let forced = std::collections::BTreeMap::from([("Sb".into(), "l".into())]);
+    assert!(
+        calculate_phase_series(
+            &reaction,
+            &[600.0],
+            "synthetic",
+            &records,
+            &PhaseMode::Fixed(forced.clone())
+        )
+        .is_ok()
+    );
+    assert!(
+        calculate_phase_series(
+            &reaction,
+            &[400.0],
+            "synthetic",
+            &records,
+            &PhaseMode::Fixed(forced)
+        )
+        .is_err()
+    );
+}
+
+#[test]
+fn polynomial_cp_integration_matches_independent_formula() {
+    let (reaction, mut records) = hydrogen_chloride();
+    for record in &mut records {
+        record.model = HeatModel::PolynomialCp {
+            a: 30.0,
+            b: 0.01,
+            c: -1000.0,
+            d: 0.000001,
+        };
+    }
+    let result = calculate(&reaction, 400.0, "synthetic", &records).unwrap();
+    let t = 400.0_f64;
+    let t0 = 298.15_f64;
+    let dh_one = 30.0 * (t - t0)
+        + 0.01 / 2.0 * (t * t - t0 * t0)
+        + 1000.0 * (1.0 / t - 1.0 / t0)
+        + 0.000001 / 3.0 * (t.powi(3) - t0.powi(3));
+    let ds_one = 30.0 * (t / t0).ln()
+        + 0.01 * (t - t0)
+        + 500.0 * (1.0 / t.powi(2) - 1.0 / t0.powi(2))
+        + 0.000001 / 2.0 * (t * t - t0 * t0);
+    close(result.delta_h_j_mol, -184_600.0, 1e-7);
+    close(result.delta_s_j_mol_k, 19.62, 1e-9);
+    assert!(dh_one.is_finite() && ds_one.is_finite());
 }
 
 #[test]
@@ -215,6 +339,7 @@ fn existing_catalog_point_cp_never_becomes_an_implicit_temperature_model() {
             enthalpy_j_mol: Some(h),
             entropy_j_mol_k: Some(s),
             heat_capacity_j_mol_k: Some(30.0),
+            model: HeatModel::ReferenceOnly,
             source_locator: "synthetic test only".into(),
             comments: "Not a Knacke value".into(),
         };

@@ -7,6 +7,7 @@ use std::{
 use crate::thermodynamics::{HeatModel, SpeciesRecord};
 use chrono::{DateTime, Utc};
 use rusqlite::{Connection, OptionalExtension, Row, params, types::Type};
+use serde::Deserialize;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -26,8 +27,29 @@ pub enum ThermoError {
     Io(#[from] std::io::Error),
     #[error("Local thermodynamic database error: {0}")]
     Sqlite(#[from] rusqlite::Error),
+    #[error("Candidate data error: {0}")]
+    Json(#[from] serde_json::Error),
 }
 pub type Result<T> = std::result::Result<T, ThermoError>;
+
+#[derive(Deserialize)]
+struct CandidateSource {
+    name: String,
+    entries: Vec<CandidateEntry>,
+}
+#[derive(Deserialize)]
+struct CandidateEntry {
+    formula: String,
+    phase: String,
+    min_k: f64,
+    max_k: f64,
+    reference_k: f64,
+    enthalpy_j_mol: f64,
+    entropy_j_mol_k: f64,
+    cp_coefficients: [f64; 4],
+    source_locator: String,
+    warning: Option<String>,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ThermoSource {
@@ -85,6 +107,8 @@ pub struct ThermoEntryDraft {
     pub entropy_j_mol_k: Option<f64>,
     /// Standard molar heat capacity at the reference temperature, J/(mol K).
     pub heat_capacity_j_mol_k: Option<f64>,
+    /// A point Cp value does not imply this model; select a model explicitly.
+    pub model: HeatModel,
     pub source_locator: String,
     pub comments: String,
 }
@@ -102,6 +126,26 @@ impl ThermoEntryDraft {
                     "Enter a finite, positive {name} in K."
                 )));
             }
+        }
+        match self.model {
+            HeatModel::ReferenceOnly => {}
+            HeatModel::ConstantCp {
+                joule_per_mol_kelvin,
+            } if joule_per_mol_kelvin.is_finite() => {}
+            HeatModel::PolynomialCp { a, b, c, d }
+                if [a, b, c, d].into_iter().all(f64::is_finite) => {}
+            _ => {
+                return Err(ThermoError::Validation(
+                    "Enter finite heat-capacity model coefficients.".into(),
+                ));
+            }
+        }
+        if !matches!(self.model, HeatModel::ReferenceOnly)
+            && (self.reference_k < self.min_k || self.reference_k > self.max_k)
+        {
+            return Err(ThermoError::Validation(
+                "The model reference temperature must be inside its valid range.".into(),
+            ));
         }
         if self.min_k > self.max_k {
             return Err(ThermoError::Validation(
@@ -188,7 +232,7 @@ impl ThermoEntry {
             reference_pressure_bar: self.draft.reference_pressure_bar,
             formation_enthalpy_j_mol: self.draft.enthalpy_j_mol,
             molar_entropy_j_mol_k: self.draft.entropy_j_mol_k,
-            model: HeatModel::ReferenceOnly,
+            model: self.draft.model.clone(),
         })
     }
 }
@@ -198,6 +242,53 @@ pub struct ThermoStore {
     path: PathBuf,
 }
 impl ThermoStore {
+    /// Imports worksheet-derived entries as unverified records in separate sources.
+    /// Existing source names are left untouched so reimport never overwrites review.
+    pub fn import_worksheet_candidates(&self, json: &str) -> Result<usize> {
+        let candidates: Vec<CandidateSource> = serde_json::from_str(json)?;
+        let transaction = self.connection.unchecked_transaction()?;
+        let mut imported = 0;
+        for candidate in candidates {
+            let name = format!("Worksheet: {}", candidate.name);
+            if self.sources()?.iter().any(|source| source.name == name) {
+                continue;
+            }
+            let source=self.create_source(&name,"User-provided calculation workbook",2026,
+                "Partial_pressure_Chlorine_Sb-Bi-Te-Se.xlsx; derived spreadsheet values, original citation not independently checked")?;
+            for entry in candidate.entries {
+                let phase = Phase::from_code(&entry.phase).ok_or_else(|| {
+                    ThermoError::Validation(format!(
+                        "Invalid candidate phase for {}.",
+                        entry.formula
+                    ))
+                })?;
+                let [a, b, c, d] = entry.cp_coefficients;
+                let draft = ThermoEntryDraft {
+                    source_id: source.id.clone(),
+                    species: entry.formula.clone(),
+                    formula: entry.formula,
+                    phase,
+                    min_k: entry.min_k,
+                    max_k: entry.max_k,
+                    reference_k: entry.reference_k,
+                    reference_pressure_bar: 1.0,
+                    enthalpy_j_mol: Some(entry.enthalpy_j_mol),
+                    entropy_j_mol_k: Some(entry.entropy_j_mol_k),
+                    heat_capacity_j_mol_k: None,
+                    model: HeatModel::PolynomialCp { a, b, c, d },
+                    source_locator: entry.source_locator,
+                    comments: format!(
+                        "Extracted from cached worksheet cells; standard pressure set to 1 bar from the worksheet's p/bar headings. Check the original workbook and source before verification. {}",
+                        entry.warning.unwrap_or_default()
+                    ),
+                };
+                self.create_entry(&draft)?;
+                imported += 1;
+            }
+        }
+        transaction.commit()?;
+        Ok(imported)
+    }
     pub fn open(root: &Path) -> Result<Self> {
         std::fs::create_dir_all(root)?;
         Self::open_file(&root.join("thermodynamics.sqlite3"))
@@ -208,7 +299,7 @@ impl ThermoStore {
         connection.busy_timeout(Duration::from_secs(5))?;
         connection.pragma_update(None, "foreign_keys", "ON")?;
         let version: i64 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
-        if version > 1 {
+        if version > 2 {
             return Err(ThermoError::UnsupportedVersion(version));
         }
         if version == 0 {
@@ -240,7 +331,7 @@ impl ThermoStore {
                 min_k REAL NOT NULL CHECK(min_k>0),
                 max_k REAL NOT NULL CHECK(max_k>=min_k),
                 reference_k REAL NOT NULL CHECK(reference_k>0),
-                model_type TEXT NOT NULL CHECK(model_type='reference_values'),
+                model_type TEXT NOT NULL CHECK(model_type IN ('reference_values','constant_cp','polynomial_cp')),
                 enthalpy_j_mol REAL,
                 entropy_j_mol_k REAL,
                 heat_capacity_j_mol_k REAL,
@@ -250,7 +341,11 @@ impl ThermoStore {
                 updated_at TEXT NOT NULL,
                 verified_at TEXT,
                 revision INTEGER NOT NULL CHECK(revision>=1),
-                reference_pressure_bar REAL NOT NULL CHECK(reference_pressure_bar>0)
+                reference_pressure_bar REAL NOT NULL CHECK(reference_pressure_bar>0),
+                model_a REAL,
+                model_b REAL,
+                model_c REAL,
+                model_d REAL
             );
             CREATE INDEX thermo_entries_source_species ON thermo_entries(source_id, formula, phase);
             CREATE TABLE thermo_preferences (
@@ -272,13 +367,39 @@ impl ThermoStore {
                 "INSERT INTO thermo_preferences VALUES (1,'knacke-1991',NULL)",
                 [],
             )?;
-            tx.pragma_update(None, "user_version", 1)?;
+            tx.pragma_update(None, "user_version", 2)?;
+            tx.commit()?;
+        }
+        if version == 1 {
+            let tx = connection.transaction()?;
+            tx.execute_batch("ALTER TABLE thermo_entries RENAME TO thermo_entries_v1;
+                CREATE TABLE thermo_entries (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    source_id TEXT NOT NULL REFERENCES thermo_sources(id),
+                    species TEXT NOT NULL CHECK(length(trim(species))>0),
+                    formula TEXT NOT NULL CHECK(length(trim(formula))>0),
+                    phase TEXT NOT NULL CHECK(phase IN ('s','l','g')),
+                    min_k REAL NOT NULL CHECK(min_k>0),
+                    max_k REAL NOT NULL CHECK(max_k>=min_k),
+                    reference_k REAL NOT NULL CHECK(reference_k>0),
+                    model_type TEXT NOT NULL CHECK(model_type IN ('reference_values','constant_cp','polynomial_cp')),
+                    enthalpy_j_mol REAL, entropy_j_mol_k REAL, heat_capacity_j_mol_k REAL,
+                    source_locator TEXT NOT NULL CHECK(length(trim(source_locator))>0),
+                    comments TEXT NOT NULL, imported_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+                    verified_at TEXT, revision INTEGER NOT NULL CHECK(revision>=1),
+                    reference_pressure_bar REAL NOT NULL CHECK(reference_pressure_bar>0),
+                    model_a REAL, model_b REAL, model_c REAL, model_d REAL
+                );
+                INSERT INTO thermo_entries SELECT *,NULL,NULL,NULL,NULL FROM thermo_entries_v1;
+                DROP TABLE thermo_entries_v1;
+                CREATE INDEX thermo_entries_source_species ON thermo_entries(source_id,formula,phase);")?;
+            tx.pragma_update(None, "user_version", 2)?;
             tx.commit()?;
         }
         connection.prepare(
             "SELECT id,name,authors,year,reference,enabled,created_at FROM thermo_sources LIMIT 0",
         )?;
-        connection.prepare("SELECT id,source_id,species,formula,phase,min_k,max_k,reference_k,model_type,enthalpy_j_mol,entropy_j_mol_k,heat_capacity_j_mol_k,source_locator,comments,imported_at,updated_at,verified_at,revision,reference_pressure_bar FROM thermo_entries LIMIT 0")?;
+        connection.prepare("SELECT id,source_id,species,formula,phase,min_k,max_k,reference_k,model_type,enthalpy_j_mol,entropy_j_mol_k,heat_capacity_j_mol_k,source_locator,comments,imported_at,updated_at,verified_at,revision,reference_pressure_bar,model_a,model_b,model_c,model_d FROM thermo_entries LIMIT 0")?;
         connection.prepare("SELECT primary_source_id,fallback_source_id FROM thermo_preferences WHERE id=1 LIMIT 0")?;
         connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.pragma_update(None, "synchronous", "FULL")?;
@@ -389,7 +510,7 @@ impl ThermoStore {
         Ok(())
     }
     pub fn entries(&self, source_id: &str) -> Result<Vec<ThermoEntry>> {
-        let mut query=self.connection.prepare("SELECT id,source_id,species,formula,phase,min_k,max_k,reference_k,model_type,enthalpy_j_mol,entropy_j_mol_k,heat_capacity_j_mol_k,source_locator,comments,imported_at,updated_at,verified_at,revision,reference_pressure_bar FROM thermo_entries WHERE source_id=?1 ORDER BY formula,phase,min_k,id")?;
+        let mut query=self.connection.prepare("SELECT id,source_id,species,formula,phase,min_k,max_k,reference_k,model_type,enthalpy_j_mol,entropy_j_mol_k,heat_capacity_j_mol_k,source_locator,comments,imported_at,updated_at,verified_at,revision,reference_pressure_bar,model_a,model_b,model_c,model_d FROM thermo_entries WHERE source_id=?1 ORDER BY formula,phase,min_k,id")?;
         Ok(query
             .query_map([source_id], read_entry)?
             .collect::<std::result::Result<_, _>>()?)
@@ -406,7 +527,7 @@ impl ThermoStore {
             .collect()
     }
     pub fn entry(&self, id: &str) -> Result<ThermoEntry> {
-        self.connection.query_row("SELECT id,source_id,species,formula,phase,min_k,max_k,reference_k,model_type,enthalpy_j_mol,entropy_j_mol_k,heat_capacity_j_mol_k,source_locator,comments,imported_at,updated_at,verified_at,revision,reference_pressure_bar FROM thermo_entries WHERE id=?1",[id],read_entry).optional()?.ok_or(ThermoError::NotFound)
+        self.connection.query_row("SELECT id,source_id,species,formula,phase,min_k,max_k,reference_k,model_type,enthalpy_j_mol,entropy_j_mol_k,heat_capacity_j_mol_k,source_locator,comments,imported_at,updated_at,verified_at,revision,reference_pressure_bar,model_a,model_b,model_c,model_d FROM thermo_entries WHERE id=?1",[id],read_entry).optional()?.ok_or(ThermoError::NotFound)
     }
     pub fn create_entry(&self, draft: &ThermoEntryDraft) -> Result<ThermoEntry> {
         draft.validate()?;
@@ -428,7 +549,8 @@ impl ThermoStore {
             verified_at: None,
             revision: 1,
         };
-        self.connection.execute("INSERT INTO thermo_entries VALUES (?1,?2,?3,?4,?5,?6,?7,?8,'reference_values',?9,?10,?11,?12,?13,?14,?15,NULL,1,?16)",params![entry.id,draft.source_id,draft.species.trim(),draft.formula.trim(),draft.phase.code(),draft.min_k,draft.max_k,draft.reference_k,draft.enthalpy_j_mol,draft.entropy_j_mol_k,draft.heat_capacity_j_mol_k,draft.source_locator.trim(),draft.comments,now.to_rfc3339(),now.to_rfc3339(),draft.reference_pressure_bar])?;
+        let (kind, a, b, c, d) = model_columns(&draft.model);
+        self.connection.execute("INSERT INTO thermo_entries VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,NULL,1,?17,?18,?19,?20,?21)",params![entry.id,draft.source_id,draft.species.trim(),draft.formula.trim(),draft.phase.code(),draft.min_k,draft.max_k,draft.reference_k,kind,draft.enthalpy_j_mol,draft.entropy_j_mol_k,draft.heat_capacity_j_mol_k,draft.source_locator.trim(),draft.comments,now.to_rfc3339(),now.to_rfc3339(),draft.reference_pressure_bar,a,b,c,d])?;
         self.entry(&entry.id)
     }
     pub fn update_entry(
@@ -445,7 +567,8 @@ impl ThermoStore {
         if saved.revision != expected_revision {
             return Err(ThermoError::Conflict);
         }
-        let changed=self.connection.execute("UPDATE thermo_entries SET species=?1,formula=?2,phase=?3,min_k=?4,max_k=?5,reference_k=?6,enthalpy_j_mol=?7,entropy_j_mol_k=?8,heat_capacity_j_mol_k=?9,source_locator=?10,comments=?11,updated_at=?12,reference_pressure_bar=?13,verified_at=NULL,revision=revision+1 WHERE id=?14 AND revision=?15",params![draft.species.trim(),draft.formula.trim(),draft.phase.code(),draft.min_k,draft.max_k,draft.reference_k,draft.enthalpy_j_mol,draft.entropy_j_mol_k,draft.heat_capacity_j_mol_k,draft.source_locator.trim(),draft.comments,Utc::now().to_rfc3339(),draft.reference_pressure_bar,id,expected_revision])?;
+        let (kind, a, b, c, d) = model_columns(&draft.model);
+        let changed=self.connection.execute("UPDATE thermo_entries SET species=?1,formula=?2,phase=?3,min_k=?4,max_k=?5,reference_k=?6,enthalpy_j_mol=?7,entropy_j_mol_k=?8,heat_capacity_j_mol_k=?9,source_locator=?10,comments=?11,updated_at=?12,reference_pressure_bar=?13,model_type=?14,model_a=?15,model_b=?16,model_c=?17,model_d=?18,verified_at=NULL,revision=revision+1 WHERE id=?19 AND revision=?20",params![draft.species.trim(),draft.formula.trim(),draft.phase.code(),draft.min_k,draft.max_k,draft.reference_k,draft.enthalpy_j_mol,draft.entropy_j_mol_k,draft.heat_capacity_j_mol_k,draft.source_locator.trim(),draft.comments,Utc::now().to_rfc3339(),draft.reference_pressure_bar,kind,a,b,c,d,id,expected_revision])?;
         if changed == 0 {
             return Err(ThermoError::Conflict);
         }
@@ -488,6 +611,25 @@ fn read_source(row: &Row<'_>) -> rusqlite::Result<ThermoSource> {
         created_at: converted(row, 6)?,
     })
 }
+fn model_columns(
+    model: &HeatModel,
+) -> (
+    &'static str,
+    Option<f64>,
+    Option<f64>,
+    Option<f64>,
+    Option<f64>,
+) {
+    match *model {
+        HeatModel::ReferenceOnly => ("reference_values", None, None, None, None),
+        HeatModel::ConstantCp {
+            joule_per_mol_kelvin,
+        } => ("constant_cp", Some(joule_per_mol_kelvin), None, None, None),
+        HeatModel::PolynomialCp { a, b, c, d } => {
+            ("polynomial_cp", Some(a), Some(b), Some(c), Some(d))
+        }
+    }
+}
 fn read_entry(row: &Row<'_>) -> rusqlite::Result<ThermoEntry> {
     let phase: String = row.get(4)?;
     let phase = Phase::from_code(&phase).ok_or_else(|| {
@@ -498,13 +640,28 @@ fn read_entry(row: &Row<'_>) -> rusqlite::Result<ThermoEntry> {
         )
     })?;
     let model: String = row.get(8)?;
-    if model != "reference_values" {
-        return Err(rusqlite::Error::FromSqlConversionFailure(
+    let invalid_model = || {
+        rusqlite::Error::FromSqlConversionFailure(
             8,
             Type::Text,
-            Box::new(ThermoError::Validation("Unknown saved model.".into())),
-        ));
-    }
+            Box::new(ThermoError::Validation(
+                "Unknown or incomplete saved model.".into(),
+            )),
+        )
+    };
+    let model = match model.as_str() {
+        "reference_values" => HeatModel::ReferenceOnly,
+        "constant_cp" => HeatModel::ConstantCp {
+            joule_per_mol_kelvin: row.get::<_, Option<f64>>(19)?.ok_or_else(invalid_model)?,
+        },
+        "polynomial_cp" => HeatModel::PolynomialCp {
+            a: row.get::<_, Option<f64>>(19)?.ok_or_else(invalid_model)?,
+            b: row.get::<_, Option<f64>>(20)?.ok_or_else(invalid_model)?,
+            c: row.get::<_, Option<f64>>(21)?.ok_or_else(invalid_model)?,
+            d: row.get::<_, Option<f64>>(22)?.ok_or_else(invalid_model)?,
+        },
+        _ => return Err(invalid_model()),
+    };
     Ok(ThermoEntry {
         id: row.get(0)?,
         draft: ThermoEntryDraft {
@@ -519,6 +676,7 @@ fn read_entry(row: &Row<'_>) -> rusqlite::Result<ThermoEntry> {
             enthalpy_j_mol: row.get(9)?,
             entropy_j_mol_k: row.get(10)?,
             heat_capacity_j_mol_k: row.get(11)?,
+            model,
             source_locator: row.get(12)?,
             comments: row.get(13)?,
         },

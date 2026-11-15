@@ -28,9 +28,11 @@ try {
     Copy-Item 'docs/WINDOWS-PREVIEW.txt' "$staging/START-HERE.txt" -Force
     New-Item -ItemType Directory -Force -Path "$staging/data" | Out-Null
     Copy-Item 'data/peak' "$staging/data/peak" -Recurse -Force
+    Copy-Item 'data/thermo' "$staging/data/thermo" -Recurse -Force
     New-Item -ItemType Directory -Force -Path "$staging/scripts" | Out-Null
     Copy-Item 'scripts/build-peak-catalog.py' "$staging/scripts" -Force
     Copy-Item 'scripts/peak-validation-requirements.txt' "$staging/scripts" -Force
+    Copy-Item 'scripts/extract-thermo-candidates.py' "$staging/scripts" -Force
     $archive = "target/packages/CrystalForge-$version-windows-x64.zip"
     Compress-Archive -Path "$staging/*" -DestinationPath $archive -Force
     Write-Output "Created $archive"

@@ -3,6 +3,7 @@ use eframe::egui::{self, Color32, RichText};
 use crate::{
     app::{INK, MUTED, TEAL, primary_button},
     thermo_database::{Phase, ThermoEntry, ThermoEntryDraft, ThermoStore},
+    thermodynamics::HeatModel,
 };
 
 #[derive(Default)]
@@ -27,6 +28,11 @@ struct EntryForm {
     enthalpy: String,
     entropy: String,
     heat_capacity: String,
+    model_kind: u8,
+    model_a: String,
+    model_b: String,
+    model_c: String,
+    model_d: String,
     locator: String,
     comments: String,
 }
@@ -47,6 +53,11 @@ impl EntryForm {
             enthalpy: String::new(),
             entropy: String::new(),
             heat_capacity: String::new(),
+            model_kind: 0,
+            model_a: String::new(),
+            model_b: String::new(),
+            model_c: String::new(),
+            model_d: String::new(),
             locator: String::new(),
             comments: String::new(),
         }
@@ -73,6 +84,30 @@ impl EntryForm {
             heat_capacity: draft
                 .heat_capacity_j_mol_k
                 .map_or(String::new(), |value| value.to_string()),
+            model_kind: match draft.model {
+                HeatModel::ReferenceOnly => 0,
+                HeatModel::ConstantCp { .. } => 1,
+                HeatModel::PolynomialCp { .. } => 2,
+            },
+            model_a: match draft.model {
+                HeatModel::ConstantCp {
+                    joule_per_mol_kelvin,
+                } => joule_per_mol_kelvin.to_string(),
+                HeatModel::PolynomialCp { a, .. } => a.to_string(),
+                _ => String::new(),
+            },
+            model_b: match draft.model {
+                HeatModel::PolynomialCp { b, .. } => b.to_string(),
+                _ => String::new(),
+            },
+            model_c: match draft.model {
+                HeatModel::PolynomialCp { c, .. } => c.to_string(),
+                _ => String::new(),
+            },
+            model_d: match draft.model {
+                HeatModel::PolynomialCp { d, .. } => d.to_string(),
+                _ => String::new(),
+            },
             locator: draft.source_locator.clone(),
             comments: draft.comments.clone(),
         }
@@ -103,6 +138,18 @@ impl EntryForm {
             enthalpy_j_mol: optional(&self.enthalpy, "enthalpy")?,
             entropy_j_mol_k: optional(&self.entropy, "entropy")?,
             heat_capacity_j_mol_k: optional(&self.heat_capacity, "heat capacity")?,
+            model: match self.model_kind {
+                0 => HeatModel::ReferenceOnly,
+                1 => HeatModel::ConstantCp {
+                    joule_per_mol_kelvin: required(&self.model_a, "constant Cp")?,
+                },
+                _ => HeatModel::PolynomialCp {
+                    a: required(&self.model_a, "Cp a")?,
+                    b: required(&self.model_b, "Cp b")?,
+                    c: required(&self.model_c, "Cp c")?,
+                    d: required(&self.model_d, "Cp d")?,
+                },
+            },
             source_locator: self.locator.clone(),
             comments: self.comments.clone(),
         })
@@ -111,6 +158,7 @@ impl EntryForm {
 
 enum ViewAction {
     AddSource,
+    ImportWorksheetCandidates,
     SetPrimary(String),
     ToggleSource(String, bool),
     DeleteSource(String),
@@ -228,6 +276,9 @@ impl ThermoDatabaseView {
                         if self.has_unsaved_form() {self.error=Some("Save or cancel the open form first.".into());}
                         else {self.source_form=Some(SourceForm::default());self.error=None;}
                     }
+                    if ui.button("Import supplied worksheet candidates").clicked() {
+                        action=Some(ViewAction::ImportWorksheetCandidates);
+                    }
                 });
                 if let Some(source)=selected {
                     ui.label(format!("{} · {} · {}",source.authors,source.year,source.reference));
@@ -275,6 +326,9 @@ impl ThermoDatabaseView {
                                 if ui.button(if entry.verified_at.is_some(){"Mark unverified"}else{"Mark verified"}).clicked(){action=Some(ViewAction::Verify(entry.id.clone(),entry.revision,entry.verified_at.is_none()));}
                             });
                             ui.label(format!("{} · source: {}",entry.draft.species,entry.draft.source_locator));
+                            if entry.draft.comments.contains("DISCREPANCY") {
+                                ui.colored_label(Color32::DARK_RED,&entry.draft.comments);
+                            }
                             if let Some(date)=entry.verified_at {ui.label(RichText::new(format!("Verified {} UTC",date.format("%Y-%m-%d %H:%M"))).size(11.0).color(MUTED));}
                         });
                     });
@@ -282,7 +336,7 @@ impl ThermoDatabaseView {
                 if let Some(form)=&mut self.entry_form {
                     ui.add_space(14.0);ui.separator();
                     ui.heading(if form.id.is_some(){"Edit species record"}else{"Manual species entry"});
-                    ui.colored_label(Color32::from_rgb(150,90,35),"Compare each value and unit with the original publication before marking verified. Editing clears verification.");
+                    ui.colored_label(Color32::from_rgb(150,90,35),"Compare every value, unit, phase and range with the named source before marking verified. Editing clears verification.");
                     field(ui,"Species name",&mut form.species,"e.g. antimony trichloride");
                     field(ui,"Chemical formula",&mut form.formula,"e.g. SbCl3");
                     egui::ComboBox::from_id_salt("thermo-phase").selected_text(form.phase.label()).show_ui(ui,|ui| {
@@ -293,6 +347,24 @@ impl ThermoDatabaseView {
                         field(&mut columns[1],"Maximum K",&mut form.max_k,"K");
                         field(&mut columns[2],"Reference K",&mut form.reference_k,"298.15");
                     });
+                    ui.horizontal(|ui| {
+                        ui.strong("Temperature model");
+                        egui::ComboBox::from_id_salt("thermo-model").selected_text(match form.model_kind {0=>"Reference point only",1=>"Constant Cp",_=>"Cp = a + bT + c/T² + dT²"}).show_ui(ui,|ui| {
+                            ui.selectable_value(&mut form.model_kind,0,"Reference point only");
+                            ui.selectable_value(&mut form.model_kind,1,"Constant Cp");
+                            ui.selectable_value(&mut form.model_kind,2,"Cp = a + bT + c/T² + dT²");
+                        });
+                    });
+                    if form.model_kind != 0 {
+                        field(ui,if form.model_kind==1{"Cp · J/(mol·K)"}else{"a · J/(mol·K)"},&mut form.model_a,"required");
+                    }
+                    if form.model_kind == 2 {
+                        ui.columns(3,|columns| {
+                            field(&mut columns[0],"b · J/(mol·K²)",&mut form.model_b,"required");
+                            field(&mut columns[1],"c · J·K/mol",&mut form.model_c,"required");
+                            field(&mut columns[2],"d · J/(mol·K³)",&mut form.model_d,"required");
+                        });
+                    }
                     field(ui,"Standard pressure · bar",&mut form.reference_pressure_bar,"Required · check the source convention");
                     ui.columns(3,|columns| {
                         field(&mut columns[0],"ΔfH° at reference · J/mol",&mut form.enthalpy,"optional");
@@ -325,9 +397,15 @@ impl ThermoDatabaseView {
                             for (label,value,unit) in [("ΔfH°",entry.draft.enthalpy_j_mol,"J/mol"),("S°",entry.draft.entropy_j_mol_k,"J/(mol·K)"),("Cp°",entry.draft.heat_capacity_j_mol_k,"J/(mol·K)")] {
                                 if let Some(value)=value {ui.label(format!("{label}: {value} {unit}"));}
                             }
-                            ui.colored_label(Color32::from_rgb(150,90,35),"Mark verified only after checking every value, unit, phase and range against the original source.");
+                            match entry.draft.model {
+                                HeatModel::ReferenceOnly=>{ui.label("Temperature model: reference point only");}
+                                HeatModel::ConstantCp{joule_per_mol_kelvin}=>{ui.label(format!("Constant Cp: {joule_per_mol_kelvin} J/(mol·K)"));}
+                                HeatModel::PolynomialCp{a,b,c,d}=>{ui.label(format!("Cp(T) = a + bT + c/T² + dT²; a={a}, b={b}, c={c}, d={d} (T in K, Cp in J/(mol·K))"));}
+                            }
+                            if !entry.draft.comments.trim().is_empty(){ui.colored_label(Color32::from_rgb(150,90,35),&entry.draft.comments);}
+                            ui.colored_label(Color32::from_rgb(150,90,35),"Mark verified only after checking every value, unit, phase and range against the named source. Worksheet records do not establish verification against Knacke.");
                             ui.horizontal(|ui| {
-                                if primary_button(ui,"I checked the original source").clicked(){confirm=true;}
+                                if primary_button(ui,"I checked this source").clicked(){confirm=true;}
                                 if ui.button("Cancel").clicked(){cancel=true;}
                             });
                         }
@@ -354,6 +432,9 @@ impl ThermoDatabaseView {
         self.notice.clear();
         self.error = None;
         let result: Result<String, String> = match action {
+            ViewAction::ImportWorksheetCandidates => store.import_worksheet_candidates(include_str!("../data/thermo/worksheet_candidates.json"))
+                .map(|count|format!("Imported {count} unverified worksheet candidates. Select each worksheet source to review them."))
+                .map_err(|error|error.to_string()),
             ViewAction::AddSource => {
                 if let Some(form) = &self.source_form {
                     match form.year.trim().parse::<i32>() {

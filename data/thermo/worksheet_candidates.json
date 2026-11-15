@@ -1,0 +1,498 @@
+[
+  {
+    "name": "Red-SbCl3",
+    "entries": [
+      {
+        "formula": "SbCl5",
+        "phase": "l",
+        "min_k": 298,
+        "max_k": 413,
+        "reference_k": 298,
+        "enthalpy_j_mol": -440198,
+        "entropy_j_mol_k": 301.001,
+        "cp_coefficients": [
+          158.992,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-SbCl3!B12, C23, D23; Cp B13:B16",
+        "warning": null
+      },
+      {
+        "formula": "SbCl5",
+        "phase": "g",
+        "min_k": 413,
+        "max_k": 1000,
+        "reference_k": 413,
+        "enthalpy_j_mol": -385868,
+        "entropy_j_mol_k": 440.146,
+        "cp_coefficients": [
+          131.754,
+          0.000669,
+          -1720000,
+          0
+        ],
+        "source_locator": "Red-SbCl3!C12, F28, G28; Cp C13:C16",
+        "warning": "No same-temperature H/S row in Binnewies.Tabelle1.XLS; compare manually."
+      },
+      {
+        "formula": "SbCl3",
+        "phase": "s",
+        "min_k": 298,
+        "max_k": 346,
+        "reference_k": 298,
+        "enthalpy_j_mol": -382170,
+        "entropy_j_mol_k": 184.1,
+        "cp_coefficients": [
+          40.166,
+          0.225936,
+          0,
+          0
+        ],
+        "source_locator": "Red-SbCl3!D12, I23, J23; Cp D13:D16",
+        "warning": null
+      },
+      {
+        "formula": "SbCl3",
+        "phase": "l",
+        "min_k": 346,
+        "max_k": 496,
+        "reference_k": 346,
+        "enthalpy_j_mol": -363796,
+        "entropy_j_mol_k": 238.376,
+        "cp_coefficients": [
+          123.846,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-SbCl3!E12, L25, M25; Cp E13:E16",
+        "warning": null
+      },
+      {
+        "formula": "SbCl3",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": -313105,
+        "entropy_j_mol_k": 339.096,
+        "cp_coefficients": [
+          82.375,
+          0.000703,
+          -519000,
+          0
+        ],
+        "source_locator": "Red-SbCl3!F12, O23, P23; Cp F13:F16",
+        "warning": null
+      },
+      {
+        "formula": "Sb",
+        "phase": "s",
+        "min_k": 298,
+        "max_k": 904,
+        "reference_k": 298,
+        "enthalpy_j_mol": 0,
+        "entropy_j_mol_k": 45.522,
+        "cp_coefficients": [
+          30.514,
+          -0.015498,
+          -201000,
+          1.802e-05
+        ],
+        "source_locator": "Red-SbCl3!G12, R23, S23; Cp G13:G16",
+        "warning": null
+      },
+      {
+        "formula": "Sb",
+        "phase": "l",
+        "min_k": 904,
+        "max_k": 1858,
+        "reference_k": 904,
+        "enthalpy_j_mol": 36544,
+        "entropy_j_mol_k": 97.52,
+        "cp_coefficients": [
+          31.38,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-SbCl3!H12, U43, V43; Cp H13:H16",
+        "warning": null
+      },
+      {
+        "formula": "Cl2",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": 0,
+        "entropy_j_mol_k": 223.078,
+        "cp_coefficients": [
+          36.61,
+          0.0010789999999999999,
+          -272000,
+          0
+        ],
+        "source_locator": "Red-SbCl3!I12, X23, Y23; Cp I13:I16",
+        "warning": null
+      }
+    ]
+  },
+  {
+    "name": "Red-SeCl2",
+    "entries": [
+      {
+        "formula": "SeCl4",
+        "phase": "s",
+        "min_k": 298,
+        "max_k": 578,
+        "reference_k": 298,
+        "enthalpy_j_mol": -188698,
+        "entropy_j_mol_k": 194.556,
+        "cp_coefficients": [
+          133.888,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-SeCl2!B12, C23, D23; Cp B13:B16",
+        "warning": null
+      },
+      {
+        "formula": "SeCl2",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": -33472,
+        "entropy_j_mol_k": 295.708,
+        "cp_coefficients": [
+          57.948,
+          0.000134,
+          -393000,
+          0
+        ],
+        "source_locator": "Red-SeCl2!C12, F23, G23; Cp C13:C16",
+        "warning": null
+      },
+      {
+        "formula": "Se2",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": 136699,
+        "entropy_j_mol_k": 243.618,
+        "cp_coefficients": [
+          44.601,
+          -0.002657,
+          -251000,
+          0
+        ],
+        "source_locator": "Red-SeCl2!D12, I23, J23; Cp D13:D16",
+        "warning": null
+      },
+      {
+        "formula": "Se",
+        "phase": "s",
+        "min_k": 298,
+        "max_k": 493,
+        "reference_k": 298,
+        "enthalpy_j_mol": 0,
+        "entropy_j_mol_k": 42.258,
+        "cp_coefficients": [
+          17.891,
+          0.025103999999999998,
+          0,
+          0
+        ],
+        "source_locator": "Red-SeCl2!E12, L23, M23; Cp E13:E16",
+        "warning": null
+      },
+      {
+        "formula": "Se",
+        "phase": "l",
+        "min_k": 493,
+        "max_k": 957,
+        "reference_k": 493,
+        "enthalpy_j_mol": 11278,
+        "entropy_j_mol_k": 68.029,
+        "cp_coefficients": [
+          35.146,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-SeCl2!F12, O28, P28; Cp F13:F16",
+        "warning": null
+      },
+      {
+        "formula": "Se",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": 235350,
+        "entropy_j_mol_k": 176.715,
+        "cp_coefficients": [
+          21.464,
+          0.001506,
+          -92000,
+          0
+        ],
+        "source_locator": "Red-SeCl2!G12, R23, S23; Cp G13:G16",
+        "warning": null
+      },
+      {
+        "formula": "Cl2",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": 0,
+        "entropy_j_mol_k": 223.078,
+        "cp_coefficients": [
+          36.61,
+          0.0010789999999999999,
+          -272000,
+          0
+        ],
+        "source_locator": "Red-SeCl2!H12, U23, V23; Cp H13:H16",
+        "warning": null
+      }
+    ]
+  },
+  {
+    "name": "Red-TeCl2",
+    "entries": [
+      {
+        "formula": "TeCl4",
+        "phase": "s",
+        "min_k": 298,
+        "max_k": 497,
+        "reference_k": 298,
+        "enthalpy_j_mol": -323841,
+        "entropy_j_mol_k": 203.012,
+        "cp_coefficients": [
+          138.49,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-TeCl2!B12, C23, D23; Cp B13:B16",
+        "warning": null
+      },
+      {
+        "formula": "TeCl4",
+        "phase": "l",
+        "min_k": 497,
+        "max_k": 687,
+        "reference_k": 497,
+        "enthalpy_j_mol": -277432,
+        "entropy_j_mol_k": 311.747,
+        "cp_coefficients": [
+          230.12,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-TeCl2!C12, F29, G29; Cp C13:C16",
+        "warning": null
+      },
+      {
+        "formula": "TeCl4",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": -205852,
+        "entropy_j_mol_k": 401.773,
+        "cp_coefficients": [
+          96.734,
+          0.000155,
+          -548000,
+          0
+        ],
+        "source_locator": "Red-TeCl2!D12, I23, J23; Cp D13:D16",
+        "warning": null
+      },
+      {
+        "formula": "TeCl2",
+        "phase": "s",
+        "min_k": 298,
+        "max_k": 448,
+        "reference_k": 298,
+        "enthalpy_j_mol": -190192,
+        "entropy_j_mol_k": 161.44,
+        "cp_coefficients": [
+          83.68,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-TeCl2!E12, L23, M23; Cp E13:E16",
+        "warning": null
+      },
+      {
+        "formula": "TeCl2",
+        "phase": "l",
+        "min_k": 448,
+        "max_k": 593,
+        "reference_k": 448,
+        "enthalpy_j_mol": -166355,
+        "entropy_j_mol_k": 220.73,
+        "cp_coefficients": [
+          94.14,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-TeCl2!F12, O27, P27; Cp F13:F16",
+        "warning": null
+      },
+      {
+        "formula": "TeCl2",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": -111716,
+        "entropy_j_mol_k": 305.662,
+        "cp_coefficients": [
+          58.028,
+          9.2e-05,
+          -331000,
+          0
+        ],
+        "source_locator": "Red-TeCl2!G12, R23, S23; Cp G13:G16",
+        "warning": null
+      },
+      {
+        "formula": "Te2",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": 160372,
+        "entropy_j_mol_k": 262.153,
+        "cp_coefficients": [
+          34.644,
+          0.006615,
+          -25000,
+          0
+        ],
+        "source_locator": "Red-TeCl2!H12, U23, V23; Cp H13:H16",
+        "warning": null
+      },
+      {
+        "formula": "Cl2",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": 0,
+        "entropy_j_mol_k": 223.078,
+        "cp_coefficients": [
+          36.61,
+          0.0010789999999999999,
+          -272000,
+          0
+        ],
+        "source_locator": "Red-TeCl2!I12, X23, Y23; Cp I13:I16",
+        "warning": null
+      }
+    ]
+  },
+  {
+    "name": "Red-BiCl3",
+    "entries": [
+      {
+        "formula": "BiCl3",
+        "phase": "s",
+        "min_k": 298,
+        "max_k": 507,
+        "reference_k": 298,
+        "enthalpy_j_mol": -379099,
+        "entropy_j_mol_k": 177,
+        "cp_coefficients": [
+          82.977,
+          0.058533999999999996,
+          0,
+          0
+        ],
+        "source_locator": "Red-BiCl3!B12, C23, D23; Cp B13:B16",
+        "warning": null
+      },
+      {
+        "formula": "BiCl3",
+        "phase": "l",
+        "min_k": 507,
+        "max_k": 712,
+        "reference_k": 507,
+        "enthalpy_j_mol": -333167,
+        "entropy_j_mol_k": 279.987,
+        "cp_coefficients": [
+          143.511,
+          0,
+          0,
+          0
+        ],
+        "source_locator": "Red-BiCl3!C12, F32, G32; Cp C13:C16",
+        "warning": null
+      },
+      {
+        "formula": "BiCl3",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": -292270.554,
+        "entropy_j_mol_k": 303.28715419723306,
+        "cp_coefficients": [
+          83.052,
+          0,
+          -310000,
+          0
+        ],
+        "source_locator": "Red-BiCl3!D12, I23, J23; Cp D13:D16",
+        "warning": "DISCREPANCY versus Binnewies.Tabelle1.XLS row 888: ΔH=-26970.55 J/mol, ΔS=-54.113 J/(mol K)."
+      },
+      {
+        "formula": "BiCl",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": 25104,
+        "entropy_j_mol_k": 255.082,
+        "cp_coefficients": [
+          37.321,
+          0.000837,
+          -117000,
+          0
+        ],
+        "source_locator": "Red-BiCl3!E12, L23, M23; Cp E13:E16",
+        "warning": null
+      },
+      {
+        "formula": "Cl2",
+        "phase": "g",
+        "min_k": 298,
+        "max_k": 2000,
+        "reference_k": 298,
+        "enthalpy_j_mol": 0,
+        "entropy_j_mol_k": 223.078,
+        "cp_coefficients": [
+          36.61,
+          0.0010789999999999999,
+          -272000,
+          0
+        ],
+        "source_locator": "Red-BiCl3!F12, O23, P23; Cp F13:F16",
+        "warning": null
+      }
+    ]
+  }
+]

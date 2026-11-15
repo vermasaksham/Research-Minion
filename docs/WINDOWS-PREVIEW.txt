@@ -1,4 +1,4 @@
-CrystalForge 0.12.0 - Crystal-growth experiments and scientific utilities
+CrystalForge 0.13.0 - Crystal-growth experiments and scientific utilities
 
 Run the standalone EXE, or extract the ZIP and open crystal-forge.exe.
 Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
@@ -30,14 +30,18 @@ Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
    EDX covers Sb, Bi, Se, I, Cl, Br and S. XRD covers Sb2Se3, Sb and trigonal Se.
    No SbSeI or SbI3 diffraction references are bundled. See docs/PEAK-EXPLORER.md.
 8. Scientific Utilities > Thermodynamic Databases opens the local reference
-   manager. Knacke 1991 is listed without data. Add source records or manually
-   enter phase-specific values with a page/table citation, explicit standard
-   pressure and units. Check the original source before marking an entry verified.
-   No thermodynamic calculation screen is available in this version.
+   manager. Import supplied worksheet candidates adds 28 unverified records from
+   four chlorine calculation sheets. Review each entry before marking verified.
+   Knacke 1991 is listed without verified data. Polynomial Cp models can also
+   be entered manually. See docs/THERMODYNAMICS-VALIDATION.md for discrepancies.
+9. Scientific Utilities > Thermodynamic Calculator accepts a generic reaction,
+   temperature range and phase mode. It stops on missing, unverified or ambiguous
+   phase records. Save a calculation snapshot to the active Workbook, export CSV,
+   or provide your own .xlsx template path and a different output path to create
+   an Excel file with an added CrystalForge Results worksheet.
 
-The Rust library now contains a tested reaction calculation engine. It is not
-yet exposed as a calculation screen. No Knacke values or scientific results
-are shipped.
+The supplied worksheet values are candidates, not verified Knacke data. The
+original Knacke PDF exceeded this workspace's transfer limit.
 
 Default complete data folder: %LOCALAPPDATA%\CrystalForge
 An existing %LOCALAPPDATA%\ResearchMinion folder is opened in place so earlier
@@ -49,7 +53,7 @@ Keep the WHOLE folder when replacing the executable or making a backup. Save and
 close ALL app instances before copying it, including all WAL/SHM files if present.
 Copying only one research database does not preserve all users or their pictures.
 
-Profile catalog schema: 1. Research database schema: 5.
+Profile catalog schema: 1. Research database schema: 6.
 Use version 0.5 or later to select profiles. Earlier versions do not understand
 profile identities or automatically find new profile databases. These are offline
 local profiles without passwords, encryption, or an online account service.

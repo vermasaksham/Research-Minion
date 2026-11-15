@@ -3,7 +3,7 @@
 **Crystal-growth experiments and scientific utilities.**
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.12.0** adds a tested thermodynamic reaction engine to the Rust library. Its calculation UI and authoritative values are planned for later phases. Version 0.11 added the local Thermodynamic Database Manager; version 0.10 added Workbooks and starting-material masses. Version 0.9 added local note pictures and a
+Version **0.13.0** adds phase-aware thermodynamic calculations, a desktop calculator, spreadsheet candidate import, Workbook result snapshots, CSV export and template-based Excel export. Version 0.11 added the local Thermodynamic Database Manager; version 0.10 added Workbooks and starting-material masses. Version 0.9 added local note pictures and a
 simpler profile control. The Sb₂Se₃ Peak Explorer keeps separate EDX energy
 and XRD diffraction views, source inspection, crystal-setting mapping and local
 reference snapshots. Markdown notes and separate offline user profiles remain available.
@@ -12,8 +12,8 @@ reference snapshots. Markdown notes and separate offline user profiles remain av
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.12.0-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.12.0-windows-x64-preview.zip)
+- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.13.0-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.13.0-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
@@ -59,8 +59,9 @@ create or switch users, or edit your name/picture. Switching protects unsaved no
     Compare Cu/Co radiation, custom wavelength and Pbnm/Pnma settings. Expand
     **Save / export reference snapshot** to save an analysis to an experiment log
     or export JSON into the active profile. **Manual XRD** retains the earlier calculator.
-11. Open **Scientific Utilities → Thermodynamic Databases** to enter source databases and phase-specific species records. Knacke 1991 is listed as a source, with no bundled values. Enter a page/table citation, explicit standard pressure and values in the shown units. Saved entries start unverified; compare them with the original source before marking verified. The desktop calculation screen is planned for a later phase.
-12. Close and reopen the app to return to your saved experiments, logs and reference entries.
+11. Open **Scientific Utilities → Thermodynamic Databases**. **Import supplied worksheet candidates** adds 28 unverified records from four chlorine calculation sheets, with cell locators and discrepancy warnings. Review the matching worksheet values before marking individual records verified. Knacke 1991 remains listed as an empty metadata source; the spreadsheet values are not labelled Knacke verified. You can also enter source records manually and select reference-point, constant-Cp or polynomial-Cp models.
+12. Open **Scientific Utilities → Thermodynamic Calculator**. Select one source, enter a reaction such as `2/3 SbCl3(g) -> 2/3 Sb + Cl2(g)`, choose Automatic, Fixed or Explicit phase mode, and enter one or more temperatures in K. The calculator shows phase changes, ΔH°, ΔS°, ΔG°, K and log₁₀K. For partial pressure, name the target gas and explicitly enter activities of any other gases, for example `SbCl3=1`. Enter z only if you need E°. Save a full result and reference snapshot in the active Workbook. Export CSV, or choose your own `.xlsx` calculation workbook as an Excel template and a different output path. The exporter adds a results sheet while preserving the original sheets and formulas.
+13. Close and reopen the app to return to your saved experiments, logs, reference entries and Workbook calculations.
 
 The sidebar contains the active Workbook, **CVT Experiments**, and **Scientific Utilities**. There is no separate Logbook tab. Earlier unlinked project notes remain in the database but are no longer shown in the interface.
 
@@ -88,7 +89,8 @@ New profiles start empty unless the first profile adopts an earlier workspace.
 - Each profile opens a separate research database: Workbooks, experiments, notes,
   searches, saved analyses, and Recently deleted belong to that profile.
 - The installation has one separate thermodynamic reference database, shared across local profiles and Workbooks. Sources and entries retain phase, temperature range, reference temperature and pressure, units, page/table locator, verification status and revision. Editing clears verification. No Knacke values are bundled.
-- The Rust thermodynamic engine can evaluate an explicitly specified, element-balanced reaction from verified records at their reference temperature. It calculates ΔH°, ΔS°, ΔG°, ln K and log₁₀ K with a snapshot of each source record. A constant-Cp temperature model requires an explicit validated input. The desktop has no calculation screen yet; no real Knacke results have been validated.
+- The Rust thermodynamic engine selects phase-specific verified records across a temperature grid, checks element balance and validity ranges, and calculates ΔH°, ΔS°, ΔG°, ln K, log₁₀ K, ideal-gas partial pressure and E° when the necessary gas activities and z are supplied. It supports reference-point, constant-Cp and polynomial-Cp models. The desktop displays a ΔG° plot, phase changes and full provenance; saved results stay within the active profile and Workbook.
+- Four chlorine reactions have been compared against cached worksheet outputs. [Validation details and discrepancies](docs/THERMODYNAMICS-VALIDATION.md) explain why these checks do not verify the underlying Knacke values. The supplied PDF was too large to transfer here; worksheet-derived records remain unverified until reviewed.
 - The experiment name, date, temperatures and materials sit on the left of the
   header; Back, New log entry and Delete experiment sit at the upper right.
   Below it, the note list and editor share
@@ -170,8 +172,8 @@ local data folder:
 .\crystal-forge.exe --data-dir "C:\Research\My logbook"
 ```
 
-Replacing the executable does not require deleting the data folder. Version 0.10
-uses research schema 5 and the separate profile catalog remains at schema 1. Older
+Replacing the executable does not require deleting the data folder. Version 0.13
+uses research schema 6 and reference schema 2; the separate profile catalog remains at schema 1. Older
 research databases still upgrade through the retained migrations. Use version
 0.5 or later to select profiles; earlier application versions do not understand
 the profile catalog or find new profile databases automatically.

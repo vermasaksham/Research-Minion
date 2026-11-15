@@ -49,6 +49,15 @@ pub struct Store {
     path: PathBuf,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SavedThermoCalculation {
+    pub id: String,
+    pub workbook_id: String,
+    pub name: String,
+    pub snapshot_json: String,
+    pub created_at: String,
+}
+
 impl Store {
     pub fn open(data_dir: &Path) -> Result<Self> {
         std::fs::create_dir_all(data_dir)?;
@@ -67,7 +76,7 @@ impl Store {
         connection.pragma_update(None, "foreign_keys", "ON")?;
         // Check before making schema or journal changes. Never downgrade a file.
         let version: i64 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 5 {
+        if version > 6 {
             return Err(StoreError::UnsupportedVersion(version));
         }
         if version == 0 {
@@ -216,6 +225,22 @@ impl Store {
             .prepare("SELECT active_workbook_id FROM workbook_preference WHERE id=1 LIMIT 0")?;
         connection
             .prepare("SELECT workbook_id,starting_materials_json FROM cvt_experiments LIMIT 0")?;
+        if version < 6 {
+            let transaction = connection.transaction()?;
+            transaction.execute_batch("CREATE TABLE thermo_calculations (
+                id TEXT PRIMARY KEY NOT NULL,
+                workbook_id TEXT NOT NULL REFERENCES workbooks(id),
+                name TEXT NOT NULL CHECK(length(trim(name))>0),
+                snapshot_json TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE INDEX thermo_calculations_workbook ON thermo_calculations(workbook_id,created_at DESC);")?;
+            transaction.pragma_update(None, "user_version", 6)?;
+            transaction.commit()?;
+        }
+        connection.prepare(
+            "SELECT id,workbook_id,name,snapshot_json,created_at FROM thermo_calculations LIMIT 0",
+        )?;
         connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.pragma_update(None, "synchronous", "FULL")?;
         Ok(Self {
@@ -226,6 +251,41 @@ impl Store {
 
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    pub fn save_thermo_calculation(
+        &self,
+        workbook_id: &str,
+        name: &str,
+        snapshot_json: &str,
+    ) -> Result<String> {
+        if name.trim().is_empty() || name.chars().count() > 160 || snapshot_json.len() > 4_000_000 {
+            return Err(StoreError::Validation(
+                "Enter a calculation name and a valid result snapshot.".into(),
+            ));
+        }
+        serde_json::from_str::<serde_json::Value>(snapshot_json).map_err(|_| {
+            StoreError::Validation("The calculation snapshot is not valid JSON.".into())
+        })?;
+        let id = Uuid::new_v4().to_string();
+        self.connection.execute("INSERT INTO thermo_calculations (id,workbook_id,name,snapshot_json,created_at) VALUES (?1,?2,?3,?4,?5)",
+            params![id,workbook_id,name.trim(),snapshot_json,Utc::now().to_rfc3339()])?;
+        Ok(id)
+    }
+
+    pub fn thermo_calculations(&self, workbook_id: &str) -> Result<Vec<SavedThermoCalculation>> {
+        let mut query=self.connection.prepare("SELECT id,workbook_id,name,snapshot_json,created_at FROM thermo_calculations WHERE workbook_id=?1 ORDER BY created_at DESC,id DESC")?;
+        Ok(query
+            .query_map([workbook_id], |row| {
+                Ok(SavedThermoCalculation {
+                    id: row.get(0)?,
+                    workbook_id: row.get(1)?,
+                    name: row.get(2)?,
+                    snapshot_json: row.get(3)?,
+                    created_at: row.get(4)?,
+                })
+            })?
+            .collect::<std::result::Result<_, _>>()?)
     }
 
     pub fn workbooks(&self) -> Result<Vec<Workbook>> {
