@@ -394,3 +394,16 @@ calculation is implied by a verified entry in this version.
 
 The full 83-test suite, Clippy and the Windows x64 GNU release cross-build pass.
 Native Windows interaction has not been exercised here.
+
+# CrystalForge 0.12.0 thermodynamic reaction engine, 15 November 2026
+
+Six focused tests use synthetic values to compare ΔH°, ΔS°, ΔG°, ln K and
+log₁₀ K with independent arithmetic; exercise fractional SbCl₃ coefficients and
+grouped formulas; test an explicitly declared constant-Cp model; and reject
+unverified data, missing values, mixed sources or standard pressures, unbalanced
+reactions, unsupported formulas and out-of-range temperatures. They also confirm
+that a point Cp stored in the catalog never becomes a temperature model.
+
+The full 89-test suite, Clippy and the Windows x64 GNU release cross-build pass.
+No calculation UI or real Knacke values are included. Native Windows interaction
+and comparison with the Binnewies workbook remain outstanding.

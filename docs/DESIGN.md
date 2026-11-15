@@ -1,5 +1,16 @@
 # Foundation and decisions
 
+## Thermodynamic reaction engine (Phase 3)
+
+The pure Rust `thermodynamics` module takes owned species snapshots, an explicit
+reaction with rational coefficients, a selected source and a temperature. It
+checks source identity, verification, phase range, standard pressure, required
+values and exact elemental balance before calculating ΔH°, ΔS°, ΔG° and K.
+Results retain the input snapshots and logarithmic K when ordinary K overflows.
+Database reference-point Cp values are never silently used as constant Cp.
+Phase switching, a calculation UI and validation against real source values are
+later phases.
+
 ## Thermodynamic reference catalog (schema 1)
 
 Version 0.11 introduces `thermodynamics.sqlite3` at the installation data root,

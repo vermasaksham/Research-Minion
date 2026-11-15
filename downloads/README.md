@@ -2,10 +2,10 @@
 
 CrystalForge — crystal-growth experiments and scientific utilities.
 
-Version **0.11.0** for Windows 10/11 x64:
+Version **0.12.0** for Windows 10/11 x64:
 
-- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.11.0-windows-x64.exe)
-- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.11.0-windows-x64-preview.zip)
+- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.12.0-windows-x64.exe)
+- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.12.0-windows-x64-preview.zip)
 - [SHA-256 checksums](SHA256SUMS.txt)
 
 Run the EXE, or extract the ZIP and open `crystal-forge.exe`. No Rust installation
@@ -23,6 +23,9 @@ The Materials form now accepts starting materials with individual masses and uni
 Scientific Utilities now includes Thermodynamic Databases. Knacke 1991 is
 source metadata only; enter and verify values from the original reference.
 The reference database is shared across local profiles and Workbooks.
+Version 0.12 adds a reaction calculation library with explicit stoichiometry,
+range and source checks. A calculation screen and validated Knacke results are
+planned for later phases.
 
 Keep the entire `%LOCALAPPDATA%\CrystalForge` folder when replacing the app or
 making a closed-app backup: profile catalog, pictures, all profile subfolders,

@@ -4,6 +4,7 @@ use std::{
     time::Duration,
 };
 
+use crate::thermodynamics::{HeatModel, SpeciesRecord};
 use chrono::{DateTime, Utc};
 use rusqlite::{Connection, OptionalExtension, Row, params, types::Type};
 use thiserror::Error;
@@ -154,6 +155,42 @@ pub struct ThermoEntry {
     pub updated_at: DateTime<Utc>,
     pub verified_at: Option<DateTime<Utc>>,
     pub revision: i64,
+}
+
+impl ThermoEntry {
+    /// Make an owned calculation input without treating point Cp as constant Cp.
+    pub fn as_engine_record(&self, source: &ThermoSource) -> Result<SpeciesRecord> {
+        if self.draft.source_id != source.id {
+            return Err(ThermoError::Validation(
+                "The entry and source database do not match.".into(),
+            ));
+        }
+        Ok(SpeciesRecord {
+            id: self.id.clone(),
+            source_id: source.id.clone(),
+            source_name: source.name.clone(),
+            source_authors: source.authors.clone(),
+            source_year: source.year,
+            source_reference: source.reference.clone(),
+            source_enabled: source.enabled,
+            source_locator: self.draft.source_locator.clone(),
+            species_name: self.draft.species.clone(),
+            comments: self.draft.comments.clone(),
+            imported_at: self.imported_at,
+            updated_at: self.updated_at,
+            revision: self.revision,
+            verified_at: self.verified_at,
+            formula: self.draft.formula.clone(),
+            phase: self.draft.phase.code().into(),
+            min_k: self.draft.min_k,
+            max_k: self.draft.max_k,
+            reference_k: self.draft.reference_k,
+            reference_pressure_bar: self.draft.reference_pressure_bar,
+            formation_enthalpy_j_mol: self.draft.enthalpy_j_mol,
+            molar_entropy_j_mol_k: self.draft.entropy_j_mol_k,
+            model: HeatModel::ReferenceOnly,
+        })
+    }
 }
 
 pub struct ThermoStore {
@@ -356,6 +393,17 @@ impl ThermoStore {
         Ok(query
             .query_map([source_id], read_entry)?
             .collect::<std::result::Result<_, _>>()?)
+    }
+    pub fn engine_records(&self, source_id: &str) -> Result<Vec<SpeciesRecord>> {
+        let source = self
+            .sources()?
+            .into_iter()
+            .find(|source| source.id == source_id)
+            .ok_or(ThermoError::NotFound)?;
+        self.entries(source_id)?
+            .iter()
+            .map(|entry| entry.as_engine_record(&source))
+            .collect()
     }
     pub fn entry(&self, id: &str) -> Result<ThermoEntry> {
         self.connection.query_row("SELECT id,source_id,species,formula,phase,min_k,max_k,reference_k,model_type,enthalpy_j_mol,entropy_j_mol_k,heat_capacity_j_mol_k,source_locator,comments,imported_at,updated_at,verified_at,revision,reference_pressure_bar FROM thermo_entries WHERE id=?1",[id],read_entry).optional()?.ok_or(ThermoError::NotFound)

@@ -7,6 +7,7 @@ pub mod model;
 pub mod note_images;
 pub mod store;
 pub mod thermo_database;
+pub mod thermodynamics;
 
 #[cfg(feature = "desktop")]
 mod thermo_view;

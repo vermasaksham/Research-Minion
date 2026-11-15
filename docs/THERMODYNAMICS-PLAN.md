@@ -1,8 +1,8 @@
 # Thermodynamics architecture and prerequisites
 
 Phase 2 adds a global local source catalog and manual species records. Knacke
-1991 is present as metadata only; no thermodynamic values are bundled. The app
-does not yet calculate equilibria. Validation against the original source and
+1991 is present as metadata only; no thermodynamic values are bundled. The desktop
+does not yet expose equilibrium calculations. Validation against the original source and
 the Binnewies workbook must precede trustworthy calculated results.
 
 Each record stores one phase, a valid temperature range, an explicit reference
@@ -12,6 +12,25 @@ verified only after reviewing the source; editing clears verification. The
 initial model stores values at one reference temperature. It does not describe
 temperature-dependent heat capacity or phase-transition energetics.
 Aqueous records await an explicit concentration standard state in a later schema.
+
+## Phase 3 engine
+
+`src/thermodynamics.rs` is a pure Rust module, separate from SQLite and egui.
+Rust keeps the existing offline Windows executable free of a Python runtime.
+It uses signed rational stoichiometric coefficients and checks element balance
+for supported formulas. Inputs are explicit record IDs from one selected source.
+Each record must be verified, complete, within its validated temperature range,
+and use the same standard pressure. The result retains an owned snapshot of
+every species record and source citation.
+
+The installed database's `reference_values` model is evaluated only at its
+reference temperature. A distinct constant-Cp model is available to the engine
+only when the assumption and range are explicitly supplied. Storing one Cp value
+in the database never activates that model. The engine returns ΔH°, ΔS°, ΔG°,
+ln K and log₁₀ K; K is omitted when it cannot be represented as a finite
+positive number. The next phase will add automatic phase selection and
+piecewise temperature behavior. Gas partial-pressure and electrode-potential
+calculations require further activity and electron-count definitions.
 
 ## Storage boundary
 
