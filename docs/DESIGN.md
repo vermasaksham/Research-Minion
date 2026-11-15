@@ -1,5 +1,16 @@
 # Foundation and decisions
 
+## Current Workbook layer (research schema 5)
+
+Each profile retains its own research SQLite database. Schema 5 adds `workbooks`,
+`workbook_preference`, and a `workbook_id` reference on CVT experiments. The
+transactional migration creates one default Workbook per profile and assigns all
+existing experiments to it without changing experiment IDs, notes, or deletion
+state. It also adds a JSON column for starting-material names, exact entered mass
+text, and selected mg/g/kg units. Workbooks have separate names, material systems,
+primary phases, and descriptions. The active Workbook is a profile-local setting.
+See [thermodynamics plan](THERMODYNAMICS-PLAN.md) for the next planned modules.
+
 ## Confirmed scope
 
 CrystalForge is a Windows desktop application that works offline, centred on

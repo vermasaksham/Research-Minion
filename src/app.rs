@@ -3,7 +3,7 @@ use eframe::egui::{self, Color32, RichText, Stroke, Vec2};
 use crate::{
     cvt_view::{self, ExperimentAction, ExperimentForm, FormAction},
     editor::Editor,
-    model::{CvtExperiment, Entry, Project},
+    model::{CvtExperiment, Entry, Workbook},
     peak_view::PeakWorkspace,
     profile_view::{self, ProfileForm},
     profiles::{Profile, Profiles},
@@ -35,17 +35,18 @@ enum Action {
     SwitchProfile(String),
     NewExperiment,
     OpenExperiment(String),
-    PreviousLogs,
     CreateExperiment,
-    SelectProject(String),
+    SwitchWorkbook(String),
+    NewWorkbook,
+    RenameWorkbook,
+    SaveWorkbook,
+    MoveExperiment(String, String),
     OpenEntry(String),
     NewEntry,
-    NewProject,
     Reload,
     Close,
     Save,
     Filter,
-    CreateProject,
     DeleteExperiment(String),
     DeleteEntry(Entry),
     DeleteLog,
@@ -79,9 +80,12 @@ impl Deletion {
 }
 
 #[derive(Default)]
-struct ProjectForm {
+struct WorkbookForm {
+    id: Option<String>,
     name: String,
     description: String,
+    material_system: String,
+    primary_phase: String,
 }
 
 pub struct CrystalForgeApp {
@@ -96,15 +100,17 @@ pub struct CrystalForgeApp {
     startup_error: Option<String>,
     tab: Tab,
     experiments: Vec<CvtExperiment>,
+    workbooks: Vec<Workbook>,
+    active_workbook_id: Option<String>,
     experiment_form: Option<ExperimentForm>,
     active_experiment: Option<CvtExperiment>,
-    projects: Vec<Project>,
     entries: Vec<Entry>,
     project_id: Option<String>,
     editor: Option<Editor>,
     notes_view: crate::notes_view::NotesView,
     search: String,
-    project_form: Option<ProjectForm>,
+    experiment_search: String,
+    workbook_form: Option<WorkbookForm>,
     pending: Option<Action>,
     error: Option<String>,
     notice: String,
@@ -135,15 +141,17 @@ impl CrystalForgeApp {
             startup_error,
             tab: Tab::default(),
             experiments: vec![],
+            workbooks: vec![],
+            active_workbook_id: None,
             experiment_form: None,
             active_experiment: None,
-            projects: vec![],
             entries: vec![],
             project_id: None,
             editor: None,
             notes_view: crate::notes_view::NotesView::default(),
             search: String::new(),
-            project_form: None,
+            experiment_search: String::new(),
+            workbook_form: None,
             pending: None,
             error: None,
             notice: "Offline research workspace".into(),
@@ -189,13 +197,16 @@ impl CrystalForgeApp {
             .and_then(|registry| {
                 let profile = registry.profile(id).map_err(|error| error.to_string())?;
                 let store = registry.workspace(id).map_err(|error| error.to_string())?;
-                let projects = store.legacy_projects().map_err(|error| error.to_string())?;
                 let experiments = store.cvt_experiments().map_err(|error| error.to_string())?;
+                let workbooks = store.workbooks().map_err(|error| error.to_string())?;
+                let active_workbook_id = store
+                    .active_workbook_id()
+                    .map_err(|error| error.to_string())?;
                 registry.activate(id).map_err(|error| error.to_string())?;
-                Ok((profile, store, projects, experiments))
+                Ok((profile, store, experiments, workbooks, active_workbook_id))
             });
         match result {
-            Ok((profile, store, projects, experiments)) => {
+            Ok((profile, store, experiments, workbooks, active_workbook_id)) => {
                 self.profile_texture = profile
                     .picture_png
                     .as_ref()
@@ -208,24 +219,23 @@ impl CrystalForgeApp {
                 self.peak = self.peak_drafts.remove(&profile.id).unwrap_or_default();
                 self.active_profile = Some(profile);
                 self.store = Some(store);
-                self.projects = projects;
                 self.experiments = experiments;
+                self.workbooks = workbooks;
+                self.active_workbook_id = Some(active_workbook_id);
                 self.entries.clear();
                 self.editor = None;
                 self.notes_view = crate::notes_view::NotesView::default();
                 self.project_id = None;
                 self.active_experiment = None;
                 self.search.clear();
+                self.experiment_search.clear();
                 self.deleted_entries.clear();
                 self.deleted_experiments.clear();
                 self.experiment_form = None;
-                self.project_form = None;
+                self.workbook_form = None;
                 self.deletion = None;
                 self.tab = Tab::Experiments;
                 self.error = None;
-                if let Some(project) = self.projects.first() {
-                    self.select_project(project.id.clone());
-                }
                 ctx.request_repaint();
                 true
             }
@@ -348,7 +358,9 @@ impl CrystalForgeApp {
     }
 
     fn create_experiment(&mut self) -> bool {
-        let (Some(store), Some(form)) = (&self.store, &self.experiment_form) else {
+        let (Some(store), Some(form), Some(workbook_id)) =
+            (&self.store, &self.experiment_form, &self.active_workbook_id)
+        else {
             return false;
         };
         let result = form
@@ -358,7 +370,12 @@ impl CrystalForgeApp {
                 let mut details = form.details.clone();
                 details.experiment_date = form.date()?;
                 store
-                    .create_cvt_experiment_with_details(&form.name, conditions, &details)
+                    .create_cvt_experiment_in_workbook(
+                        &form.name,
+                        conditions,
+                        &details,
+                        workbook_id,
+                    )
                     .map_err(|error| error.to_string())
             });
         match result {
@@ -421,11 +438,12 @@ impl CrystalForgeApp {
                 | Action::EditProfile
                 | Action::NewExperiment
                 | Action::OpenExperiment(_)
-                | Action::PreviousLogs
-                | Action::SelectProject(_)
+                | Action::SwitchWorkbook(_)
+                | Action::MoveExperiment(_, _)
+                | Action::NewWorkbook
+                | Action::RenameWorkbook
                 | Action::OpenEntry(_)
                 | Action::NewEntry
-                | Action::NewProject
                 | Action::Reload
                 | Action::Close
         );
@@ -491,15 +509,83 @@ impl CrystalForgeApp {
                     None => {}
                 }
             }
-            Action::PreviousLogs => {
-                self.active_experiment = None;
-                self.tab = Tab::Logbook;
-                if let Some(project) = self.projects.first() {
-                    self.select_project(project.id.clone());
-                } else {
-                    self.project_id = None;
-                    self.editor = None;
-                    self.entries.clear();
+            Action::SwitchWorkbook(id) => {
+                if let Some(store) = &self.store {
+                    match store.set_active_workbook(&id) {
+                        Ok(()) => {
+                            self.active_workbook_id = Some(id);
+                            self.experiment_search.clear();
+                            self.active_experiment = None;
+                            self.tab = Tab::Experiments;
+                            self.refresh_experiments();
+                        }
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
+                }
+            }
+            Action::NewWorkbook => self.workbook_form = Some(WorkbookForm::default()),
+            Action::RenameWorkbook => {
+                if let Some(workbook) = self
+                    .workbooks
+                    .iter()
+                    .find(|workbook| Some(&workbook.id) == self.active_workbook_id.as_ref())
+                {
+                    self.workbook_form = Some(WorkbookForm {
+                        id: Some(workbook.id.clone()),
+                        name: workbook.name.clone(),
+                        description: workbook.description.clone(),
+                        material_system: workbook.material_system.clone(),
+                        primary_phase: workbook.primary_phase.clone(),
+                    });
+                }
+            }
+            Action::SaveWorkbook => {
+                if let (Some(store), Some(form)) = (&self.store, &self.workbook_form) {
+                    let result = if let Some(id) = &form.id {
+                        store.rename_workbook(id, &form.name).map(|()| id.clone())
+                    } else {
+                        store
+                            .create_workbook(
+                                &form.name,
+                                &form.description,
+                                &form.material_system,
+                                &form.primary_phase,
+                            )
+                            .map(|workbook| workbook.id)
+                    };
+                    match result {
+                        Ok(id) => {
+                            if let Err(error) = store.set_active_workbook(&id) {
+                                self.error = Some(error.to_string());
+                            } else {
+                                match store.workbooks() {
+                                    Ok(workbooks) => {
+                                        self.workbooks = workbooks;
+                                        self.active_workbook_id = Some(id);
+                                        self.experiment_search.clear();
+                                        self.workbook_form = None;
+                                        self.tab = Tab::Experiments;
+                                        self.error = None;
+                                    }
+                                    Err(error) => self.error = Some(error.to_string()),
+                                }
+                            }
+                        }
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
+                }
+            }
+            Action::MoveExperiment(experiment_id, workbook_id) => {
+                if let Some(store) = &self.store {
+                    match store.move_experiment_to_workbook(&experiment_id, &workbook_id) {
+                        Ok(()) => {
+                            self.active_experiment = None;
+                            self.tab = Tab::Experiments;
+                            self.refresh_experiments();
+                            self.notice = "Experiment moved to workbook".into();
+                        }
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
                 }
             }
             Action::NewExperiment => {
@@ -514,10 +600,6 @@ impl CrystalForgeApp {
             }
             Action::Filter => {
                 self.refresh_entries();
-            }
-            Action::SelectProject(id) => {
-                self.active_experiment = None;
-                self.select_project(id);
             }
             Action::NewEntry => {
                 if let Some(id) = &self.project_id {
@@ -536,21 +618,6 @@ impl CrystalForgeApp {
                 {
                     self.load_entry(&id);
                     self.refresh_entries();
-                }
-            }
-            Action::NewProject => self.project_form = Some(ProjectForm::default()),
-            Action::CreateProject => {
-                if let (Some(store), Some(form)) = (&self.store, &self.project_form) {
-                    match store.create_project(&form.name, &form.description) {
-                        Ok(project) => {
-                            let id = project.id.clone();
-                            self.projects.push(project);
-                            self.project_form = None;
-                            self.select_project(id);
-                            self.notice = "Project created · write your first entry".into();
-                        }
-                        Err(error) => self.error = Some(error.to_string()),
-                    }
                 }
             }
             Action::DeleteExperiment(id) => {
@@ -575,12 +642,6 @@ impl CrystalForgeApp {
                                 .active_experiment
                                 .as_ref()
                                 .map(|experiment| experiment.name.clone())
-                                .or_else(|| {
-                                    self.projects
-                                        .iter()
-                                        .find(|project| &project.id == id)
-                                        .map(|project| project.name.clone())
-                                })
                                 .unwrap_or_else(|| "Current log".into());
                             self.deletion = Some(Deletion::Log {
                                 project_id: id.clone(),
@@ -722,13 +783,12 @@ impl CrystalForgeApp {
                 ui.heading("Log entries");
                 ui.label("Entries from a deleted experiment appear here after that experiment is restored.");
                 if self.deleted_entries.is_empty() {ui.label("No deleted entries in active logs.");}
-                for entry in &self.deleted_entries {
+                for entry in self.deleted_entries.iter().filter(|entry|self.experiments.iter().any(|experiment|experiment.log_project_id==entry.project_id)) {
                     ui.push_id(&entry.id,|ui| {
                         ui.horizontal_wrapped(|ui| {
                             if ui.button("Restore entry").clicked() {actions.push(Action::RestoreEntry(entry.clone()));}
                             ui.strong(&entry.title);
-                            let owner=self.experiments.iter().find(|experiment|experiment.log_project_id==entry.project_id).map(|experiment|experiment.name.as_str())
-                                .or_else(||self.projects.iter().find(|project|project.id==entry.project_id).map(|project|project.name.as_str())).unwrap_or("Previous log");
+                            let owner=self.experiments.iter().find(|experiment|experiment.log_project_id==entry.project_id).map(|experiment|experiment.name.as_str()).unwrap_or("Experiment");
                             ui.label(format!("Event {} · {}",entry.event_date,owner));
                         });
                     });
@@ -797,6 +857,50 @@ impl CrystalForgeApp {
                 }
                 ui.add_space(24.0);
                 ui.label(
+                    RichText::new("WORKBOOK")
+                        .size(11.0)
+                        .strong()
+                        .color(Color32::from_gray(160)),
+                );
+                let active = self
+                    .workbooks
+                    .iter()
+                    .find(|workbook| Some(&workbook.id) == self.active_workbook_id.as_ref());
+                egui::ComboBox::from_id_salt("active-workbook")
+                    .width(ui.available_width())
+                    .selected_text(
+                        active.map_or("Choose workbook", |workbook| workbook.name.as_str()),
+                    )
+                    .show_ui(ui, |ui| {
+                        for workbook in &self.workbooks {
+                            if ui
+                                .selectable_label(
+                                    Some(&workbook.id) == self.active_workbook_id.as_ref(),
+                                    &workbook.name,
+                                )
+                                .clicked()
+                            {
+                                actions.push(Action::SwitchWorkbook(workbook.id.clone()));
+                            }
+                        }
+                    });
+                if let Some(workbook) = active
+                    && !workbook.material_system.is_empty()
+                {
+                    ui.label(
+                        RichText::new(&workbook.material_system)
+                            .size(11.0)
+                            .color(Color32::LIGHT_GRAY),
+                    );
+                }
+                if ui.button("+ New workbook").clicked() {
+                    actions.push(Action::NewWorkbook);
+                }
+                if ui.button("Rename workbook").clicked() {
+                    actions.push(Action::RenameWorkbook);
+                }
+                ui.add_space(18.0);
+                ui.label(
                     RichText::new("WORKSPACE")
                         .size(11.0)
                         .strong()
@@ -846,33 +950,35 @@ impl CrystalForgeApp {
             ui.heading(RichText::new(&experiment.name).size(23.0).color(INK));
             ui.add_space(5.0);
             crate::materials_view::experiment_summary(ui, experiment);
-        } else {
-            ui.heading("Previous project logs");
-            let project = self
-                .projects
-                .iter()
-                .find(|project| Some(&project.id) == self.project_id.as_ref());
-            egui::ComboBox::from_id_salt("previous-project")
-                .selected_text(project.map_or("Choose project", |project| project.name.as_str()))
-                .show_ui(ui, |ui| {
-                    for project in &self.projects {
-                        if ui
-                            .selectable_label(
-                                Some(&project.id) == self.project_id.as_ref(),
-                                &project.name,
-                            )
-                            .clicked()
-                        {
-                            actions.push(Action::SelectProject(project.id.clone()));
+            ui.horizontal(|ui| {
+                ui.label("Workbook:");
+                egui::ComboBox::from_id_salt("experiment-workbook")
+                    .selected_text(
+                        self.workbooks
+                            .iter()
+                            .find(|workbook| workbook.id == experiment.workbook_id)
+                            .map_or("Unknown", |workbook| workbook.name.as_str()),
+                    )
+                    .show_ui(ui, |ui| {
+                        for workbook in &self.workbooks {
+                            if ui
+                                .selectable_label(
+                                    workbook.id == experiment.workbook_id,
+                                    &workbook.name,
+                                )
+                                .clicked()
+                                && workbook.id != experiment.workbook_id
+                            {
+                                actions.push(Action::MoveExperiment(
+                                    experiment.id.clone(),
+                                    workbook.id.clone(),
+                                ));
+                            }
                         }
-                    }
-                });
-            if ui.button("New project").clicked() {
-                actions.push(Action::NewProject);
-            }
-            if let Some(project) = project {
-                ui.label(&project.description);
-            }
+                    });
+            });
+        } else {
+            ui.heading("Experiment notes");
         }
     }
 
@@ -1073,7 +1179,12 @@ impl CrystalForgeApp {
                 }
             }
             if let Some(form) = &mut self.experiment_form {
-                match form.show(ctx, self.error.as_deref()) {
+                let workbook_name = self
+                    .workbooks
+                    .iter()
+                    .find(|workbook| Some(&workbook.id) == self.active_workbook_id.as_ref())
+                    .map_or("My experiments", |workbook| workbook.name.as_str());
+                match form.show(ctx, self.error.as_deref(), workbook_name) {
                     Some(FormAction::Save) => actions.push(Action::CreateExperiment),
                     Some(FormAction::Changed) => {
                         self.error = None;
@@ -1087,36 +1198,59 @@ impl CrystalForgeApp {
                     None => {}
                 }
             }
-            if let Some(form) = &mut self.project_form {
+            if let Some(form) = &mut self.workbook_form {
                 let mut cancel = false;
-                egui::Modal::new(egui::Id::new("new-project")).show(ctx, |ui| {
+                egui::Modal::new(egui::Id::new("workbook-form")).show(ctx, |ui| {
                     ui.set_width(420.0);
-                    ui.heading("Create a project");
-                    ui.label(
-                        RichText::new("A project brings related research entries together.")
-                            .color(MUTED),
-                    );
+                    ui.heading(if form.id.is_some() {
+                        "Rename workbook"
+                    } else {
+                        "New workbook"
+                    });
                     ui.add_space(16.0);
-                    ui.label("Project name");
+                    ui.label("Workbook name");
                     ui.add(
                         egui::TextEdit::singleline(&mut form.name)
-                            .hint_text("e.g. Sb₂Se₃ crystal growth")
+                            .hint_text("e.g. Sb₂Se₃ Bulk CVT · Paper 1")
                             .desired_width(f32::INFINITY),
                     );
-                    ui.add_space(10.0);
-                    ui.label("Description (optional)");
-                    ui.add(
-                        egui::TextEdit::multiline(&mut form.description)
-                            .desired_rows(3)
-                            .desired_width(f32::INFINITY),
-                    );
+                    if form.id.is_none() {
+                        ui.add_space(10.0);
+                        ui.label("Material system · optional");
+                        ui.add(
+                            egui::TextEdit::singleline(&mut form.material_system)
+                                .hint_text("e.g. Sb–Se")
+                                .desired_width(f32::INFINITY),
+                        );
+                        ui.label("Primary phase · optional");
+                        ui.add(
+                            egui::TextEdit::singleline(&mut form.primary_phase)
+                                .hint_text("e.g. Sb₂Se₃")
+                                .desired_width(f32::INFINITY),
+                        );
+                        ui.label("Description · optional");
+                        ui.add(
+                            egui::TextEdit::multiline(&mut form.description)
+                                .desired_rows(3)
+                                .desired_width(f32::INFINITY),
+                        );
+                    }
                     if let Some(error) = &self.error {
                         ui.colored_label(Color32::DARK_RED, error);
                     }
                     ui.add_space(16.0);
                     ui.horizontal(|ui| {
-                        if primary_button(ui, "Create project").clicked() {
-                            actions.push(Action::CreateProject);
+                        if primary_button(
+                            ui,
+                            if form.id.is_some() {
+                                "Save name"
+                            } else {
+                                "Create workbook"
+                            },
+                        )
+                        .clicked()
+                        {
+                            actions.push(Action::SaveWorkbook);
                         }
                         if ui.button("Cancel").clicked() {
                             cancel = true;
@@ -1124,7 +1258,7 @@ impl CrystalForgeApp {
                     });
                 });
                 if cancel {
-                    self.project_form = None;
+                    self.workbook_form = None;
                     self.error = None;
                 }
             }
@@ -1259,7 +1393,7 @@ impl eframe::App for CrystalForgeApp {
         }
         if self.pending.is_none()
             && self.deletion.is_none()
-            && self.project_form.is_none()
+            && self.workbook_form.is_none()
             && self.profile_form.is_none()
             && !self.profile_menu
             && self.experiment_form.is_none()
@@ -1309,17 +1443,43 @@ impl eframe::App for CrystalForgeApp {
                 }
                 match self.tab {
                     Tab::Experiments => {
-                        match cvt_view::experiments(
-                            ui,
-                            &self.experiments,
-                            !self.projects.is_empty(),
-                        ) {
+                        ui.horizontal(|ui| {
+                            ui.label("Search this workbook");
+                            ui.add(
+                                egui::TextEdit::singleline(&mut self.experiment_search)
+                                    .hint_text("Experiment name or material")
+                                    .desired_width(260.0),
+                            );
+                        });
+                        let needle = self.experiment_search.trim().to_lowercase();
+                        let current: Vec<_> = self
+                            .experiments
+                            .iter()
+                            .filter(|experiment| {
+                                Some(&experiment.workbook_id) == self.active_workbook_id.as_ref()
+                            })
+                            .filter(|experiment| {
+                                needle.is_empty()
+                                    || experiment.name.to_lowercase().contains(&needle)
+                                    || experiment
+                                        .details
+                                        .precursor
+                                        .text
+                                        .to_lowercase()
+                                        .contains(&needle)
+                                    || experiment
+                                        .details
+                                        .product
+                                        .text
+                                        .to_lowercase()
+                                        .contains(&needle)
+                            })
+                            .cloned()
+                            .collect();
+                        match cvt_view::experiments(ui, &current) {
                             Some(ExperimentAction::New) => actions.push(Action::NewExperiment),
                             Some(ExperimentAction::Open(id)) => {
                                 actions.push(Action::OpenExperiment(id))
-                            }
-                            Some(ExperimentAction::PreviousLogs) => {
-                                actions.push(Action::PreviousLogs)
                             }
                             Some(ExperimentAction::Delete(id)) => {
                                 actions.push(Action::DeleteExperiment(id))

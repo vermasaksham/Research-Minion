@@ -4,7 +4,7 @@ use crate::{
     app::{INK, MUTED, PAPER, TEAL, primary_button},
     cvt::{CvtConditions, TemperatureError, TemperatureScale, temperature_text},
     materials_view::{self, ElementTarget},
-    model::{CvtExperiment, ExperimentDetails, HeatEffect},
+    model::{CvtExperiment, ExperimentDetails, HeatEffect, MassUnit, StartingMaterial},
 };
 
 const SOURCE: Color32 = Color32::from_rgb(191, 103, 58);
@@ -73,7 +73,12 @@ impl ExperimentForm {
             })
     }
 
-    pub fn show(&mut self, ctx: &egui::Context, error: Option<&str>) -> Option<FormAction> {
+    pub fn show(
+        &mut self,
+        ctx: &egui::Context,
+        error: Option<&str>,
+        workbook_name: &str,
+    ) -> Option<FormAction> {
         let mut action = None;
         let mut changed = false;
         egui::Modal::new(egui::Id::new(("new-cvt-experiment", self.ui_id)))
@@ -82,6 +87,7 @@ impl ExperimentForm {
             ui.set_width(820.0);
             ui.spacing_mut().item_spacing = Vec2::new(12.0, 9.0);
             ui.heading(RichText::new("New CVT experiment").size(25.0).color(INK));
+            ui.label(RichText::new(format!("Workbook: {workbook_name}")).color(TEAL));
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 ui.selectable_value(&mut self.materials_page, false, "Conditions");
@@ -104,6 +110,30 @@ impl ExperimentForm {
                             material_card(&mut columns[0], "Precursor", &mut self.details.precursor, &mut changed);
                             material_card(&mut columns[1], "Obtained material", &mut self.details.product, &mut changed);
                         });
+                        ui.add_space(12.0);
+                        ui.strong("Starting materials and masses");
+                        ui.label(RichText::new("Add one row for each weighed material.").color(MUTED));
+                        let mut remove = None;
+                        for (index, material) in self.details.starting_materials.iter_mut().enumerate() {
+                            ui.horizontal(|ui| {
+                                changed |= ui.add(egui::TextEdit::singleline(&mut material.name).hint_text("Material or formula").desired_width(250.0)).changed();
+                                changed |= ui.add(egui::TextEdit::singleline(&mut material.mass).hint_text("Mass").desired_width(100.0)).changed();
+                                egui::ComboBox::from_id_salt(("starting-material-unit", self.ui_id, index)).selected_text(material.unit.label()).show_ui(ui, |ui| {
+                                    for unit in [MassUnit::Mg, MassUnit::G, MassUnit::Kg] {
+                                        changed |= ui.selectable_value(&mut material.unit, unit, unit.label()).changed();
+                                    }
+                                });
+                                if ui.button("Remove").clicked() { remove = Some(index); }
+                            });
+                        }
+                        if let Some(index) = remove { self.details.starting_materials.remove(index); changed = true; }
+                        if ui.button("+ Add starting material").clicked() {
+                            self.details.starting_materials.push(StartingMaterial::default());
+                            changed = true;
+                        }
+                        if let Some(error) = self.details.starting_materials.iter().find_map(|material|material.validate().err()) {
+                            ui.colored_label(Color32::DARK_RED,error);
+                        }
                         ui.add_space(12.0);
                         ui.collapsing(RichText::new("Choose from the periodic table").strong(), |ui| {
                             changed |= materials_view::periodic_table(ui, &mut self.details, &mut self.target);
@@ -171,7 +201,7 @@ impl ExperimentForm {
             ui.horizontal(|ui| {
                 if ui.button("Cancel").clicked() { action = Some(FormAction::Cancel); }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    ui.add_enabled_ui(self.conditions().is_ok() && self.date().is_ok(), |ui| {
+                    ui.add_enabled_ui(self.conditions().is_ok() && self.date().is_ok() && self.details.starting_materials.iter().all(|material|material.validate().is_ok()), |ui| {
                         if primary_button(ui, "Save experiment").clicked() { action = Some(FormAction::Save); }
                     });
                     if !self.materials_page && ui.button("Next: materials").clicked() {
@@ -205,16 +235,11 @@ fn material_card(
 pub enum ExperimentAction {
     New,
     Open(String),
-    PreviousLogs,
     Delete(String),
     RecentlyDeleted,
 }
 
-pub fn experiments(
-    ui: &mut egui::Ui,
-    experiments: &[CvtExperiment],
-    has_previous_logs: bool,
-) -> Option<ExperimentAction> {
+pub fn experiments(ui: &mut egui::Ui, experiments: &[CvtExperiment]) -> Option<ExperimentAction> {
     let mut action = None;
     egui::ScrollArea::vertical().id_salt("experiments-page").show(ui, |ui| {
         egui::Frame::new().inner_margin(26).show(ui, |ui| {
@@ -223,7 +248,6 @@ pub fn experiments(
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if primary_button(ui, "+  New experiment").clicked() { action = Some(ExperimentAction::New); }
                     if ui.button("Recently deleted").clicked() { action = Some(ExperimentAction::RecentlyDeleted); }
-                    if has_previous_logs && ui.button("Previous project logs").clicked() { action = Some(ExperimentAction::PreviousLogs); }
                 });
             });
             ui.add_space(24.0);

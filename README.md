@@ -3,7 +3,7 @@
 **Crystal-growth experiments and scientific utilities.**
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.9.1** lets subscript/superscript style entire words. Version 0.9 added local note pictures and a
+Version **0.10.0** adds profile-local Workbooks and starting-material masses. Version 0.9.1 lets subscript/superscript style entire words. Version 0.9 added local note pictures and a
 simpler profile control. The Sb₂Se₃ Peak Explorer keeps separate EDX energy
 and XRD diffraction views, source inspection, crystal-setting mapping and local
 reference snapshots. Markdown notes and separate offline user profiles remain available.
@@ -12,8 +12,8 @@ reference snapshots. Markdown notes and separate offline user profiles remain av
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.1-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.9.1-windows-x64-preview.zip)
+- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.10.0-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.10.0-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
@@ -30,7 +30,7 @@ The first profile takes ownership of earlier experiments and notes in this data
 folder. Later profiles start empty. Click your sidebar name or picture to
 create or switch users, or edit your name/picture. Switching protects unsaved notes.
 
-1. After profile setup, the app opens in **CVT Experiments**. Click **+ New experiment**.
+1. After profile setup, the app opens in **CVT Experiments** inside the default **My experiments** Workbook. Use the sidebar to create, rename, or switch Workbooks. New experiments go into the active Workbook; open an experiment log to move one to another Workbook. Click **+ New experiment**.
 2. In **Conditions**, enter the experiment date (`YYYY-MM-DD`; blank if unknown), a name if useful,
    and source and sink temperatures, for example **650 °C** and **600 °C**.
    The form previews **ΔT = Source − Sink = 50 °C**.
@@ -43,7 +43,7 @@ create or switch users, or edit your name/picture. Switching protects unsaved no
 5. Alternatively, expand **Choose from the periodic table**, select
    **Precursor** or **Obtained material**, and click element buttons. Each set is
    independent. Click a selected element again to remove it.
-6. Add a **Transport agent** if relevant, or leave it blank. Click **Save experiment**.
+6. Add starting materials with a mass and mg/g/kg unit for each one. Add a **Transport agent** if relevant, or leave it blank. Click **Save experiment**.
 7. **Click the experiment bar or its name to open its log.** Add a title, event
    date (`YYYY-MM-DD`), and notes. Use **Write** for Markdown source and **Preview**
    to see the current draft rendered. Select text and use the formatting toolbar,
@@ -61,18 +61,14 @@ create or switch users, or edit your name/picture. Switching protects unsaved no
     or export JSON into the active profile. **Manual XRD** retains the earlier calculator.
 11. Close and reopen the app to return to your saved experiments and logs.
 
-The sidebar contains **CVT Experiments** and **Scientific Utilities**. There is no separate
-Logbook tab. Earlier, unlinked project notes remain accessible through
-**Previous project logs** on the Experiments page when such notes exist.
+The sidebar contains the active Workbook, **CVT Experiments**, and **Scientific Utilities**. There is no separate Logbook tab. Earlier unlinked project notes remain in the database but are no longer shown in the interface.
 
-This is an early preview. Seventy-four automated tests and Linux interface checks pass.
+This is an early preview. Automated tests pass; the Windows executable is cross-compiled.
 The executable was cross-compiled for Windows; Windows execution remains
 unverified. Preview binaries are hosted directly in this repository, rather than
 as GitHub Release assets, because release-API access is unavailable here.
 
 ![Offline profile setup](docs/images/profile-setup.png)
-
-![CVT experiment overview and active user](docs/images/cvt-overview.png)
 
 ![Experiment-linked log](docs/images/experiment-log.png)
 
@@ -89,7 +85,7 @@ New profiles start empty unless the first profile adopts an earlier workspace.
   user appears above Workspace in the sidebar. Profile pictures are normalised
   locally, including JPEG orientation, and remain available after the source file
   is removed.
-- Each profile opens a separate research database: experiments, project notes,
+- Each profile opens a separate research database: Workbooks, experiments, notes,
   searches, saved analyses, and Recently deleted belong to that profile.
 - The experiment name, date, temperatures and materials sit on the left of the
   header; Back, New log entry and Delete experiment sit at the upper right.
@@ -107,7 +103,7 @@ New profiles start empty unless the first profile adopts an earlier workspace.
 - Source/sink values and signed ΔT support equal and reversed temperatures.
   Non-finite values and temperatures below absolute zero are rejected.
 - Optional researcher-assigned thermal character, precursor/product descriptions,
-  independent confirmed element sets, and optional transport-agent text are saved.
+  independent confirmed element sets, optional transport-agent text, and starting-material masses with units are saved.
 - A complete 118-element selector and local formula/name suggestions work offline.
 - Each experiment has its own persistent log with dated entries, editing, and search.
 - Recorded experiments show a researcher-entered experiment date. Older records
@@ -172,15 +168,14 @@ local data folder:
 .\crystal-forge.exe --data-dir "C:\Research\My logbook"
 ```
 
-Replacing the executable does not require deleting the data folder. Version 0.5
-keeps research schema 4 and adds a separate profile catalog (schema 1). Older
+Replacing the executable does not require deleting the data folder. Version 0.10
+uses research schema 5 and the separate profile catalog remains at schema 1. Older
 research databases still upgrade through the retained migrations. Use version
 0.5 or later to select profiles; earlier application versions do not understand
 the profile catalog or find new profile databases automatically.
 
-Older experiment dates remain unknown. Previous project notes are not assigned
-to experiments by guessing names; find them through **Previous project logs**
-inside their owner's profile. Profiles group data into separate workspaces; they
+Older experiment dates remain unknown. Unlinked project notes are retained in
+the database without being assigned to experiments. Profiles group data into separate workspaces; they
 are not password protection or encryption.
 
 Save is explicit; unsaved text does not survive a crash or forced shutdown.

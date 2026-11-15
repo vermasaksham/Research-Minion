@@ -1,7 +1,7 @@
 use chrono::NaiveDate;
 use crystal_forge::{
     cvt::CvtConditions,
-    model::{EntryDraft, ExperimentDetails, HeatEffect, Material},
+    model::{EntryDraft, ExperimentDetails, HeatEffect, MassUnit, Material, StartingMaterial},
     store::{Store, StoreError},
 };
 
@@ -18,6 +18,18 @@ fn details() -> ExperimentDetails {
             elements: [8, 34, 51].into(),
         },
         transport_agent: "I2 — recorded by the researcher".into(),
+        starting_materials: vec![
+            StartingMaterial {
+                name: "Sb".into(),
+                mass: "0.25".into(),
+                unit: MassUnit::G,
+            },
+            StartingMaterial {
+                name: "Se".into(),
+                mass: "120".into(),
+                unit: MassUnit::Mg,
+            },
+        ],
     }
 }
 

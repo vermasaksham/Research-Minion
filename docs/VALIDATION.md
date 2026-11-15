@@ -367,3 +367,16 @@ Attachments, autosave/crash recovery, readable export, permanent purge,
 edit history, automatic backup/restore, original Peak Explorer reference-data
 integration, and scientific reference-value verification remain unimplemented and untested. Revision numbers
 are conflict counters, not retained historical versions.
+# CrystalForge 0.10.0 Workbooks and starting-material masses, 15 November 2026
+
+Research schema 5 migrates a schema-4 database transactionally into one default
+Workbook, assigning all existing experiments while preserving their IDs, notes,
+dates and materials. The Workbook preference is stored per profile. New records
+inherit the active Workbook; moving an experiment changes only its workbook link.
+Starting-material names, mass strings and mg/g/kg units round-trip exactly. Bad
+mass values are rejected before any experiment or note-container write.
+
+The dedicated tests cover schema-4 migration and reopen, workbook creation,
+renaming, switching and moving, and mass validation. The full 77-test suite and
+Clippy pass on Linux. The Windows x64 GNU release cross-build succeeds. Native
+Windows interaction remains to be checked on a Windows machine.

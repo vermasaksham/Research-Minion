@@ -236,6 +236,17 @@ pub fn experiment_summary(ui: &mut egui::Ui, experiment: &CvtExperiment) {
                 }
             ));
         }
+        if !experiment.details.starting_materials.is_empty() {
+            ui.strong("Starting materials and masses");
+            for material in &experiment.details.starting_materials {
+                ui.label(format!(
+                    "{}: {} {}",
+                    material.name,
+                    material.mass,
+                    material.unit.label()
+                ));
+            }
+        }
         ui.label(format!(
             "Transport agent: {}",
             if experiment.details.transport_agent.trim().is_empty() {

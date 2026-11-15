@@ -11,7 +11,10 @@ use uuid::Uuid;
 use crate::{
     chemistry::element,
     cvt::CvtConditions,
-    model::{CvtExperiment, Entry, EntryDraft, ExperimentDetails, HeatEffect, Material, Project},
+    model::{
+        CvtExperiment, Entry, EntryDraft, ExperimentDetails, HeatEffect, Material, Project,
+        Workbook,
+    },
 };
 
 #[derive(Debug, Error)]
@@ -64,7 +67,7 @@ impl Store {
         connection.pragma_update(None, "foreign_keys", "ON")?;
         // Check before making schema or journal changes. Never downgrade a file.
         let version: i64 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 4 {
+        if version > 5 {
             return Err(StoreError::UnsupportedVersion(version));
         }
         if version == 0 {
@@ -176,6 +179,43 @@ impl Store {
         }
         connection.prepare("SELECT experiment_date, deleted_at FROM cvt_experiments LIMIT 0")?;
         connection.prepare("SELECT deleted_at FROM entries LIMIT 0")?;
+        if version < 5 {
+            let transaction = connection.transaction()?;
+            transaction.execute_batch("CREATE TABLE workbooks (
+                id TEXT PRIMARY KEY NOT NULL,
+                name TEXT NOT NULL CHECK(length(trim(name)) > 0),
+                description TEXT NOT NULL DEFAULT '',
+                material_system TEXT NOT NULL DEFAULT '',
+                primary_phase TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE workbook_preference (
+                id INTEGER PRIMARY KEY CHECK(id=1),
+                active_workbook_id TEXT NOT NULL REFERENCES workbooks(id)
+            );
+            ALTER TABLE cvt_experiments ADD COLUMN workbook_id TEXT REFERENCES workbooks(id);
+            ALTER TABLE cvt_experiments ADD COLUMN starting_materials_json TEXT NOT NULL DEFAULT '[]';
+            CREATE INDEX cvt_experiments_workbook ON cvt_experiments(workbook_id, created_at DESC);")?;
+            let default_id = Uuid::new_v4().to_string();
+            transaction.execute(
+                "INSERT INTO workbooks (id,name,created_at) VALUES (?1,'My experiments',?2)",
+                params![default_id, Utc::now().to_rfc3339()],
+            )?;
+            transaction.execute(
+                "INSERT INTO workbook_preference VALUES (1,?1)",
+                [&default_id],
+            )?;
+            transaction.execute("UPDATE cvt_experiments SET workbook_id=?1", [&default_id])?;
+            transaction.execute_batch("CREATE TRIGGER cvt_workbook_required_insert BEFORE INSERT ON cvt_experiments WHEN NEW.workbook_id IS NULL BEGIN SELECT RAISE(ABORT,'workbook required'); END;
+                CREATE TRIGGER cvt_workbook_required_update BEFORE UPDATE OF workbook_id ON cvt_experiments WHEN NEW.workbook_id IS NULL BEGIN SELECT RAISE(ABORT,'workbook required'); END;")?;
+            transaction.pragma_update(None, "user_version", 5)?;
+            transaction.commit()?;
+        }
+        connection.prepare("SELECT id,name,description,material_system,primary_phase,created_at FROM workbooks LIMIT 0")?;
+        connection
+            .prepare("SELECT active_workbook_id FROM workbook_preference WHERE id=1 LIMIT 0")?;
+        connection
+            .prepare("SELECT workbook_id,starting_materials_json FROM cvt_experiments LIMIT 0")?;
         connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.pragma_update(None, "synchronous", "FULL")?;
         Ok(Self {
@@ -186,6 +226,83 @@ impl Store {
 
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    pub fn workbooks(&self) -> Result<Vec<Workbook>> {
+        let mut statement = self.connection.prepare("SELECT id,name,description,material_system,primary_phase,created_at FROM workbooks ORDER BY created_at,id")?;
+        Ok(statement
+            .query_map([], read_workbook)?
+            .collect::<std::result::Result<_, _>>()?)
+    }
+
+    pub fn active_workbook_id(&self) -> Result<String> {
+        Ok(self.connection.query_row(
+            "SELECT active_workbook_id FROM workbook_preference WHERE id=1",
+            [],
+            |row| row.get(0),
+        )?)
+    }
+
+    pub fn set_active_workbook(&self, id: &str) -> Result<()> {
+        let changed = self.connection.execute("UPDATE workbook_preference SET active_workbook_id=?1 WHERE id=1 AND EXISTS(SELECT 1 FROM workbooks WHERE id=?1)",[id])?;
+        if changed == 0 {
+            return Err(StoreError::NotFound);
+        }
+        Ok(())
+    }
+
+    pub fn create_workbook(
+        &self,
+        name: &str,
+        description: &str,
+        material_system: &str,
+        primary_phase: &str,
+    ) -> Result<Workbook> {
+        let name = valid_workbook_name(name)?;
+        let workbook = Workbook {
+            id: Uuid::new_v4().to_string(),
+            name,
+            description: description.trim().into(),
+            material_system: material_system.trim().into(),
+            primary_phase: primary_phase.trim().into(),
+            created_at: Utc::now(),
+        };
+        self.connection.execute("INSERT INTO workbooks (id,name,description,material_system,primary_phase,created_at) VALUES (?1,?2,?3,?4,?5,?6)",params![workbook.id,workbook.name,workbook.description,workbook.material_system,workbook.primary_phase,workbook.created_at.to_rfc3339()])?;
+        Ok(workbook)
+    }
+
+    pub fn rename_workbook(&self, id: &str, name: &str) -> Result<()> {
+        let name = valid_workbook_name(name)?;
+        if self.connection.execute(
+            "UPDATE workbooks SET name=?1 WHERE id=?2",
+            params![name, id],
+        )? == 0
+        {
+            return Err(StoreError::NotFound);
+        }
+        Ok(())
+    }
+
+    pub fn move_experiment_to_workbook(
+        &self,
+        experiment_id: &str,
+        workbook_id: &str,
+    ) -> Result<()> {
+        if !self
+            .workbooks()?
+            .iter()
+            .any(|workbook| workbook.id == workbook_id)
+        {
+            return Err(StoreError::NotFound);
+        }
+        if self.connection.execute(
+            "UPDATE cvt_experiments SET workbook_id=?1 WHERE id=?2 AND deleted_at IS NULL",
+            params![workbook_id, experiment_id],
+        )? == 0
+        {
+            return Err(StoreError::NotFound);
+        }
+        Ok(())
     }
 
     pub fn create_cvt_experiment(
@@ -202,6 +319,31 @@ impl Store {
         conditions: CvtConditions,
         details: &ExperimentDetails,
     ) -> Result<CvtExperiment> {
+        self.create_cvt_experiment_in_workbook(
+            name,
+            conditions,
+            details,
+            &self.active_workbook_id()?,
+        )
+    }
+
+    pub fn create_cvt_experiment_in_workbook(
+        &self,
+        name: &str,
+        conditions: CvtConditions,
+        details: &ExperimentDetails,
+        workbook_id: &str,
+    ) -> Result<CvtExperiment> {
+        if !self
+            .workbooks()?
+            .iter()
+            .any(|workbook| workbook.id == workbook_id)
+        {
+            return Err(StoreError::NotFound);
+        }
+        for material in &details.starting_materials {
+            material.validate().map_err(StoreError::Validation)?;
+        }
         if details
             .precursor
             .elements
@@ -215,6 +357,7 @@ impl Store {
         }
         let id = Uuid::new_v4().to_string();
         let experiment = CvtExperiment {
+            workbook_id: workbook_id.to_string(),
             name: if name.trim().is_empty() {
                 format!("CVT {}", &id[..8])
             } else {
@@ -229,8 +372,8 @@ impl Store {
         let transaction = self.connection.unchecked_transaction()?;
         transaction.execute("INSERT INTO projects (id,name,description,created_at) VALUES (?1,?2,'CVT experiment log',?3)", params![experiment.log_project_id,experiment.name,experiment.created_at.to_rfc3339()])?;
         transaction.execute(
-            "INSERT INTO cvt_experiments (id, name, source_c, sink_c, created_at, heat_effect, precursor_text, product_text, transport_agent, experiment_date) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
-            params![experiment.id, experiment.name, conditions.source_c(), conditions.sink_c(), experiment.created_at.to_rfc3339(),details.heat_effect.as_str(),details.precursor.text,details.product.text,details.transport_agent,details.experiment_date.map(|date| date.to_string())],
+            "INSERT INTO cvt_experiments (id, name, source_c, sink_c, created_at, heat_effect, precursor_text, product_text, transport_agent, experiment_date, workbook_id, starting_materials_json) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+            params![experiment.id, experiment.name, conditions.source_c(), conditions.sink_c(), experiment.created_at.to_rfc3339(),details.heat_effect.as_str(),details.precursor.text,details.product.text,details.transport_agent,details.experiment_date.map(|date| date.to_string()),experiment.workbook_id,serde_json::to_string(&details.starting_materials).map_err(|error| StoreError::Validation(error.to_string()))?],
         )?;
         transaction.execute(
             "INSERT INTO experiment_logs (experiment_id,project_id) VALUES (?1,?2)",
@@ -250,7 +393,7 @@ impl Store {
 
     pub fn cvt_experiments(&self) -> Result<Vec<CvtExperiment>> {
         let mut statement = self.connection.prepare(
-            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date
+            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date,c.workbook_id,c.starting_materials_json
              FROM cvt_experiments c LEFT JOIN experiment_logs l ON c.id=l.experiment_id WHERE c.deleted_at IS NULL ORDER BY c.created_at DESC,c.id",
         )?;
         let rows = statement.query_map([], read_cvt_experiment)?;
@@ -265,7 +408,7 @@ impl Store {
 
     pub fn cvt_experiment(&self, id: &str) -> Result<CvtExperiment> {
         let mut experiment = self.connection.query_row(
-            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date
+            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date,c.workbook_id,c.starting_materials_json
              FROM cvt_experiments c LEFT JOIN experiment_logs l ON c.id=l.experiment_id WHERE c.id=?1 AND c.deleted_at IS NULL",[id],read_cvt_experiment,
         ).optional()?.ok_or(StoreError::NotFound)?;
         self.load_elements(&mut experiment)?;
@@ -297,7 +440,7 @@ impl Store {
 
     pub fn deleted_experiments(&self) -> Result<Vec<CvtExperiment>> {
         let mut statement = self.connection.prepare(
-            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date
+            "SELECT c.id,c.name,c.source_c,c.sink_c,c.created_at,c.heat_effect,c.precursor_text,c.product_text,c.transport_agent,l.project_id,c.experiment_date,c.workbook_id,c.starting_materials_json
              FROM cvt_experiments c LEFT JOIN experiment_logs l ON c.id=l.experiment_id WHERE c.deleted_at IS NOT NULL ORDER BY c.deleted_at DESC,c.id",
         )?;
         let rows = statement.query_map([], read_cvt_experiment)?;
@@ -577,6 +720,7 @@ fn read_cvt_experiment(row: &Row<'_>) -> rusqlite::Result<CvtExperiment> {
     })?;
     Ok(CvtExperiment {
         id: row.get(0)?,
+        workbook_id: row.get(11)?,
         name: row.get(1)?,
         conditions,
         created_at: parse_value(row, 4)?,
@@ -599,7 +743,31 @@ fn read_cvt_experiment(row: &Row<'_>) -> rusqlite::Result<CvtExperiment> {
                 ..Default::default()
             },
             transport_agent: row.get(8)?,
+            starting_materials: serde_json::from_str(&row.get::<_, String>(12)?).map_err(
+                |error| rusqlite::Error::FromSqlConversionFailure(12, Type::Text, Box::new(error)),
+            )?,
         },
+    })
+}
+
+fn valid_workbook_name(value: &str) -> Result<String> {
+    let name = value.trim();
+    if name.is_empty() || name.chars().count() > 120 {
+        return Err(StoreError::Validation(
+            "Enter a workbook name of 1–120 characters.".into(),
+        ));
+    }
+    Ok(name.into())
+}
+
+fn read_workbook(row: &Row<'_>) -> rusqlite::Result<Workbook> {
+    Ok(Workbook {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        description: row.get(2)?,
+        material_system: row.get(3)?,
+        primary_phase: row.get(4)?,
+        created_at: parse_value(row, 5)?,
     })
 }
 
