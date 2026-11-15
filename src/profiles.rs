@@ -98,6 +98,11 @@ pub struct Profiles {
     root: PathBuf,
 }
 impl Profiles {
+    /// Reference databases shared by all profiles under this installation.
+    pub fn data_root(&self) -> &Path {
+        &self.root
+    }
+
     pub fn open(root: &Path) -> Result<Self> {
         std::fs::create_dir_all(root)?;
         let mut connection = Connection::open(root.join("profiles.sqlite3"))?;

@@ -380,3 +380,17 @@ The dedicated tests cover schema-4 migration and reopen, workbook creation,
 renaming, switching and moving, and mass validation. The full 77-test suite and
 Clippy pass on Linux. The Windows x64 GNU release cross-build succeeds. Native
 Windows interaction remains to be checked on a Windows machine.
+
+# CrystalForge 0.11.0 thermodynamic reference catalog, 15 November 2026
+
+The separate, global `thermodynamics.sqlite3` starts with Knacke 1991 source
+metadata and zero numerical entries. Tests cover a phase-specific record with
+explicit reference pressure and units, persistence after reopen, source
+selection and disabling rules, revision conflicts, edit-triggered reverification,
+invalid numerical values, preservation of unrelated/newer databases and sharing
+the reference catalog across otherwise separate profile workspaces. The manager
+UI allows manual entry and an explicit verification review. No thermodynamic
+calculation is implied by a verified entry in this version.
+
+The full 83-test suite, Clippy and the Windows x64 GNU release cross-build pass.
+Native Windows interaction has not been exercised here.

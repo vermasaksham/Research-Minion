@@ -3,7 +3,7 @@
 **Crystal-growth experiments and scientific utilities.**
 
 An offline Windows research workspace built with Rust, egui/eframe, and SQLite.
-Version **0.10.0** adds profile-local Workbooks and starting-material masses. Version 0.9.1 lets subscript/superscript style entire words. Version 0.9 added local note pictures and a
+Version **0.11.0** adds a local Thermodynamic Database Manager for manually entered, cited species records. Version 0.10 adds profile-local Workbooks and starting-material masses. Version 0.9 added local note pictures and a
 simpler profile control. The Sb₂Se₃ Peak Explorer keeps separate EDX energy
 and XRD diffraction views, source inspection, crystal-setting mapping and local
 reference snapshots. Markdown notes and separate offline user profiles remain available.
@@ -12,8 +12,8 @@ reference snapshots. Markdown notes and separate offline user profiles remain av
 
 For **Windows 10/11, 64-bit**:
 
-- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.10.0-windows-x64.exe)**
-- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.10.0-windows-x64-preview.zip)
+- **[Download CrystalForge.exe](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.11.0-windows-x64.exe)**
+- [Download the portable ZIP with instructions](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.11.0-windows-x64-preview.zip)
 - [Download checksums](downloads/SHA256SUMS.txt)
 
 Close older versions, download the executable and double-click it. If you choose the ZIP, extract it
@@ -59,12 +59,12 @@ create or switch users, or edit your name/picture. Switching protects unsaved no
     Compare Cu/Co radiation, custom wavelength and Pbnm/Pnma settings. Expand
     **Save / export reference snapshot** to save an analysis to an experiment log
     or export JSON into the active profile. **Manual XRD** retains the earlier calculator.
-11. Close and reopen the app to return to your saved experiments and logs.
+11. Open **Scientific Utilities → Thermodynamic Databases** to enter source databases and phase-specific species records. Knacke 1991 is listed as a source, with no bundled values. Enter a page/table citation, explicit standard pressure and values in the shown units. Saved entries start unverified; compare them with the original source before marking verified. No equilibrium calculations are available yet.
+12. Close and reopen the app to return to your saved experiments, logs and reference entries.
 
 The sidebar contains the active Workbook, **CVT Experiments**, and **Scientific Utilities**. There is no separate Logbook tab. Earlier unlinked project notes remain in the database but are no longer shown in the interface.
 
-This is an early preview. Automated tests pass; the Windows executable is cross-compiled.
-The executable was cross-compiled for Windows; Windows execution remains
+This is an early preview. Automated tests pass; the executable is cross-compiled for Windows. Windows execution remains
 unverified. Preview binaries are hosted directly in this repository, rather than
 as GitHub Release assets, because release-API access is unavailable here.
 
@@ -87,6 +87,7 @@ New profiles start empty unless the first profile adopts an earlier workspace.
   is removed.
 - Each profile opens a separate research database: Workbooks, experiments, notes,
   searches, saved analyses, and Recently deleted belong to that profile.
+- The installation has one separate thermodynamic reference database, shared across local profiles and Workbooks. Sources and entries retain phase, temperature range, reference temperature and pressure, units, page/table locator, verification status and revision. Editing clears verification. No Knacke values or thermodynamic calculations are bundled.
 - The experiment name, date, temperatures and materials sit on the left of the
   header; Back, New log entry and Delete experiment sit at the upper right.
   Below it, the note list and editor share
@@ -146,7 +147,7 @@ selection until you choose them. See [chemistry conventions](docs/CHEMISTRY.md).
 
 ## Where your work lives
 
-The default Windows folder is `%LOCALAPPDATA%\CrystalForge`. On Linux it uses
+The default Windows folder is `%LOCALAPPDATA%\CrystalForge`. The shared thermodynamic database is `thermodynamics.sqlite3` in that folder. On Linux it uses
 `$XDG_DATA_HOME/CrystalForge`, normally `~/.local/share/CrystalForge`.
 
 - `profiles.sqlite3` contains profile identities, copied pictures and the last

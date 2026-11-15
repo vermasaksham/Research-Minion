@@ -8,6 +8,8 @@ use crate::{
     profile_view::{self, ProfileForm},
     profiles::{Profile, Profiles},
     store::Store,
+    thermo_database::ThermoStore,
+    thermo_view::ThermoDatabaseView,
 };
 
 pub(crate) const INK: Color32 = Color32::from_rgb(29, 43, 59);
@@ -23,6 +25,13 @@ enum Tab {
     Tools,
     Logbook,
     RecentlyDeleted,
+}
+
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+enum Utility {
+    #[default]
+    PeakExplorer,
+    ThermodynamicDatabases,
 }
 
 #[derive(Clone)]
@@ -120,6 +129,10 @@ pub struct CrystalForgeApp {
     deleted_entries: Vec<Entry>,
     peak: PeakWorkspace,
     peak_drafts: std::collections::BTreeMap<String, PeakWorkspace>,
+    utility: Utility,
+    thermo_store: Option<ThermoStore>,
+    thermo_error: Option<String>,
+    thermo_view: ThermoDatabaseView,
 }
 
 impl CrystalForgeApp {
@@ -128,6 +141,14 @@ impl CrystalForgeApp {
         let (registry, startup_error) = match registry {
             Ok(registry) => (Some(registry), None),
             Err(error) => (None, Some(error)),
+        };
+        let (thermo_store, thermo_error) = match registry
+            .as_ref()
+            .map(|registry| ThermoStore::open(registry.data_root()))
+        {
+            Some(Ok(store)) => (Some(store), None),
+            Some(Err(error)) => (None, Some(error.to_string())),
+            None => (None, None),
         };
         let mut app = Self {
             store: None,
@@ -161,6 +182,10 @@ impl CrystalForgeApp {
             deleted_entries: vec![],
             peak: PeakWorkspace::default(),
             peak_drafts: std::collections::BTreeMap::new(),
+            utility: Utility::default(),
+            thermo_store,
+            thermo_error,
+            thermo_view: ThermoDatabaseView::default(),
         };
         let initial = app.registry.as_ref().map(|registry| {
             Ok::<_, String>((
@@ -402,6 +427,7 @@ impl CrystalForgeApp {
                 .experiment_form
                 .as_ref()
                 .is_some_and(ExperimentForm::is_dirty)
+            || self.thermo_view.has_unsaved_form()
     }
 
     fn save_active_changes(&mut self, ctx: &egui::Context) -> bool {
@@ -409,6 +435,12 @@ impl CrystalForgeApp {
             self.save_profile(ctx)
         } else if self.experiment_form.is_some() {
             self.create_experiment()
+        } else if self.thermo_view.has_unsaved_form() {
+            let saved = self.thermo_view.save_form(self.thermo_store.as_ref());
+            if !saved {
+                self.error = self.thermo_view.last_error().map(str::to_string);
+            }
+            saved
         } else {
             self.save()
         }
@@ -418,6 +450,7 @@ impl CrystalForgeApp {
         self.notes_view = crate::notes_view::NotesView::default();
         self.profile_form = None;
         self.experiment_form = None;
+        self.thermo_view.discard_form();
         if let Some(editor) = &mut self.editor {
             *editor = match &editor.saved {
                 Some(entry) => Editor::from_entry(entry.clone()),
@@ -1309,6 +1342,8 @@ impl CrystalForgeApp {
                     "This profile has unsaved changes. Save it before continuing, or discard it."
                 } else if self.experiment_form.is_some() {
                     "This new experiment has not been saved. Save it before continuing, or discard it."
+                } else if self.thermo_view.has_unsaved_form() {
+                    "This thermodynamic database form has unsaved changes. Save it before continuing, or discard the changes."
                 } else {
                     "This entry has unsaved changes. Save them before continuing, or discard the changes."
                 });
@@ -1490,7 +1525,31 @@ impl eframe::App for CrystalForgeApp {
                             None => {}
                         }
                     }
-                    Tab::Tools => self.peak.show(ui, self.store.as_ref(), &self.experiments),
+                    Tab::Tools => {
+                        ui.horizontal(|ui| {
+                            ui.selectable_value(
+                                &mut self.utility,
+                                Utility::PeakExplorer,
+                                "Peak Explorer",
+                            );
+                            ui.selectable_value(
+                                &mut self.utility,
+                                Utility::ThermodynamicDatabases,
+                                "Thermodynamic Databases",
+                            );
+                        });
+                        ui.separator();
+                        match self.utility {
+                            Utility::PeakExplorer => {
+                                self.peak.show(ui, self.store.as_ref(), &self.experiments)
+                            }
+                            Utility::ThermodynamicDatabases => self.thermo_view.show(
+                                ui,
+                                self.thermo_store.as_ref(),
+                                self.thermo_error.as_deref(),
+                            ),
+                        }
+                    }
                     Tab::RecentlyDeleted => self.recently_deleted(ui, &mut actions),
                     Tab::Logbook => self.workspace(ui, &mut actions),
                 }

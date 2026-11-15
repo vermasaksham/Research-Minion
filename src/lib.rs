@@ -6,6 +6,10 @@ pub mod markdown;
 pub mod model;
 pub mod note_images;
 pub mod store;
+pub mod thermo_database;
+
+#[cfg(feature = "desktop")]
+mod thermo_view;
 
 #[cfg(feature = "desktop")]
 pub mod app;

@@ -22,3 +22,5 @@ dc79b67cdce22862d19d474df18ee0d6d03b7d896eb3cb28d4aff5fac2852c22  CrystalForge-0
 953ff93485dfd56bff6a6d7129314f298e9c8676c9373a610f572352ebae6949  CrystalForge-0.9.1-windows-x64-preview.zip
 18e226d5a06d82b84c676898a86ee91d3c629bfc31a119155717b12c17d20902  CrystalForge-0.10.0-windows-x64.exe
 e97c866897aaf1f8725a7499bf6f30e07c8aafca684bc0ef5c628718d1ae6983  CrystalForge-0.10.0-windows-x64-preview.zip
+b264c8a9780ba32c8cf9802596f7dbc1c7a4e8d3abb42f53188b5731439bdaab  CrystalForge-0.11.0-windows-x64.exe
+1f610b4ae736117d68f952449df5e419e84945040d1aaebafb1a44234be752d2  CrystalForge-0.11.0-windows-x64-preview.zip

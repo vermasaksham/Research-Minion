@@ -1,4 +1,4 @@
-CrystalForge 0.10.0 - Crystal-growth experiments and scientific utilities
+CrystalForge 0.11.0 - Crystal-growth experiments and scientific utilities
 
 Run the standalone EXE, or extract the ZIP and open crystal-forge.exe.
 Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
@@ -11,7 +11,7 @@ Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
 2. Existing experiments and notes belong to the first profile created for this
    data folder. Their database stays in place. Later profiles start empty.
 3. The active name/picture appear above Workspace in the sidebar. Click them to
-   you create/switch profiles or edit your identity. Switches protect unsaved notes.
+   create/switch profiles or edit your identity. Switches protect unsaved notes.
 4. Choose or create a Workbook in the sidebar. CVT Experiments > + New experiment > Conditions: enter temperatures, date and
    optional name/thermal character. Materials & transport agent holds the optional
    descriptions, element selection, individual starting-material masses with
@@ -29,11 +29,17 @@ Windows 10/11 x64 with an OpenGL-capable driver is required. Rust, Python,
    profile's experiment log or exports folder. Manual XRD keeps the earlier calculator.
    EDX covers Sb, Bi, Se, I, Cl, Br and S. XRD covers Sb2Se3, Sb and trigonal Se.
    No SbSeI or SbI3 diffraction references are bundled. See docs/PEAK-EXPLORER.md.
+8. Scientific Utilities > Thermodynamic Databases opens the local reference
+   manager. Knacke 1991 is listed without data. Add source records or manually
+   enter phase-specific values with a page/table citation, explicit standard
+   pressure and units. Check the original source before marking an entry verified.
+   No thermodynamic equilibrium calculations are available in this version.
 
 Default complete data folder: %LOCALAPPDATA%\CrystalForge
 An existing %LOCALAPPDATA%\ResearchMinion folder is opened in place so earlier
 profiles, experiments and notes remain available after the rename.
 It contains profiles.sqlite3, profile subfolders and any earlier root database.
+It also contains thermodynamics.sqlite3, shared by local profiles and Workbooks.
 JSON reference exports are stored in the owning profile's exports subfolder.
 Keep the WHOLE folder when replacing the executable or making a backup. Save and
 close ALL app instances before copying it, including all WAL/SHM files if present.

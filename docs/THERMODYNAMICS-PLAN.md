@@ -1,8 +1,17 @@
 # Thermodynamics architecture and prerequisites
 
-This document records the planned next phases. The current app does not calculate
-thermodynamic equilibria or ship values from Knacke. The database and validation
-work below must precede results shown to researchers.
+Phase 2 adds a global local source catalog and manual species records. Knacke
+1991 is present as metadata only; no thermodynamic values are bundled. The app
+does not yet calculate equilibria. Validation against the original source and
+the Binnewies workbook must precede trustworthy calculated results.
+
+Each record stores one phase, a valid temperature range, an explicit reference
+temperature and standard pressure, ΔfH° in J/mol, S° and Cp° in J/(mol·K), a
+page/table locator and comments. Records start unverified. A user marks them
+verified only after reviewing the source; editing clears verification. The
+initial model stores values at one reference temperature. It does not describe
+temperature-dependent heat capacity or phase-transition energetics.
+Aqueous records await an explicit concentration standard state in a later schema.
 
 ## Storage boundary
 

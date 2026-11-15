@@ -1,5 +1,17 @@
 # Foundation and decisions
 
+## Thermodynamic reference catalog (schema 1)
+
+Version 0.11 introduces `thermodynamics.sqlite3` at the installation data root,
+shared by local profiles and Workbooks. It contains source metadata, source
+selection preferences and phase-specific species entries. The seeded Knacke 1991
+record has bibliographic metadata and no numerical values. Manually entered
+species records retain explicit reference pressure, temperature range, units,
+source locator, comments, verification timestamp and edit revision. New records
+are unverified; changing one clears verification. A deliberate source-review
+step is required to mark a record verified. No values are silently imported,
+mixed across sources or used for calculations in this milestone.
+
 ## Current Workbook layer (research schema 5)
 
 Each profile retains its own research SQLite database. Schema 5 adds `workbooks`,

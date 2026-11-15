@@ -2,10 +2,10 @@
 
 CrystalForge — crystal-growth experiments and scientific utilities.
 
-Version **0.10.0** for Windows 10/11 x64:
+Version **0.11.0** for Windows 10/11 x64:
 
-- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.10.0-windows-x64.exe)
-- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.10.0-windows-x64-preview.zip)
+- [Download the standalone executable](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.11.0-windows-x64.exe)
+- [Download the portable ZIP and documentation](https://github.com/vermasaksham/Research-Minion/raw/refs/heads/main/downloads/CrystalForge-0.11.0-windows-x64-preview.zip)
 - [SHA-256 checksums](SHA256SUMS.txt)
 
 Run the EXE, or extract the ZIP and open `crystal-forge.exe`. No Rust installation
@@ -20,6 +20,9 @@ Individual deletion stays on note cards. Tools is called Scientific Utilities.
 The active Workbook appears in the sidebar. Create or rename Workbooks there;
 open an experiment log to move it. New experiments save to the active Workbook.
 The Materials form now accepts starting materials with individual masses and units.
+Scientific Utilities now includes Thermodynamic Databases. Knacke 1991 is
+source metadata only; enter and verify values from the original reference.
+The reference database is shared across local profiles and Workbooks.
 
 Keep the entire `%LOCALAPPDATA%\CrystalForge` folder when replacing the app or
 making a closed-app backup: profile catalog, pictures, all profile subfolders,
