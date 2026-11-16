@@ -1,0 +1,146 @@
+[
+  {
+    "formula": "BiCl",
+    "phase": "g",
+    "min_k": 298.0,
+    "max_k": 2000.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": 25100.0,
+    "entropy_j_mol_k": 255.1,
+    "cp_coefficients": [
+      37.32,
+      0.00084,
+      -120000.0,
+      0.0
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 880"
+  },
+  {
+    "formula": "BiCl3",
+    "phase": "g",
+    "min_k": 298.0,
+    "max_k": 2000.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": -265300.0,
+    "entropy_j_mol_k": 357.4,
+    "cp_coefficients": [
+      83.05,
+      0.0,
+      -310000.0,
+      0.0
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 888"
+  },
+  {
+    "formula": "Cl2",
+    "phase": "g",
+    "min_k": 298.0,
+    "max_k": 2000.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": 0.0,
+    "entropy_j_mol_k": 223.1,
+    "cp_coefficients": [
+      36.61,
+      0.00108,
+      -270000.0,
+      0.0
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 1954"
+  },
+  {
+    "formula": "SeCl2",
+    "phase": "g",
+    "min_k": 298.0,
+    "max_k": 2000.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": -33500.0,
+    "entropy_j_mol_k": 295.7,
+    "cp_coefficients": [
+      57.95,
+      0.00013,
+      -390000.0,
+      0.0
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 2051"
+  },
+  {
+    "formula": "TeCl2",
+    "phase": "s",
+    "min_k": 298.0,
+    "max_k": 298.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": -190200.0,
+    "entropy_j_mol_k": 161.4,
+    "cp_coefficients": [
+      83.68,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 2068"
+  },
+  {
+    "formula": "SbCl3",
+    "phase": "g",
+    "min_k": 298.0,
+    "max_k": 2000.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": -313100.0,
+    "entropy_j_mol_k": 339.1,
+    "cp_coefficients": [
+      82.38,
+      0.0007,
+      -520000.0,
+      0.0
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 2188"
+  },
+  {
+    "formula": "Sb",
+    "phase": "s",
+    "min_k": 298.0,
+    "max_k": 904.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": 0.0,
+    "entropy_j_mol_k": 45.5,
+    "cp_coefficients": [
+      30.51,
+      -0.0155,
+      -200000.0,
+      1.802e-05
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 4966"
+  },
+  {
+    "formula": "Se",
+    "phase": "s",
+    "min_k": 298.0,
+    "max_k": 493.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": 0.0,
+    "entropy_j_mol_k": 42.3,
+    "cp_coefficients": [
+      17.89,
+      0.0251,
+      0.0,
+      0.0
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 4999"
+  },
+  {
+    "formula": "Te2",
+    "phase": "g",
+    "min_k": 298.0,
+    "max_k": 2000.0,
+    "reference_k": 298.0,
+    "enthalpy_j_mol": 160400.0,
+    "entropy_j_mol_k": 262.2,
+    "cp_coefficients": [
+      34.64,
+      0.00662,
+      -30000.0,
+      0.0
+    ],
+    "source_locator": "Binnewies.Tabelle1.XLS Tabelle1 row 5166"
+  }
+]

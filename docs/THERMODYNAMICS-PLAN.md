@@ -38,5 +38,6 @@ The supplied Knacke PDF exceeded the 32 MiB transfer limit. The user's later
 instruction was to extract candidate values from the spreadsheets. The app
 therefore provides a spreadsheet candidate import and individual review flow;
 it does not claim automatic PDF extraction or independent Knacke verification.
-The four worksheet checks and two significant discrepancies are documented in
+The four worksheet checks, an independent nine-row comparison with the
+supplied Binnewies XLS table, and two significant discrepancies are documented in
 [THERMODYNAMICS-VALIDATION.md](THERMODYNAMICS-VALIDATION.md).
